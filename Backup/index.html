@@ -2462,6 +2462,8 @@
           isFavorite: false,
           image: null,
           video: null,
+          notes: "",
+          rating: 0,
         },
         {
           id: "2",
@@ -2504,6 +2506,8 @@
           isFavorite: true,
           image: null,
           video: null,
+          notes: "",
+          rating: 0,
         },
         {
           id: "3",
@@ -2548,6 +2552,8 @@
           isFavorite: false,
           image: null,
           video: null,
+          notes: "",
+          rating: 0,
         },
         {
           id: "4",
@@ -2589,6 +2595,8 @@
           isFavorite: false,
           image: null,
           video: null,
+          notes: "",
+          rating: 0,
         },
         {
           id: "5",
@@ -2632,6 +2640,8 @@
           isFavorite: false,
           image: null,
           video: null,
+          notes: "",
+          rating: 0,
         },
         {
           id: "6",
@@ -2677,6 +2687,8 @@
           isFavorite: false,
           image: null,
           video: null,
+          notes: "",
+          rating: 0,
         },
         {
           id: "7",
@@ -2716,6 +2728,8 @@
           isFavorite: false,
           image: null,
           video: null,
+          notes: "",
+          rating: 0,
         },
       ];
 
@@ -3618,6 +3632,13 @@
           showShoppingListModal,
         ]);
 
+        // Initialize sync when app loads
+        useEffect(() => {
+          if (isSyncEnabled()) {
+            startPeriodicSync();
+          }
+        }, []);
+
         const exportRecipes = useCallback(async () => {
           try {
             const allRecipes = await getAllItems(STORE_NAMES.RECIPES);
@@ -3625,7 +3646,15 @@
               throw new Error("No recipes found to export");
             }
 
-            const dataStr = JSON.stringify(allRecipes, null, 2);
+            const prepared = (allRecipes || []).map((r) => ({
+              ...r,
+              notes: typeof r.notes === "string" ? r.notes : "",
+              rating:
+                r.rating !== undefined && !isNaN(parseFloat(r.rating))
+                  ? Math.max(0, Math.min(5, parseFloat(r.rating)))
+                  : 0,
+            }));
+            const dataStr = JSON.stringify(prepared, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
 
             const url = URL.createObjectURL(blob);
@@ -3900,6 +3929,14 @@
                 ? recipe.isFavorite === true
                 : true;
 
+              // Filter by rating if specified
+              const matchesRating =
+                filters.rating !== undefined && filters.rating !== ""
+                  ? recipe.rating !== undefined
+                    ? recipe.rating.toString() === filters.rating
+                    : false
+                  : true;
+
               const totalTime =
                 parseInt(recipe.prepTime || 0) +
                 parseInt(recipe.cookTime || 0) +
@@ -3930,6 +3967,7 @@
                 matchesDietary &&
                 matchesTag &&
                 matchesFavorite &&
+                matchesRating &&
                 matchesCookTime &&
                 matchesCollection &&
                 matchesSeasonal
@@ -4170,6 +4208,12 @@
             if (recipe.description) {
               allRecipesText += `${recipe.description}\n\n`;
             }
+            if (recipe.rating || recipe.rating === 0) {
+              allRecipesText += `Rating: ${recipe.rating}/5\n\n`;
+            }
+            if (recipe.notes) {
+              allRecipesText += `Notes:\n${recipe.notes}\n\n`;
+            }
             if (recipe.ingredients && recipe.ingredients.length > 0) {
               allRecipesText += "Ingredients:\n";
               recipe.ingredients.forEach((ing) => {
@@ -4241,6 +4285,15 @@
               ? `<p style="font-size: 10pt; color: #555; margin-bottom: 20px; text-align: center; font-style: italic;">${escapeHTML(
                   recipe.description,
                 )}</p>`
+              : "";
+
+            // Include rating and notes when present
+            const ratingHtml =
+              recipe.rating || recipe.rating === 0
+                ? `<div style="text-align:center; margin-bottom:8px; font-size:11pt; color:#444;"><strong>Rating:</strong> ${escapeHTML(String(recipe.rating))}/5</div>`
+                : "";
+            const notesHtml = recipe.notes
+              ? `<div style="margin-bottom:20px; padding:12px; background:#f7fafc; border-radius:6px; color:#222; white-space:pre-wrap;"><strong>Notes:</strong><br/>${escapeHTML(String(recipe.notes))}</div>`
               : "";
             const typeHtml = recipe.type
               ? `<p style="font-size: 9pt; color: #777;">Type: ${escapeHTML(
@@ -4335,7 +4388,7 @@
                       }</p>
                       ${typeHtml} ${cuisineHtml} ${dietaryTypesHtml} ${tagsHtml}
                     </div>
-                    ${recipeDescriptionHtml} ${imageHtml}
+                    ${recipeDescriptionHtml} ${ratingHtml} ${notesHtml} ${imageHtml}
                     <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; margin-bottom: 30px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 20px 0;">
                       <div style="flex: 1; min-width: 150px;">
                         <h3 style="color: #2ecc71; margin: 0 0 12px 0; font-size: 13pt; border-bottom: 1px solid #eee; padding-bottom: 6px;">Details</h3>
@@ -4510,6 +4563,16 @@
                 setShoppingList={setShoppingList}
                 collections={collections}
                 setCollections={setCollections}
+                onRecipeUpdate={(updatedRecipe) => {
+                  // Update the recipe in the main recipes list
+                  setRecipes((prev) =>
+                    prev.map((r) =>
+                      r.id === updatedRecipe.id ? updatedRecipe : r,
+                    ),
+                  );
+                  // Update the currently displayed recipe
+                  setShowRecipeDetails(updatedRecipe);
+                }}
               />
             )}
             {showMealPlanModal && (
@@ -4822,6 +4885,13 @@
                         typeof recipe.image === "string" ? recipe.image : null,
                       video:
                         typeof recipe.video === "string" ? recipe.video : null,
+                      notes:
+                        typeof recipe.notes === "string" ? recipe.notes : "",
+                      rating:
+                        recipe.rating !== undefined &&
+                        !isNaN(parseFloat(recipe.rating))
+                          ? Math.max(0, Math.min(5, parseFloat(recipe.rating)))
+                          : 0,
                       createdAt: new Date().toISOString(),
                       isFavorite: false,
                     };
@@ -5460,6 +5530,7 @@
       }) => {
         const [filteredRecipes, setFilteredRecipes] = useState([]);
         const [tagModal, setTagModal] = useState({ open: false, tag: null });
+        const [typeModal, setTypeModal] = useState({ open: false, type: null });
         const [activeCollection, setActiveCollection] = useState(null);
         const [filters, setFilters] = useState({
           query: "",
@@ -5468,6 +5539,7 @@
           dietaryType: "",
           tag: "",
           cookTime: "",
+          rating: "",
           favorites: false,
           seasonal: false,
           collectionRecipeIds: null,
@@ -5482,6 +5554,7 @@
             filters.dietaryType ||
             filters.tag ||
             filters.cookTime ||
+            filters.rating ||
             filters.favorites;
           let results = recipes;
           if (isFilterActive || !hideAllExplicitly) {
@@ -5595,6 +5668,7 @@
           filters.dietaryType ||
           filters.tag ||
           filters.cookTime ||
+          filters.rating ||
           filters.favorites ||
           filters.seasonal;
 
@@ -5783,6 +5857,24 @@
                 ))}
               </select>
 
+              {/* Ratings dropdown - filter by rating */}
+              <select
+                name="rating"
+                value={filters.rating || ""}
+                onChange={handleFilterChange}
+                className="filter-select text-xs sm:text-sm"
+                aria-label="Filter by rating"
+                title="Filter recipes by rating"
+              >
+                <option value="">Ratings</option>
+                <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
+                <option value="4">⭐⭐⭐⭐ (4 stars)</option>
+                <option value="3">⭐⭐⭐ (3 stars)</option>
+                <option value="2">⭐⭐ (2 stars)</option>
+                <option value="1">⭐ (1 star)</option>
+                <option value="0">No rating</option>
+              </select>
+
               <label
                 className="flex items-center gap-1 cursor-pointer text-xs sm:text-sm whitespace-nowrap ml-1 sm:ml-2 text-gray-700 dark:text-gray-300"
                 title="Favorites Only"
@@ -5892,10 +5984,37 @@
                         )}
                       </div>
                       <div className="flex flex-wrap gap-1 my-1 text-xs">
-                        <span className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 px-2 py-0.5 rounded-full">
-                          <i className="fas fa-utensils op-70"></i>{" "}
-                          {recipe.type}
-                        </span>
+                        {recipe.type && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log("Type button clicked:", recipe.type);
+                              setTypeModal({ open: true, type: recipe.type });
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log(
+                                  "Type button activated by keyboard:",
+                                  recipe.type,
+                                );
+                                setTypeModal({ open: true, type: recipe.type });
+                              }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 px-2 py-0.5 rounded-full cursor-pointer"
+                            title={`Show all ${recipe.type} recipes`}
+                            aria-label={`Show all ${recipe.type} recipes`}
+                          >
+                            <i
+                              className="fas fa-utensils op-70"
+                              aria-hidden="true"
+                            ></i>{" "}
+                            {recipe.type}
+                          </button>
+                        )}
                         {recipe.cuisine && (
                           <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 rounded-full">
                             <i className="fas fa-globe op-70"></i>{" "}
@@ -6049,6 +6168,73 @@
                 </div>
               </div>
             )}
+
+            {/* Type Modal */}
+            {typeModal.open && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 modal-fade"
+                onClick={() => setTypeModal({ open: false, type: null })}
+              >
+                <div
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-lg w-full relative modal-fade"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl ripple"
+                    onClick={() => setTypeModal({ open: false, type: null })}
+                  >
+                    &times;
+                  </button>
+                  <h2 className="text-lg font-semibold mb-3">
+                    Recipes of type:{" "}
+                    <span className="text-green-600 dark:text-green-300">
+                      {typeModal.type}
+                    </span>
+                  </h2>
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {recipes.filter((r) => r.type === typeModal.type).length ===
+                    0 ? (
+                      <div className="text-gray-400">
+                        No recipes found for this type.
+                      </div>
+                    ) : (
+                      recipes
+                        .filter((r) => r.type === typeModal.type)
+                        .map((r) => (
+                          <div
+                            key={r.id}
+                            className="p-2 rounded hover:bg-green-50 dark:hover:bg-green-900 cursor-pointer flex items-center gap-3"
+                            onClick={() => {
+                              setTypeModal({ open: false, type: null });
+                              openRecipeDetails(r);
+                            }}
+                          >
+                            {r.image ? (
+                              <img
+                                src={r.image}
+                                alt={r.name}
+                                className="w-14 h-14 object-cover rounded shadow"
+                              />
+                            ) : (
+                              <div className="w-14 h-14 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded">
+                                <i className="fas fa-image text-2xl text-gray-400 dark:text-gray-500"></i>
+                              </div>
+                            )}
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <div className="font-medium truncate">
+                                {r.name}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                                {r.description}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
         );
       };
@@ -6146,6 +6332,8 @@
             tipsAndTricks: "",
             image: null,
             video: null,
+            notes: "",
+            rating: 0,
           }),
           [],
         );
@@ -6194,6 +6382,8 @@
                 : "",
               image: editingRecipe.image || null,
               video: editingRecipe.video || null,
+              notes: editingRecipe.notes || "",
+              rating: editingRecipe.rating ?? 0,
             });
             setTags(
               Array.isArray(editingRecipe.tags) ? editingRecipe.tags : [],
@@ -6309,6 +6499,15 @@
             errors.yield = "Yield cannot be just empty spaces.";
           }
 
+          if (
+            formData.rating !== "" &&
+            (isNaN(parseFloat(formData.rating)) ||
+              parseFloat(formData.rating) < 0 ||
+              parseFloat(formData.rating) > 5)
+          ) {
+            errors.rating = "Rating must be a number between 0 and 5.";
+          }
+
           setFormErrors(errors);
           return Object.keys(errors).length === 0;
         }, [formData]);
@@ -6369,6 +6568,8 @@
                 .filter(Boolean),
               image: formData.image,
               video: formData.video,
+              notes: (formData.notes || "").trim(),
+              rating: formData.rating ? parseFloat(formData.rating) : 0,
             };
 
             if (editingRecipe) {
@@ -6975,6 +7176,45 @@
                     className="modal-textarea border-gray-300 dark:border-gray-600"
                     placeholder="e.g., If you don't have fresh basil, use 1 tsp dried basil. This recipe freezes well!"
                   ></textarea>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                  <div>
+                    <label
+                      htmlFor="rating"
+                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                    >
+                      Rating (0-5)
+                    </label>
+                    <input
+                      id="rating"
+                      name="rating"
+                      type="number"
+                      min="0"
+                      max="5"
+                      step="0.5"
+                      value={formData.rating}
+                      onChange={handleChange}
+                      className={`modal-input ${formErrors.rating ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
+                    />
+                    <ErrorMessage name="rating" />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="notes"
+                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                    >
+                      Notes (optional)
+                    </label>
+                    <textarea
+                      id="notes"
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleChange}
+                      rows="3"
+                      className="modal-textarea border-gray-300 dark:border-gray-600"
+                      placeholder="Personal notes, substitutions, etc."
+                    ></textarea>
+                  </div>
                 </div>
                 <div>
                   <label
@@ -7771,6 +8011,7 @@
         setShoppingList,
         collections,
         setCollections,
+        onRecipeUpdate,
       }) => {
         const baseServings = recipe?.servings > 0 ? recipe.servings : 1;
         const [currentServings, setCurrentServings] = useState(baseServings);
@@ -7785,6 +8026,7 @@
         const [recipeNotes, setRecipeNotes] = useState(recipe.notes || "");
         const [isEditingNotes, setIsEditingNotes] = useState(false);
         const [showActionsMenu, setShowActionsMenu] = useState(false);
+        const [showPhotoGallery, setShowPhotoGallery] = useState(false);
         const actionsMenuRef = useRef(null);
 
         // Close actions menu when clicking outside
@@ -8456,6 +8698,13 @@
                 >
                   <i className="fas fa-trash mr-1.5"></i>Delete
                 </button>
+                <button
+                  onClick={() => setShowPhotoGallery(true)}
+                  className="btn-modal btn-purple"
+                  title="View photo gallery"
+                >
+                  <i className="fas fa-images mr-1.5"></i>Photos
+                </button>
 
                 {/* Hamburger Menu for More Actions */}
                 <div className="relative ml-auto" ref={actionsMenuRef}>
@@ -8663,6 +8912,23 @@
                 onClose={() => setShowAddToMealPlanSelector(false)}
                 addToast={addToast}
                 recipes={recipes}
+              />
+            )}
+
+            {/* Photo Gallery Modal */}
+            {showPhotoGallery && (
+              <RecipePhotoGalleryModal
+                recipe={recipe}
+                onClose={() => setShowPhotoGallery(false)}
+                addToast={addToast}
+                onRecipeUpdate={(updatedRecipe) => {
+                  // Update the recipe in the parent component's state
+                  if (typeof onRecipeUpdate === "function") {
+                    onRecipeUpdate(updatedRecipe);
+                  }
+                  // Update local recipe state
+                  setRecipe(updatedRecipe);
+                }}
               />
             )}
           </div>
@@ -9483,6 +9749,495 @@
         });
 
         return expiringItems;
+      };
+
+      // Recipe Photo Gallery System
+      const addPhotoToRecipe = async (recipeId, photoData, addToast) => {
+        try {
+          // Get the current recipe
+          const recipeStore = await getStore(STORE_NAMES.RECIPES, "readwrite");
+          const recipe = await new Promise((resolve, reject) => {
+            const request = recipeStore.get(recipeId);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+
+          if (!recipe) {
+            throw new Error("Recipe not found");
+          }
+
+          // Initialize photos array if it doesn't exist
+          if (!recipe.photos) {
+            recipe.photos = [];
+          }
+
+          // Add the new photo
+          const photo = {
+            id:
+              Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+            url: photoData.url,
+            caption: photoData.caption || "",
+            date: new Date().toISOString(),
+            thumbnail: photoData.thumbnail || photoData.url,
+          };
+
+          recipe.photos.push(photo);
+
+          // Save the updated recipe using updateItem function
+          await updateItem(STORE_NAMES.RECIPES, recipe.id, recipe);
+
+          addToast("Photo added to recipe!", "success");
+          return recipe;
+        } catch (error) {
+          console.error("Error adding photo to recipe:", error);
+          addToast("Failed to add photo to recipe.", "error");
+          throw error;
+        }
+      };
+
+      const removePhotoFromRecipe = async (recipeId, photoId, addToast) => {
+        try {
+          // Get the current recipe
+          const recipeStore = await getStore(STORE_NAMES.RECIPES, "readwrite");
+          const recipe = await new Promise((resolve, reject) => {
+            const request = recipeStore.get(recipeId);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+
+          if (!recipe || !recipe.photos) {
+            throw new Error("Recipe or photos not found");
+          }
+
+          // Remove the photo
+          recipe.photos = recipe.photos.filter((photo) => photo.id !== photoId);
+
+          // Save the updated recipe using updateItem function
+          await updateItem(STORE_NAMES.RECIPES, recipe.id, recipe);
+
+          addToast("Photo removed from recipe!", "success");
+          return recipe;
+        } catch (error) {
+          console.error("Error removing photo from recipe:", error);
+          addToast("Failed to remove photo from recipe.", "error");
+          throw error;
+        }
+      };
+
+      // Function to initialize the sync system
+      const initSyncSystem = () => {
+        // Check if sync is enabled and start periodic sync if needed
+        if (isSyncEnabled() && !window.syncIntervalId) {
+          startPeriodicSync();
+        }
+      };
+
+      // Function to get all photos for a recipe
+      const getRecipePhotos = (recipe) => {
+        return recipe.photos && Array.isArray(recipe.photos)
+          ? recipe.photos
+          : [];
+      };
+
+      // Function to get all recipes with photos
+      const getRecipesWithPhotos = (recipes) => {
+        return recipes.filter((recipe) => {
+          const photos = getRecipePhotos(recipe);
+          return photos.length > 0;
+        });
+      };
+
+      // Function to get photo gallery for all recipes
+      const getPhotoGallery = (recipes) => {
+        const gallery = [];
+        recipes.forEach((recipe) => {
+          const photos = getRecipePhotos(recipe);
+          photos.forEach((photo) => {
+            gallery.push({
+              ...photo,
+              recipeId: recipe.id,
+              recipeName: recipe.name,
+              recipeType: recipe.type,
+            });
+          });
+        });
+        return gallery;
+      };
+
+      // Cross-Device Sync System
+      const SYNC_SERVER_URL = "https://cookwise-sync-server.example.com"; // Placeholder URL
+
+      // Function to enable cloud sync
+      const enableCloudSync = async (userId, authToken) => {
+        try {
+          // Store sync credentials
+          localStorage.setItem("syncEnabled", "true");
+          localStorage.setItem("syncUserId", userId);
+          localStorage.setItem("syncAuthToken", authToken);
+
+          // Start periodic sync
+          startPeriodicSync();
+
+          return true;
+        } catch (error) {
+          console.error("Error enabling cloud sync:", error);
+          return false;
+        }
+      };
+
+      // Function to disable cloud sync
+      const disableCloudSync = () => {
+        localStorage.removeItem("syncEnabled");
+        localStorage.removeItem("syncUserId");
+        localStorage.removeItem("syncAuthToken");
+
+        // Stop periodic sync
+        if (window.syncIntervalId) {
+          clearInterval(window.syncIntervalId);
+          window.syncIntervalId = null;
+        }
+      };
+
+      // Function to check if sync is enabled
+      const isSyncEnabled = () => {
+        return localStorage.getItem("syncEnabled") === "true";
+      };
+
+      // Function to get sync credentials
+      const getSyncCredentials = () => {
+        return {
+          userId: localStorage.getItem("syncUserId"),
+          authToken: localStorage.getItem("syncAuthToken"),
+        };
+      };
+
+      // Function to start periodic sync
+      const startPeriodicSync = () => {
+        // Sync every 10 minutes when enabled
+        if (window.syncIntervalId) {
+          clearInterval(window.syncIntervalId);
+        }
+
+        window.syncIntervalId = setInterval(
+          async () => {
+            if (isSyncEnabled()) {
+              await syncDataWithCloud();
+            }
+          },
+          10 * 60 * 1000,
+        ); // 10 minutes
+      };
+
+      // Function to sync data with cloud
+      const syncDataWithCloud = async () => {
+        try {
+          const credentials = getSyncCredentials();
+          if (!credentials.userId || !credentials.authToken) {
+            console.warn("Sync credentials not found");
+            return false;
+          }
+
+          // Get all local data
+          const recipes = await getAllItems(STORE_NAMES.RECIPES);
+          const mealPlan = await getAllItems(STORE_NAMES.MEAL_PLAN);
+          const shoppingList = await getAllItems(STORE_NAMES.SHOPPING_LIST);
+          const pantry = await getAllItems(STORE_NAMES.PANTRY);
+          const collections = await getAllItems(STORE_NAMES.COLLECTIONS);
+
+          // Get last sync timestamp
+          const lastSync = localStorage.getItem("lastSyncTimestamp") || 0;
+
+          // Prepare data payload
+          const dataPayload = {
+            userId: credentials.userId,
+            recipes,
+            mealPlan,
+            shoppingList,
+            pantry,
+            collections,
+            lastModified: Date.now(),
+            lastSync,
+          };
+
+          // Send data to cloud
+          const response = await fetch(`${SYNC_SERVER_URL}/sync`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${credentials.authToken}`,
+            },
+            body: JSON.stringify(dataPayload),
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+
+            // Update local data with any changes from cloud
+            if (result.recipes) {
+              // Update local recipes store with cloud data
+              await clearStore(STORE_NAMES.RECIPES);
+              for (const recipe of result.recipes) {
+                await addItem(STORE_NAMES.RECIPES, recipe);
+              }
+            }
+
+            if (result.mealPlan) {
+              // Update local meal plan store with cloud data
+              await clearStore(STORE_NAMES.MEAL_PLAN);
+              for (const item of result.mealPlan) {
+                await addItem(STORE_NAMES.MEAL_PLAN, item);
+              }
+            }
+
+            if (result.shoppingList) {
+              // Update local shopping list store with cloud data
+              await clearStore(STORE_NAMES.SHOPPING_LIST);
+              for (const item of result.shoppingList) {
+                await addItem(STORE_NAMES.SHOPPING_LIST, item);
+              }
+            }
+
+            if (result.pantry) {
+              // Update local pantry store with cloud data
+              await clearStore(STORE_NAMES.PANTRY);
+              for (const item of result.pantry) {
+                await addItem(STORE_NAMES.PANTRY, item);
+              }
+            }
+
+            if (result.collections) {
+              // Update local collections store with cloud data
+              await clearStore(STORE_NAMES.COLLECTIONS);
+              for (const item of result.collections) {
+                await addItem(STORE_NAMES.COLLECTIONS, item);
+              }
+            }
+
+            // Update last sync timestamp
+            localStorage.setItem("lastSyncTimestamp", Date.now().toString());
+
+            console.log("Sync completed successfully");
+            return true;
+          } else {
+            console.error("Sync failed:", response.status);
+            return false;
+          }
+        } catch (error) {
+          console.error("Error syncing data with cloud:", error);
+          return false;
+        }
+      };
+
+      // Function to force sync
+      const forceSync = async () => {
+        if (isSyncEnabled()) {
+          return await syncDataWithCloud();
+        }
+        return false;
+      };
+
+      // Function to get sync status
+      const getSyncStatus = () => {
+        const enabled = isSyncEnabled();
+        const lastSync = localStorage.getItem("lastSyncTimestamp");
+        const lastSyncDate = lastSync
+          ? new Date(parseInt(lastSync)).toLocaleString()
+          : "Never";
+
+        return {
+          enabled,
+          lastSync: lastSyncDate,
+          connected: enabled, // Simplified for demo purposes
+        };
+      };
+
+      // Recipe Photo Gallery Modal
+      const RecipePhotoGalleryModal = ({
+        recipe,
+        onClose,
+        addToast,
+        onRecipeUpdate,
+      }) => {
+        const [photos, setPhotos] = useState(getRecipePhotos(recipe));
+        const [newPhoto, setNewPhoto] = useState({ url: "", caption: "" });
+        const [isAdding, setIsAdding] = useState(false);
+
+        const handleAddPhoto = async () => {
+          if (!newPhoto.url.trim()) {
+            addToast("Please enter a photo URL", "error");
+            return;
+          }
+
+          try {
+            const photoData = {
+              url: newPhoto.url,
+              caption: newPhoto.caption,
+            };
+
+            const updatedRecipe = await addPhotoToRecipe(
+              recipe.id,
+              photoData,
+              addToast,
+            );
+            // Update the recipe state in the parent component
+            if (typeof onRecipeUpdate === "function") {
+              onRecipeUpdate(updatedRecipe);
+            }
+            setPhotos(getRecipePhotos(updatedRecipe));
+            setNewPhoto({ url: "", caption: "" });
+            setIsAdding(false);
+          } catch (error) {
+            console.error("Error adding photo:", error);
+          }
+        };
+
+        const handleRemovePhoto = async (photoId) => {
+          if (window.confirm("Are you sure you want to remove this photo?")) {
+            try {
+              const updatedRecipe = await removePhotoFromRecipe(
+                recipe.id,
+                photoId,
+                addToast,
+              );
+              setPhotos(getRecipePhotos(updatedRecipe));
+
+              // Notify parent component of recipe update
+              if (typeof onRecipeUpdate === "function") {
+                onRecipeUpdate(updatedRecipe);
+              }
+            } catch (error) {
+              console.error("Error removing photo:", error);
+            }
+          }
+        };
+
+        return (
+          <div
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+            onClick={onClose}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-4xl max-h-[90vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-3">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <i className="fas fa-images text-green-500"></i>
+                  Photo Gallery: {recipe.name}
+                </h2>
+                <button
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-red-500 text-3xl leading-none"
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto mb-4">
+                {photos.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <i className="fas fa-images text-5xl mb-4 opacity-50"></i>
+                    <p className="text-xl">No photos yet</p>
+                    <p className="mt-2">Add your first photo to this recipe!</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {photos.map((photo) => (
+                      <div
+                        key={photo.id}
+                        className="bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden shadow relative group"
+                      >
+                        <img
+                          src={photo.url}
+                          alt={photo.caption || "Recipe photo"}
+                          className="w-full h-48 object-cover cursor-pointer"
+                          onClick={() => window.open(photo.url, "_blank")}
+                        />
+                        {photo.caption && (
+                          <div className="p-2 bg-white dark:bg-gray-800">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                              {photo.caption}
+                            </p>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => handleRemovePhoto(photo.id)}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Remove photo"
+                        >
+                          <i className="fas fa-times text-xs"></i>
+                        </button>
+                        <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                          {new Date(photo.date).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                {!isAdding ? (
+                  <button
+                    onClick={() => setIsAdding(true)}
+                    className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-2"
+                  >
+                    <i className="fas fa-plus"></i> Add Photo
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        Photo URL:
+                      </label>
+                      <input
+                        type="text"
+                        value={newPhoto.url}
+                        onChange={(e) =>
+                          setNewPhoto({ ...newPhoto, url: e.target.value })
+                        }
+                        placeholder="https://example.com/photo.jpg"
+                        className="modal-input w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        Caption (optional):
+                      </label>
+                      <input
+                        type="text"
+                        value={newPhoto.caption}
+                        onChange={(e) =>
+                          setNewPhoto({ ...newPhoto, caption: e.target.value })
+                        }
+                        placeholder="Add a caption..."
+                        className="modal-input w-full"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleAddPhoto}
+                        className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg"
+                      >
+                        Add Photo
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsAdding(false);
+                          setNewPhoto({ url: "", caption: "" });
+                        }}
+                        className="flex-1 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
       };
 
       const Footer = () => {

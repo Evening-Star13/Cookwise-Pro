@@ -22,7 +22,7 @@ Transform your cooking experience with our feature-rich recipe management applic
 - [Contributing](#contributing)
 - [License](#license)
 
-## 🌟 Overview
+## Overview
 
 Cookwise Pro is a comprehensive recipe management application designed to revolutionize your kitchen experience. Built with React, Tailwind CSS, and powered by IndexedDB for offline storage, this application offers a seamless way to organize, manage, and enjoy your culinary adventures.
 
@@ -33,7 +33,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 - **Intuitive Interface**: Beautiful, responsive design with dark/light mode
 - **Comprehensive Features**: From meal planning to shopping lists
 
-## 🧰 Features
+## Features
 
 ### 🍽️ Recipe Management
 - **Add Recipes**: Create detailed recipes with ingredients, directions, and nutritional information
@@ -115,7 +115,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 - **Random Recipe**: Ctrl/Cmd + R
 - **Show Shortcuts**: Ctrl/Cmd + H
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Modern web browser (Chrome, Firefox, Safari, Edge)
@@ -131,7 +131,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 2. **Import Existing Recipes** (optional)
 3. **Customize Preferences** (theme, units, etc.)
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### 📝 Adding Your First Recipe
 1. **Click "Add Recipe"** button in the header
@@ -179,7 +179,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 4. **Use keyboard shortcuts** or tap to advance
 5. **Start timers** directly from cooking steps
 
-## 🛠️ Advanced Features
+## Advanced Features
 
 ### 📊 Nutrition Analysis
 - **Dashboard View**: Weekly nutrition overview
@@ -206,7 +206,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 - **Dietary Preferences**: Tailored suggestions
 - **Seasonal Ingredients**: Fresh, seasonal options
 
-## ❓ Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 - **Slow Loading**: Clear browser cache and reload
@@ -224,7 +224,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 - **Browser Memory**: Close other tabs if experiencing slowdowns
 - **Offline Access**: All data remains accessible without internet
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions to improve Cookwise Pro! 
 
@@ -242,7 +242,7 @@ We welcome contributions to improve Cookwise Pro!
 4. Test thoroughly
 5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 

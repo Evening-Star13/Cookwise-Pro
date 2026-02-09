@@ -287,7 +287,7 @@ A comprehensive recipe management application built with React and IndexedDB for
 
 ### Filters
 
-- **Course**: Appetizers, Main Course, Side Dish, Dessert, Beverage
+- **Course**: Appetizers, Breakfast, Main Course, Side Dish, Sandwiches/Subs/Wraps, Burgers, Pizza, Dessert, Beverage
 - **Type**: Breakfast, Lunch, Dinner, Snack, Dessert
 - **Dietary**: Vegetarian, Vegan, Gluten-Free, Dairy-Free, Nut-Free, Keto, Paleo
 - **Cook Time**: Quick (≤30 min), Medium (30-60 min), Long (>60 min)

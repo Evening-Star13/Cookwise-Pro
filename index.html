@@ -104,6 +104,18 @@
           transform: translateY(0) scale(1);
         }
       }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+      .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
       /* Spinner */
       .spinner {
         border: 3px solid #e5e7eb;
@@ -3482,6 +3494,8 @@
         const [showPantryModal, setShowPantryModal] = useState(false);
         const [showRecipeDetails, setShowRecipeDetails] = useState(null);
         const [showMealPlanModal, setShowMealPlanModal] = useState(false);
+        const [recipeToMealPlan, setRecipeToMealPlan] = useState(null);
+        const [showQuickAddMealPlan, setShowQuickAddMealPlan] = useState(false);
         const [showShoppingListModal, setShowShoppingListModal] =
           useState(false);
         const [editingRecipe, setEditingRecipe] = useState(null);
@@ -3958,6 +3972,17 @@
                 ? isSeasonalRecipe(recipe)
                 : true;
 
+              // Filter by canMakeNow if specified
+              const matchesCanMakeNow = filters.canMakeNow
+                ? (() => {
+                    const match = (window.computeRecipeMatch &&
+                      window.computeRecipeMatch(recipe, pantry)) || {
+                      canMake: false,
+                    };
+                    return match.canMake;
+                  })()
+                : true;
+
               return (
                 matchesQuery &&
                 matchesType &&
@@ -3970,11 +3995,12 @@
                 matchesRating &&
                 matchesCookTime &&
                 matchesCollection &&
-                matchesSeasonal
+                matchesSeasonal &&
+                matchesCanMakeNow
               );
             });
           },
-          [recipes, isSeasonalRecipe],
+          [recipes, isSeasonalRecipe, pantry],
         );
 
         const updateMealPlan = useCallback(
@@ -4524,6 +4550,26 @@
                   openRecipeDetails={(recipe) => setShowRecipeDetails(recipe)}
                   toggleFavorite={toggleFavorite}
                   collections={collections}
+                  openMealPlanModal={(recipe) => {
+                    setRecipeToMealPlan(recipe);
+                    setShowQuickAddMealPlan(true);
+                  }}
+                  checkRecipeAvailability={(recipe) => {
+                    const match = (window.computeRecipeMatch &&
+                      window.computeRecipeMatch(recipe, pantry)) || {
+                      matchedCount: 0,
+                      totalIngredients: Array.isArray(recipe.ingredients)
+                        ? recipe.ingredients.length
+                        : 0,
+                      percentage: 0,
+                      canMake: false,
+                      missing: [],
+                    };
+                    return {
+                      canMake: match.canMake,
+                      percentage: match.percentage,
+                    };
+                  }}
                 />
               )}
             </main>
@@ -4585,6 +4631,17 @@
                   addMultipleRecipesToShoppingList
                 }
                 onClose={() => setShowMealPlanModal(false)}
+              />
+            )}
+            {showQuickAddMealPlan && recipeToMealPlan && (
+              <QuickAddMealPlanModal
+                recipe={recipeToMealPlan}
+                updateMealPlan={updateMealPlan}
+                addToast={addToast}
+                onClose={() => {
+                  setShowQuickAddMealPlan(false);
+                  setRecipeToMealPlan(null);
+                }}
               />
             )}
             {showShoppingListModal && (
@@ -5527,6 +5584,8 @@
         openRecipeDetails,
         toggleFavorite,
         collections,
+        checkRecipeAvailability,
+        openMealPlanModal,
       }) => {
         const [filteredRecipes, setFilteredRecipes] = useState([]);
         const [tagModal, setTagModal] = useState({ open: false, tag: null });
@@ -5542,8 +5601,10 @@
           rating: "",
           favorites: false,
           seasonal: false,
+          canMakeNow: false,
           collectionRecipeIds: null,
         });
+        const [sortBy, setSortBy] = useState("name");
         const [hideAllExplicitly, setHideAllExplicitly] = useState(false);
 
         useEffect(() => {
@@ -5583,6 +5644,7 @@
                 cookTime: "",
                 favorites: false,
                 seasonal: false,
+                canMakeNow: false,
                 collectionRecipeIds: null,
               });
             } else if (e.detail.type === "search") {
@@ -5605,6 +5667,7 @@
                 cookTime: "",
                 favorites: false,
                 seasonal: true,
+                canMakeNow: false,
                 collectionRecipeIds: null,
               });
             } else if (e.detail.type === "collection") {
@@ -5622,12 +5685,29 @@
                 cookTime: "",
                 favorites: false,
                 seasonal: false,
+                canMakeNow: false,
                 collectionRecipeIds: e.detail.recipeIds || [],
               });
             }
           };
           document.addEventListener("searchRecipes", handler);
           return () => document.removeEventListener("searchRecipes", handler);
+        }, [collections]);
+
+        // Update activeCollection whenever collections changes to reflect newly added recipes
+        useEffect(() => {
+          if (activeCollection) {
+            const updatedCollection = collections?.find(
+              (c) => c.id === activeCollection.id,
+            );
+            if (updatedCollection) {
+              setActiveCollection(updatedCollection);
+              setFilters((prev) => ({
+                ...prev,
+                collectionRecipeIds: updatedCollection.recipeIds || [],
+              }));
+            }
+          }
         }, [collections]);
 
         const handleFilterChange = useCallback((e) => {
@@ -5661,7 +5741,28 @@
           [recipes, openRecipeDetails],
         );
 
-        const recipesToDisplay = hideAllExplicitly ? [] : filteredRecipes;
+        // Apply sorting
+        const sortRecipes = (recipesToSort) => {
+          const sorted = [...recipesToSort];
+          switch (sortBy) {
+            case "rating":
+              return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            case "prepTime":
+              return sorted.sort(
+                (a, b) => (a.prepTime || 0) - (b.prepTime || 0),
+              );
+            case "newest":
+              return sorted.sort(
+                (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+              );
+            case "name":
+            default:
+              return sorted.sort((a, b) => a.name.localeCompare(b.name));
+          }
+        };
+
+        const sortedRecipes = sortRecipes(filteredRecipes);
+        const recipesToDisplay = hideAllExplicitly ? [] : sortedRecipes;
         const hasActiveFiltersExcludingQuery =
           filters.type ||
           filters.cuisine ||
@@ -5725,10 +5826,23 @@
                 </div>
               </div>
             )}
-            <div className="mb-4 sm:mb-6 flex flex-wrap gap-5 items-center bg-gray-50 dark:bg-gray-800 p-2 sm:p-3 rounded-lg shadow-sm">
-              <span className="text-sm font-medium mr-1 hidden md:inline text-gray-700 dark:text-gray-300">
+            <div className="mb-4 sm:mb-6 flex flex-wrap gap-2 sm:gap-3 lg:gap-5 items-center bg-gray-50 dark:bg-gray-800 p-2 sm:p-3 rounded-lg shadow-sm">
+              <span className="text-xs sm:text-sm font-medium mr-0 sm:mr-1 hidden lg:inline text-gray-700 dark:text-gray-300">
                 Filter:
               </span>
+              {/* Sort Dropdown */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="filter-select text-xs sm:text-sm"
+                aria-label="Sort recipes"
+                title="Sort recipes by"
+              >
+                <option value="name">A-Z</option>
+                <option value="rating">⭐ Rating</option>
+                <option value="prepTime">⏱️ Prep Time</option>
+                <option value="newest">📅 Newest</option>
+              </select>
               {/* Course Filter */}
               <select
                 name="course"
@@ -5857,6 +5971,21 @@
                 ))}
               </select>
 
+              {/* Can Make Now Checkbox */}
+              <label className="flex items-center gap-2 px-2 py-1 sm:py-2 text-xs sm:text-sm cursor-pointer hover:bg-white dark:hover:bg-gray-700 rounded transition">
+                <input
+                  type="checkbox"
+                  name="canMakeNow"
+                  checked={filters.canMakeNow}
+                  onChange={handleFilterChange}
+                  className="w-4 h-4 cursor-pointer"
+                  title="Show only recipes you can make with current pantry items"
+                />
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Can Make Now
+                </span>
+              </label>
+
               {/* Ratings dropdown - filter by rating */}
               <select
                 name="rating"
@@ -5889,215 +6018,265 @@
                 <i className="fas fa-star text-yellow-400"></i>{" "}
                 <span className="hidden sm:inline">Favs</span>
               </label>
-              <div className="ml-auto text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                <i className="fas fa-utensils text-green-500"></i> Recipes:{" "}
+              <div className="ml-auto text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1 whitespace-nowrap">
+                <i className="fas fa-utensils text-green-500"></i>
+                <span className="hidden sm:inline">Recipes:</span>{" "}
                 {recipesToDisplay.length}
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
               {recipesToDisplay.length > 0 ? (
-                recipesToDisplay.map((recipe) => (
-                  <div
-                    key={recipe.id}
-                    onClick={() => openRecipeDetails(recipe)}
-                    tabIndex="0"
-                    aria-label={`View recipe: ${recipe.name}`}
-                    className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-xl hover:bg-green-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 flex flex-col recipe-card card-appear"
-                  >
-                    <div className="aspect-video w-full bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
-                      {recipe.image ? (
-                        <img
-                          src={recipe.image}
-                          alt={recipe.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
-                          <i className="fas fa-image text-4xl mb-3 opacity-50"></i>
-                        </div>
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(recipe.id);
-                        }}
-                        aria-label={
-                          recipe.isFavorite ? "Remove Favorite" : "Add Favorite"
-                        }
-                        className={`absolute top-2 right-2 text-2xl ${
-                          recipe.isFavorite
-                            ? "text-yellow-400 filter drop-shadow(0 1px 1px rgba(0,0,0,0.5))"
-                            : "text-white text-opacity-50"
-                        } hover:text-yellow-300 hover:text-opacity-100 transition-colors duration-200 z-10`}
-                      >
-                        <i
-                          className={`fa-star ${
-                            recipe.isFavorite ? "fas" : "far"
-                          }`}
-                        ></i>
-                      </button>
-
-                      {/* Seasonal Badge */}
-                      {isSeasonalRecipe(recipe) && (
-                        <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                          <i className="fas fa-leaf"></i>
-                          Seasonal
-                        </div>
-                      )}
-
-                      {/* Rating Badge */}
-                      {recipe.rating && recipe.rating > 0 && (
-                        <div className="absolute bottom-2 left-2 bg-yellow-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
-                          <i className="fas fa-star"></i>
-                          {recipe.rating}/5
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-3 sm:p-4 flex flex-col flex-grow">
-                      <h3
-                        className="text-base sm:text-lg font-semibold leading-tight mb-1 text-gray-900 dark:text-gray-100 line-clamp-2"
-                        title={recipe.name}
-                      >
-                        {recipe.name}
-                      </h3>
-                      {recipe.description && (
-                        <p
-                          className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 mb-2 line-clamp-2"
-                          title={recipe.description}
-                        >
-                          {recipe.description}
-                        </p>
-                      )}
-                      {/* Course and Sub-Category display */}
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {recipe.course && (
-                          <span className="inline-flex items-center gap-1 bg-pink-100 dark:bg-pink-900 text-pink-700 dark:text-pink-300 px-2 py-0.5 rounded-full">
-                            <i className="fas fa-layer-group"></i>{" "}
-                            {recipe.course}
-                          </span>
+                recipesToDisplay.map((recipe) => {
+                  const canMakeRecipe = checkRecipeAvailability(recipe).canMake;
+                  const ingredientPreview = (recipe.ingredients || [])
+                    .slice(0, 3)
+                    .join(", ");
+                  return (
+                    <div
+                      key={recipe.id}
+                      onClick={() => openRecipeDetails(recipe)}
+                      tabIndex="0"
+                      aria-label={`View recipe: ${recipe.name}`}
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-xl hover:bg-green-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 flex flex-col recipe-card card-appear group relative"
+                      title={
+                        ingredientPreview
+                          ? `Ingredients: ${ingredientPreview}${(recipe.ingredients || []).length > 3 ? "..." : ""}`
+                          : ""
+                      }
+                    >
+                      <div className="aspect-video w-full bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
+                        {recipe.image ? (
+                          <img
+                            src={recipe.image}
+                            alt={recipe.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                            <i className="fas fa-image text-4xl mb-3 opacity-50"></i>
+                          </div>
                         )}
-                        {recipe.subCategory && (
-                          <span className="inline-flex items-center gap-1 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">
-                            <i className="fas fa-th-list"></i>{" "}
-                            {recipe.subCategory}
-                          </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(recipe.id);
+                          }}
+                          aria-label={
+                            recipe.isFavorite
+                              ? "Remove Favorite"
+                              : "Add Favorite"
+                          }
+                          className={`absolute top-2 right-2 text-2xl ${
+                            recipe.isFavorite
+                              ? "text-yellow-400 filter drop-shadow(0 1px 1px rgba(0,0,0,0.5))"
+                              : "text-white text-opacity-50"
+                          } hover:text-yellow-300 hover:text-opacity-100 transition-colors duration-200 z-10`}
+                        >
+                          <i
+                            className={`fa-star ${
+                              recipe.isFavorite ? "fas" : "far"
+                            }`}
+                          ></i>
+                        </button>
+
+                        {/* Seasonal Badge */}
+                        {isSeasonalRecipe(recipe) && (
+                          <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                            <i className="fas fa-leaf"></i>
+                            Seasonal
+                          </div>
+                        )}
+
+                        {/* Can Make Now Badge */}
+                        {canMakeRecipe && (
+                          <div className="absolute top-2 left-2 sm:top-12 sm:left-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-0.5 animate-pulse">
+                            <i className="fas fa-check-circle"></i>
+                            <span className="hidden sm:inline">
+                              Can Make Now
+                            </span>
+                            <span className="sm:hidden">Can Make</span>
+                          </div>
+                        )}
+
+                        {/* Rating Badge */}
+                        {recipe.rating && recipe.rating > 0 && (
+                          <div className="absolute bottom-2 left-2 bg-yellow-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
+                            <i className="fas fa-star"></i>
+                            {recipe.rating}/5
+                          </div>
                         )}
                       </div>
-                      <div className="flex flex-wrap gap-1 my-1 text-xs">
-                        {recipe.type && (
+                      <div className="p-3 sm:p-4 flex flex-col flex-grow">
+                        <h3
+                          className="text-base sm:text-lg font-semibold leading-tight mb-1 text-gray-900 dark:text-gray-100 line-clamp-2"
+                          title={recipe.name}
+                        >
+                          {recipe.name}
+                        </h3>
+                        {recipe.description && (
+                          <p
+                            className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 mb-2 line-clamp-2"
+                            title={recipe.description}
+                          >
+                            {recipe.description}
+                          </p>
+                        )}
+                        {/* Course and Sub-Category display */}
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {recipe.course && (
+                            <span className="inline-flex items-center gap-1 bg-pink-100 dark:bg-pink-900 text-pink-700 dark:text-pink-300 px-2 py-0.5 rounded-full">
+                              <i className="fas fa-layer-group"></i>{" "}
+                              {recipe.course}
+                            </span>
+                          )}
+                          {recipe.subCategory && (
+                            <span className="inline-flex items-center gap-1 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">
+                              <i className="fas fa-th-list"></i>{" "}
+                              {recipe.subCategory}
+                            </span>
+                          )}
+                        </div>
+                        {/* Servings and Tags Row */}
+                        <div className="flex flex-wrap gap-1 my-1 text-xs items-center justify-between mb-2">
+                          <div className="flex flex-wrap gap-1">
+                            {recipe.servings && (
+                              <span className="inline-flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full">
+                                <i className="fas fa-users"></i>{" "}
+                                {recipe.servings} servings
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-1 my-1 text-xs">
+                          {recipe.cuisine && (
+                            <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 rounded-full">
+                              <i className="fas fa-globe op-70"></i>{" "}
+                              {recipe.cuisine}
+                            </span>
+                          )}
+                          {recipe.tags?.map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full tag-hover"
+                              style={{ cursor: "pointer" }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setTagModal({ open: true, tag });
+                              }}
+                              title={`Show other recipes with tag: ${tag}`}
+                            >
+                              <i className="fas fa-tag opacity-70"></i> {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="mt-auto pt-2 text-xs text-gray-500 dark:text-gray-400 grid grid-cols-2 gap-x-2 gap-y-1 mb-3">
+                          {recipe.prepTime > 0 && (
+                            <span title="Prep Time">
+                              <i className="fas fa-clock w-3 tc mr-0.5 op-70"></i>{" "}
+                              Prep:{" "}
+                              {formatMinutesToHoursMinutes(recipe.prepTime)}
+                            </span>
+                          )}
+                          {recipe.cookTime > 0 && (
+                            <span title="Cook Time">
+                              <i className="fas fa-fire w-3 tc mr-0.5 op-70"></i>{" "}
+                              Cook:{" "}
+                              {formatMinutesToHoursMinutes(recipe.cookTime)}
+                            </span>
+                          )}
+                          {recipe.additionalTime > 0 && (
+                            <span title="Additional Time">
+                              <i className="fas fa-hourglass-half w-3 tc mr-0.5 op-70"></i>{" "}
+                              Additional:{" "}
+                              {formatMinutesToHoursMinutes(
+                                recipe.additionalTime,
+                              )}
+                            </span>
+                          )}
+                          <span
+                            className="col-span-2 text-green-600 dark:text-green-400 font-medium text-sm mt-1 inline-flex items-center gap-1"
+                            title="Total Time"
+                          >
+                            <i className="fas fa-stopwatch"></i> Total:{" "}
+                            {formatMinutesToHoursMinutes(
+                              parseInt(recipe.prepTime || 0) +
+                                parseInt(recipe.cookTime || 0) +
+                                parseInt(recipe.additionalTime || 0),
+                            )}
+                          </span>
+                        </div>
+                        {/* Hover Action Buttons */}
+                        <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              console.log("Type button clicked:", recipe.type);
-                              setTypeModal({ open: true, type: recipe.type });
+                              openRecipeDetails(recipe);
                             }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log(
-                                  "Type button activated by keyboard:",
-                                  recipe.type,
-                                );
-                                setTypeModal({ open: true, type: recipe.type });
-                              }
-                            }}
-                            role="button"
-                            tabIndex={0}
-                            className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 px-2 py-0.5 rounded-full cursor-pointer"
-                            title={`Show all ${recipe.type} recipes`}
-                            aria-label={`Show all ${recipe.type} recipes`}
+                            className="flex-1 py-1.5 px-2 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                            title="Open recipe details"
                           >
-                            <i
-                              className="fas fa-utensils op-70"
-                              aria-hidden="true"
-                            ></i>{" "}
-                            {recipe.type}
+                            <i className="fas fa-utensils"></i>
+                            <span className="hidden sm:inline">Cook</span>
                           </button>
-                        )}
-                        {recipe.cuisine && (
-                          <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 rounded-full">
-                            <i className="fas fa-globe op-70"></i>{" "}
-                            {recipe.cuisine}
-                          </span>
-                        )}
-                        {recipe.dietaryTypes?.map((diet) => (
-                          <span
-                            key={diet}
-                            className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full"
-                          >
-                            <i className="fas fa-leaf opacity-70"></i> {diet}
-                          </span>
-                        ))}
-                        {recipe.tags?.map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full tag-hover"
-                            style={{ cursor: "pointer" }}
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setTagModal({ open: true, tag });
+                              openMealPlanModal(recipe);
                             }}
-                            title={`Show other recipes with tag: ${tag}`}
+                            className="flex-1 py-1.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                            title="Add to meal plan"
                           >
-                            <i className="fas fa-tag opacity-70"></i> {tag}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="mt-auto pt-2 text-xs text-gray-500 dark:text-gray-400 grid grid-cols-2 gap-x-2 gap-y-1">
-                        {recipe.prepTime > 0 && (
-                          <span title="Prep Time">
-                            <i className="fas fa-clock w-3 tc mr-0.5 op-70"></i>{" "}
-                            Prep: {formatMinutesToHoursMinutes(recipe.prepTime)}
-                          </span>
-                        )}
-                        {recipe.cookTime > 0 && (
-                          <span title="Cook Time">
-                            <i className="fas fa-fire w-3 tc mr-0.5 op-70"></i>{" "}
-                            Cook: {formatMinutesToHoursMinutes(recipe.cookTime)}
-                          </span>
-                        )}
-                        {recipe.additionalTime > 0 && (
-                          <span title="Additional Time">
-                            <i className="fas fa-hourglass-half w-3 tc mr-0.5 op-70"></i>{" "}
-                            Additional:{" "}
-                            {formatMinutesToHoursMinutes(recipe.additionalTime)}
-                          </span>
-                        )}
-                        <span
-                          className="col-span-2 text-green-600 dark:text-green-400 font-medium text-sm mt-1 inline-flex items-center gap-1"
-                          title="Total Time"
-                        >
-                          <i className="fas fa-stopwatch"></i> Total:{" "}
-                          {formatMinutesToHoursMinutes(
-                            parseInt(recipe.prepTime || 0) +
-                              parseInt(recipe.cookTime || 0) +
-                              parseInt(recipe.additionalTime || 0),
-                          )}
-                        </span>
+                            <i className="fas fa-calendar-plus"></i>
+                            <span className="hidden sm:inline">Plan</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
-                <div className="col-span-full text-center text-gray-500 dark:text-gray-400 py-10 px-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-                  <i className="fas fa-search text-4xl mb-3 opacity-50"></i>
-                  <p className="font-semibold">
+                <div className="col-span-full text-center text-gray-500 dark:text-gray-400 py-12 px-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+                  <i className="fas fa-search text-5xl mb-4 opacity-50"></i>
+                  <p className="font-semibold text-lg mb-2">
                     {hideAllExplicitly
-                      ? "Recipes are currently hidden."
+                      ? "📦 Recipes are currently hidden"
                       : filters.query
-                        ? "No recipes found matching your search."
+                        ? "🔍 No recipes found"
                         : hasActiveFiltersExcludingQuery
-                          ? "No recipes found matching your filters."
-                          : "No recipes added yet."}
+                          ? "⚙️ No recipes match your filters"
+                          : "🍽️ No recipes yet"}
                   </p>
-                  <p className="text-sm">
+                  <p className="text-sm mb-4">
                     {hideAllExplicitly
-                      ? "Click 'All' to show them."
-                      : filters.query || hasActiveFiltersExcludingQuery
-                        ? "Try adjusting filters or search terms."
-                        : "Click 'Add' to create your first recipe!"}
+                      ? "Click 'All' above to show all recipes."
+                      : filters.query
+                        ? `"${filters.query}" didn't match any recipes. Try different keywords or browse all recipes.`
+                        : hasActiveFiltersExcludingQuery
+                          ? "No recipes match your current filters. Try removing or adjusting some filters."
+                          : "Get started by adding your first recipe!"}
                   </p>
+                  {!hideAllExplicitly &&
+                    (filters.query || hasActiveFiltersExcludingQuery) && (
+                      <button
+                        onClick={() => {
+                          setFilters({
+                            query: "",
+                            type: "",
+                            cuisine: "",
+                            dietaryType: "",
+                            tag: "",
+                            cookTime: "",
+                            rating: "",
+                            favorites: false,
+                            seasonal: false,
+                            collectionRecipeIds: null,
+                          });
+                        }}
+                        className="inline-block mt-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition text-sm"
+                      >
+                        Clear All Filters
+                      </button>
+                    )}
                 </div>
               )}
             </div>
@@ -9144,7 +9323,7 @@
                                                 recipeId,
                                               )
                                             }
-                                            className="text-red-400 hover:text-red-600 text-xs absolute top-0 right-0 bg-white dark:bg-gray-700 rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                                            className="text-red-400 hover:text-red-600 text-xs absolute top-0 right-0 bg-white dark:bg-gray-700 rounded-full w-4 h-4 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity"
                                             title="Remove"
                                             aria-label="Remove"
                                           >
@@ -9250,6 +9429,133 @@
               </div>
             )}
           </>
+        );
+      };
+
+      const QuickAddMealPlanModal = ({
+        recipe,
+        updateMealPlan,
+        addToast,
+        onClose,
+      }) => {
+        const [selectedDay, setSelectedDay] = useState("Monday");
+        const [selectedMealTime, setSelectedMealTime] = useState("lunch");
+
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
+
+        const mealTimes = [
+          { id: "breakfast", label: "Breakfast", icon: "fa-coffee" },
+          { id: "morningSnack", label: "Morning Snack", icon: "fa-apple-alt" },
+          { id: "lunch", label: "Lunch", icon: "fa-utensils" },
+          {
+            id: "afternoonSnack",
+            label: "Afternoon Snack",
+            icon: "fa-cookie-bite",
+          },
+          { id: "dinner", label: "Dinner", icon: "fa-drumstick-bite" },
+        ];
+
+        const handleAddRecipe = useCallback(() => {
+          if (recipe && selectedDay && selectedMealTime) {
+            updateMealPlan(selectedDay, selectedMealTime, recipe.id);
+            addToast(`${recipe.name} added to ${selectedMealTime}!`, "success");
+            onClose();
+          }
+        }, [
+          recipe,
+          selectedDay,
+          selectedMealTime,
+          updateMealPlan,
+          addToast,
+          onClose,
+        ]);
+
+        return (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={onClose}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {recipe?.name}
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                Select which day and meal time to add this recipe
+              </p>
+
+              {/* Day Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Select Day
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {days.map((day) => (
+                    <button
+                      key={day}
+                      onClick={() => setSelectedDay(day)}
+                      className={`py-2 px-3 rounded-lg font-medium transition text-sm ${
+                        selectedDay === day
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Meal Time Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Select Meal Time
+                </label>
+                <div className="space-y-2">
+                  {mealTimes.map((mealTime) => (
+                    <button
+                      key={mealTime.id}
+                      onClick={() => setSelectedMealTime(mealTime.id)}
+                      className={`w-full py-3 px-4 rounded-lg font-medium transition flex items-center gap-2 ${
+                        selectedMealTime === mealTime.id
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      <i className={`fas ${mealTime.icon}`}></i>
+                      {mealTime.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-2 px-4 bg-gray-300 dark:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium hover:bg-gray-400 dark:hover:bg-gray-500 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddRecipe}
+                  className="flex-1 py-2 px-4 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition"
+                >
+                  Add Recipe
+                </button>
+              </div>
+            </div>
+          </div>
         );
       };
 

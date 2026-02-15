@@ -1926,6 +1926,167 @@
       };
 
       // Keyboard Shortcuts Modal
+      const TutorialModal = ({ onClose }) => {
+        const tutorialSections = [
+          {
+            title: "Welcome to Cookwise Pro",
+            icon: "fas fa-chef-hat",
+            steps: [
+              "Cookwise Pro is your ultimate recipe management and meal planning companion. Learn how to get the most out of it!",
+            ],
+          },
+          {
+            title: "🔍 Finding & Filtering Recipes",
+            icon: "fas fa-search",
+            steps: [
+              "Use the search box to find recipes by name",
+              "Use Quick Filters (Sort, Course, Cuisine, Cook Time) for fast filtering",
+              "Click 'More Filters' to access Advanced Filters (Dietary, Sub-Category, Ratings, Saved Notes)",
+              "Use 'Can Make Now' to see recipes with ingredients you have in your pantry",
+              "Click the star icon to mark your favorite recipes",
+            ],
+          },
+          {
+            title: "📋 Meal Planning",
+            icon: "fas fa-calendar-alt",
+            steps: [
+              "Open the Meal Plan from the menu",
+              "Select a day and meal type to add recipes",
+              "Click 'Plan' on any recipe card to quickly add it",
+              "View your weekly meal plan with automatic nutrition calculation",
+              "Click on recipe names in the plan to view details",
+              "Delete meals with the trash icon",
+            ],
+          },
+          {
+            title: "🍳 Pantry & Shopping",
+            icon: "fas fa-warehouse",
+            steps: [
+              "Open the Pantry to manage your ingredients inventory",
+              "Add ingredients by name and set quantities",
+              "Use the Shopping List to see what you need to buy",
+              "Export your shopping list for convenience",
+              "As you add items to your pantry, recipes marked 'Can Make Now' will update automatically",
+            ],
+          },
+          {
+            title: "📁 Collections",
+            icon: "fas fa-folder",
+            steps: [
+              "Create collections to organize recipes by theme (Breakfast, Dinner, Desserts, etc.)",
+              "Add recipes to collections for easy access",
+              "Click the collection banner to filter and see only recipes in that collection",
+              "Add or remove recipes from collections at any time",
+              "Exit a collection to see all recipes again",
+            ],
+          },
+          {
+            title: "📊 Nutrition Tracking",
+            icon: "fas fa-chart-pie",
+            steps: [
+              "Open the Nutrition Dashboard from the menu",
+              "View daily and weekly nutrition information automatically calculated from your meal plan",
+              "See calories, protein, carbs, and fat totals",
+              "Click 'View Recipes' to see individual recipe nutrition",
+              "Click recipe names to drill down and see specific meals",
+            ],
+          },
+          {
+            title: "🎯 Recipe Actions",
+            icon: "fas fa-hand-pointer",
+            steps: [
+              "Hover over recipe cards to see Cook and Plan buttons (click on mobile)",
+              "Click 'Cook' to enter cooking mode with step-by-step instructions",
+              "Click 'Plan' to add the recipe to your meal plan",
+              "Click the star to favorite/unfavorite recipes",
+              "Click the recipe card to view full details and add notes",
+              "Add personal notes to recipes that persist with your notes",
+            ],
+          },
+          {
+            title: "💾 Data Management",
+            icon: "fas fa-database",
+            steps: [
+              "Use Export Recipes to backup your data as JSON",
+              "Use Import Recipes to restore or transfer your data",
+              "Share All Recipes with others via a link",
+              "Your data is stored locally on your device for privacy",
+              "Use Random Recipe for inspiration when you're not sure what to cook",
+            ],
+          },
+          {
+            title: "⌨️ Pro Tips",
+            icon: "fas fa-lightbulb",
+            steps: [
+              "Use keyboard shortcuts (press Ctrl/Cmd + H to see them)",
+              "Filter by seasonal ingredients to make the most of what's in season",
+              "Check Recipe Suggestions for AI-powered meal ideas",
+              "Use meal plan for weekly planning to save time",
+              "Keep your pantry updated for accurate 'Can Make Now' suggestions",
+            ],
+          },
+        ];
+
+        useEffect(() => {
+          const handleEsc = (e) => {
+            if (e.key === "Escape") onClose();
+          };
+          document.addEventListener("keydown", handleEsc);
+          return () => document.removeEventListener("keydown", handleEsc);
+        }, [onClose]);
+
+        return (
+          <div
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+            onClick={onClose}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <i className="fas fa-graduation-cap text-green-500"></i>
+                  Cookwise Pro Tutorial
+                </h2>
+                <button
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-red-500 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+              <div className="space-y-4">
+                {tutorialSections.map((section, idx) => (
+                  <div
+                    key={idx}
+                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50"
+                  >
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-3">
+                      <i className={`${section.icon} text-green-500`}></i>
+                      {section.title}
+                    </h3>
+                    <ul className="space-y-2 ml-6">
+                      {section.steps.map((step, stepIdx) => (
+                        <li
+                          key={stepIdx}
+                          className="text-gray-700 dark:text-gray-300 flex gap-3"
+                        >
+                          <span className="text-green-500 font-bold min-w-[1.5rem]">
+                            •
+                          </span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      };
+
       const KeyboardShortcutsModal = ({ onClose }) => {
         const shortcuts = [
           { key: "Ctrl/Cmd + K", description: "Search recipes" },
@@ -1993,6 +2154,7 @@
       // Nutrition Dashboard Component
       const NutritionDashboardModal = ({ recipes, mealPlan, onClose }) => {
         const [selectedDay, setSelectedDay] = useState("all");
+        const [showRecipeCards, setShowRecipeCards] = useState(false);
         const days = [
           "Sunday",
           "Monday",
@@ -2009,6 +2171,7 @@
           let totalCarbs = 0;
           let totalFat = 0;
           let recipeCount = 0;
+          const trackedRecipeIds = new Set();
 
           const processDay = (day) => {
             if (mealPlan[day]) {
@@ -2022,6 +2185,7 @@
                       totalCarbs += recipe.carbs || 0;
                       totalFat += recipe.fat || 0;
                       recipeCount++;
+                      trackedRecipeIds.add(id);
                     }
                   });
                 }
@@ -2035,16 +2199,109 @@
             processDay(selectedDay);
           }
 
+          const trackedRecipes = recipes.filter((r) =>
+            trackedRecipeIds.has(r.id),
+          );
+
           return {
             totalCalories,
             totalProtein,
             totalCarbs,
             totalFat,
             recipeCount,
+            trackedRecipes,
           };
         };
 
         const nutrition = calculateNutrition();
+
+        if (showRecipeCards) {
+          return (
+            <div
+              className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+              onClick={onClose}
+            >
+              <div
+                className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i className="fas fa-list text-green-500"></i>
+                    Recipes Tracked ({nutrition.recipeCount})
+                  </h2>
+                  <button
+                    onClick={() => setShowRecipeCards(false)}
+                    className="text-gray-500 hover:text-red-500 text-2xl"
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {nutrition.trackedRecipes.length > 0 ? (
+                    nutrition.trackedRecipes.map((recipe) => (
+                      <div
+                        key={recipe.id}
+                        className="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
+                      >
+                        <div className="aspect-video bg-gray-200 dark:bg-gray-600 overflow-hidden">
+                          {recipe.image ? (
+                            <img
+                              src={recipe.image}
+                              alt={recipe.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <i className="fas fa-image text-4xl opacity-50"></i>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-semibold text-lg text-gray-900 dark:text-white line-clamp-2 mb-2">
+                            {recipe.name}
+                          </h3>
+                          <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                            {recipe.calories && (
+                              <p>
+                                <i className="fas fa-fire text-orange-500 mr-2"></i>
+                                {recipe.calories} cal
+                              </p>
+                            )}
+                            {recipe.protein && (
+                              <p>
+                                <i className="fas fa-drumstick-bite text-blue-500 mr-2"></i>
+                                {recipe.protein}g protein
+                              </p>
+                            )}
+                            {recipe.carbs && (
+                              <p>
+                                <i className="fas fa-bread-slice text-yellow-500 mr-2"></i>
+                                {recipe.carbs}g carbs
+                              </p>
+                            )}
+                            {recipe.fat && (
+                              <p>
+                                <i className="fas fa-cheese text-purple-500 mr-2"></i>
+                                {recipe.fat}g fat
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-12 text-gray-500">
+                      <i className="fas fa-inbox text-5xl mb-4 opacity-50"></i>
+                      <p>No recipes tracked</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        }
 
         return (
           <div
@@ -2144,13 +2401,17 @@
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+              <button
+                onClick={() => setShowRecipeCards(true)}
+                className="w-full bg-gray-50 dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/30 p-4 rounded-lg cursor-pointer transition"
+              >
                 <p className="text-center text-gray-700 dark:text-gray-300">
                   <i className="fas fa-utensils mr-2 text-green-500"></i>
                   <strong>{nutrition.recipeCount}</strong> recipes tracked
                   {selectedDay !== "all" && ` on ${selectedDay}`}
+                  <i className="fas fa-arrow-right ml-2"></i>
                 </p>
-              </div>
+              </button>
             </div>
           </div>
         );
@@ -3511,6 +3772,7 @@
           useState(false);
         const [showKeyboardShortcuts, setShowKeyboardShortcuts] =
           useState(false);
+        const [showTutorial, setShowTutorial] = useState(false);
 
         const [displayUnitSystem, setDisplayUnitSystem] = useState("imperial");
 
@@ -4461,7 +4723,7 @@
                       <ol style="list-style: none; padding-left: 0; margin: 0;">${directionsHtml}</ol>
                     </div>
                     <div>
-                      <h3 style="color: #f59e0b; margin: 0 0 12px 0; font-size: 13pt; border-bottom: 1px solid #eee; padding-bottom: 6px;">Tips & Tricks</h3>
+                      <h3 style="color: #f59e0b; margin: 0 0 12px 0; font-size: 13pt; border-bottom: 1px solid #eee; padding-bottom: 6px;">Tips, Tricks & Cooks Notes</h3>
                       <ul style="list-style: none; padding-left: 0; margin: 0;">${tipsAndTricksHtml}</ul>
                     </div>
                   `;
@@ -4533,6 +4795,7 @@
               handleShareAll={handleShareAll}
               setShowNutritionDashboard={setShowNutritionDashboard}
               setShowKeyboardShortcuts={setShowKeyboardShortcuts}
+              setShowTutorial={setShowTutorial}
             />
             <main className="flex-grow max-w-7xl mx-auto p-3 sm:p-4 w-full">
               {isLoading ? (
@@ -4759,6 +5022,10 @@
               />
             )}
 
+            {showTutorial && (
+              <TutorialModal onClose={() => setShowTutorial(false)} />
+            )}
+
             {showKeyboardShortcuts && (
               <KeyboardShortcutsModal
                 onClose={() => setShowKeyboardShortcuts(false)}
@@ -4801,6 +5068,7 @@
         handleShareAll,
         setShowNutritionDashboard,
         setShowKeyboardShortcuts,
+        setShowTutorial,
       }) => {
         const [searchQuery, setSearchQuery] = useState("");
         const debounceTimeoutRef = useRef(null);
@@ -5042,6 +5310,11 @@
             label: "Nutrition Dashboard",
             icon: "fas fa-chart-pie",
             action: () => setShowNutritionDashboard(true),
+          },
+          {
+            label: "Tutorial",
+            icon: "fas fa-graduation-cap",
+            action: () => setShowTutorial(true),
           },
           {
             label: "Keyboard Shortcuts",
@@ -5606,6 +5879,9 @@
         });
         const [sortBy, setSortBy] = useState("name");
         const [hideAllExplicitly, setHideAllExplicitly] = useState(false);
+        const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+        const [advancedFiltersHeight, setAdvancedFiltersHeight] = useState(0);
+        const advancedFiltersRef = useRef(null);
 
         useEffect(() => {
           const isFilterActive =
@@ -5710,6 +5986,23 @@
           }
         }, [collections]);
 
+        // Measure advanced filters height for smooth animation
+        useEffect(() => {
+          if (advancedFiltersRef.current) {
+            const resizeObserver = new ResizeObserver(() => {
+              if (advancedFiltersRef.current) {
+                setAdvancedFiltersHeight(
+                  advancedFiltersRef.current.scrollHeight,
+                );
+              }
+            });
+            resizeObserver.observe(advancedFiltersRef.current);
+            // Initial measurement
+            setAdvancedFiltersHeight(advancedFiltersRef.current.scrollHeight);
+            return () => resizeObserver.disconnect();
+          }
+        }, [filteredRecipes]);
+
         const handleFilterChange = useCallback((e) => {
           const { name, value, type, checked } = e.target;
           setHideAllExplicitly(false);
@@ -5774,7 +6067,7 @@
           filters.seasonal;
 
         return (
-          <section>
+          <section className="transition-all duration-300">
             {/* Active Collection Banner */}
             {activeCollection && (
               <div className="mb-4 bg-green-100 dark:bg-green-900/30 border-2 border-green-500 dark:border-green-600 rounded-lg p-4 flex items-center justify-between">
@@ -5785,11 +6078,8 @@
                       {activeCollection.name}
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Showing {filters.collectionRecipeIds?.length || 0} recipe
-                      {filters.collectionRecipeIds?.length !== 1
-                        ? "s"
-                        : ""}{" "}
-                      from this collection
+                      {filters.collectionRecipeIds?.length || 0} recipe
+                      {filters.collectionRecipeIds?.length !== 1 ? "s" : ""}
                     </p>
                   </div>
                 </div>
@@ -5803,11 +6093,11 @@
                         }),
                       );
                     }}
-                    className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition flex items-center gap-2"
+                    className="px-2 sm:px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition flex items-center gap-2"
                     title="Add recipes to this collection"
                   >
                     <i className="fas fa-plus"></i>
-                    Add Recipes
+                    <span className="hidden sm:inline">Add Recipes</span>
                   </button>
                   <button
                     onClick={() => {
@@ -5818,14 +6108,16 @@
                         }),
                       );
                     }}
-                    className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition flex items-center gap-2"
+                    className="px-2 sm:px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition flex items-center gap-2"
+                    title="Exit collection"
                   >
                     <i className="fas fa-times"></i>
-                    Exit Collection
+                    <span className="hidden sm:inline">Exit</span>
                   </button>
                 </div>
               </div>
             )}
+            {/* QUICK FILTERS */}
             <div className="mb-4 sm:mb-6 flex flex-wrap gap-2 sm:gap-3 lg:gap-5 items-center bg-gray-50 dark:bg-gray-800 p-2 sm:p-3 rounded-lg shadow-sm">
               <span className="text-xs sm:text-sm font-medium mr-0 sm:mr-1 hidden lg:inline text-gray-700 dark:text-gray-300">
                 Filter:
@@ -5879,60 +6171,6 @@
                   ))}
               </select>
               <select
-                name="dietaryType"
-                value={filters.dietaryType}
-                onChange={handleFilterChange}
-                className="filter-select text-xs sm:text-sm"
-                aria-label="Filter Dietary Type"
-              >
-                <option value="">All Dietary</option>{" "}
-                <option value="_NONE_">No Dietary Tags</option>
-                {[
-                  ...new Set(
-                    recipes
-                      .flatMap((r) => r?.dietaryTypes || [])
-                      .filter(Boolean),
-                  ),
-                ]
-                  .sort()
-                  .map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-              </select>
-              {/* Sub-Category Filter (dependent on Course) */}
-              <select
-                name="subCategory"
-                value={filters.subCategory || ""}
-                onChange={handleFilterChange}
-                className="filter-select text-xs sm:text-sm"
-                aria-label="Filter by Sub-Category"
-              >
-                <option value="">All Sub-Categories</option>
-                <option value="_NONE_">No Sub-Category</option>
-                {(() => {
-                  // If a course is selected, only show sub-categories from recipes with that course
-                  let filtered = recipes;
-                  if (filters.course && filters.course !== "_NONE_") {
-                    filtered = recipes.filter(
-                      (r) => r.course === filters.course,
-                    );
-                  }
-                  return [
-                    ...new Set(
-                      filtered.map((r) => r?.subCategory).filter(Boolean),
-                    ),
-                  ]
-                    .sort()
-                    .map((sc) => (
-                      <option key={sc} value={sc}>
-                        {sc}
-                      </option>
-                    ));
-                })()}
-              </select>
-              <select
                 name="cookTime"
                 value={filters.cookTime}
                 onChange={handleFilterChange}
@@ -5947,32 +6185,8 @@
                 ))}
               </select>
 
-              {/* Saved Notes dropdown - jump to recipe that has notes */}
-              <select
-                name="savedNotes"
-                onChange={handleJumpToNote}
-                className="filter-select saved-notes-select text-xs sm:text-sm"
-                aria-label="Jump to recipe with saved notes"
-                title="Jump to a recipe that has saved notes"
-                defaultValue=""
-              >
-                <option value="">Saved notes ({notedRecipes.length})</option>
-                {notedRecipes.map((r) => (
-                  <option
-                    key={r.id}
-                    value={r.id}
-                    title={String(r.notes).slice(0, 120)}
-                  >
-                    {r.name}{" "}
-                    {r.notes
-                      ? ` — ${String(r.notes).slice(0, 40)}${String(r.notes).length > 40 ? "..." : ""}`
-                      : ""}
-                  </option>
-                ))}
-              </select>
-
               {/* Can Make Now Checkbox */}
-              <label className="flex items-center gap-2 px-2 py-1 sm:py-2 text-xs sm:text-sm cursor-pointer hover:bg-white dark:hover:bg-gray-700 rounded transition">
+              <label className="flex items-center gap-2 px-2 py-1 sm:py-2 text-xs sm:text-sm cursor-pointer hover:bg-white dark:hover:bg-green-700 rounded transition">
                 <input
                   type="checkbox"
                   name="canMakeNow"
@@ -5986,26 +6200,8 @@
                 </span>
               </label>
 
-              {/* Ratings dropdown - filter by rating */}
-              <select
-                name="rating"
-                value={filters.rating || ""}
-                onChange={handleFilterChange}
-                className="filter-select text-xs sm:text-sm"
-                aria-label="Filter by rating"
-                title="Filter recipes by rating"
-              >
-                <option value="">Ratings</option>
-                <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
-                <option value="4">⭐⭐⭐⭐ (4 stars)</option>
-                <option value="3">⭐⭐⭐ (3 stars)</option>
-                <option value="2">⭐⭐ (2 stars)</option>
-                <option value="1">⭐ (1 star)</option>
-                <option value="0">No rating</option>
-              </select>
-
               <label
-                className="flex items-center gap-1 cursor-pointer text-xs sm:text-sm whitespace-nowrap ml-1 sm:ml-2 text-gray-700 dark:text-gray-300"
+                className="flex items-center gap-1 px-2 py-1 cursor-pointer text-xs sm:text-sm whitespace-nowrap ml-1 sm:ml-2 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-green-700 rounded transition"
                 title="Favorites Only"
               >
                 <input
@@ -6018,13 +6214,145 @@
                 <i className="fas fa-star text-yellow-400"></i>{" "}
                 <span className="hidden sm:inline">Favs</span>
               </label>
+
+              {/* Advanced Filters Toggle */}
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition cursor-pointer border border-gray-300 dark:border-gray-600"
+                title="Toggle advanced filters"
+              >
+                <i
+                  className={`fas fa-sliders-h ${showAdvancedFilters ? "text-green-500" : ""}`}
+                ></i>
+                <span className="hidden sm:inline">More Filters</span>
+              </button>
+
               <div className="ml-auto text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1 whitespace-nowrap">
                 <i className="fas fa-utensils text-green-500"></i>
                 <span className="hidden sm:inline">Recipes:</span>{" "}
                 {recipesToDisplay.length}
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+
+            {/* ADVANCED FILTERS (Collapsible) */}
+            <div
+              ref={advancedFiltersRef}
+              className={`transition-all ease-in-out overflow-hidden`}
+              style={{
+                transitionDuration: "1500ms",
+                maxHeight: showAdvancedFilters
+                  ? `${advancedFiltersHeight}px`
+                  : "0px",
+                opacity: showAdvancedFilters ? 1 : 0,
+                marginBottom: showAdvancedFilters ? "1rem" : "0rem",
+              }}
+            >
+              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="flex flex-wrap gap-2 sm:gap-3 lg:gap-5 items-center">
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 w-full lg:w-auto">
+                    Advanced:
+                  </span>
+                  {/* Dietary Type Filter */}
+                  <select
+                    name="dietaryType"
+                    value={filters.dietaryType}
+                    onChange={handleFilterChange}
+                    className="filter-select text-xs sm:text-sm"
+                    aria-label="Filter Dietary Type"
+                  >
+                    <option value="">All Dietary</option>{" "}
+                    <option value="_NONE_">No Dietary Tags</option>
+                    {[
+                      ...new Set(
+                        recipes
+                          .flatMap((r) => r?.dietaryTypes || [])
+                          .filter(Boolean),
+                      ),
+                    ]
+                      .sort()
+                      .map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                  </select>
+                  {/* Sub-Category Filter (dependent on Course) */}
+                  <select
+                    name="subCategory"
+                    value={filters.subCategory || ""}
+                    onChange={handleFilterChange}
+                    className="filter-select text-xs sm:text-sm"
+                    aria-label="Filter by Sub-Category"
+                  >
+                    <option value="">All Sub-Categories</option>
+                    <option value="_NONE_">No Sub-Category</option>
+                    {(() => {
+                      // If a course is selected, only show sub-categories from recipes with that course
+                      let filtered = recipes;
+                      if (filters.course && filters.course !== "_NONE_") {
+                        filtered = recipes.filter(
+                          (r) => r.course === filters.course,
+                        );
+                      }
+                      return [
+                        ...new Set(
+                          filtered.map((r) => r?.subCategory).filter(Boolean),
+                        ),
+                      ]
+                        .sort()
+                        .map((sc) => (
+                          <option key={sc} value={sc}>
+                            {sc}
+                          </option>
+                        ));
+                    })()}
+                  </select>
+                  {/* Ratings dropdown - filter by rating */}
+                  <select
+                    name="rating"
+                    value={filters.rating || ""}
+                    onChange={handleFilterChange}
+                    className="filter-select text-xs sm:text-sm"
+                    aria-label="Filter by rating"
+                    title="Filter recipes by rating"
+                  >
+                    <option value="">Ratings</option>
+                    <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
+                    <option value="4">⭐⭐⭐⭐ (4 stars)</option>
+                    <option value="3">⭐⭐⭐ (3 stars)</option>
+                    <option value="2">⭐⭐ (2 stars)</option>
+                    <option value="1">⭐ (1 star)</option>
+                    <option value="0">No rating</option>
+                  </select>
+                  {/* Saved Notes dropdown - jump to recipe that has notes */}
+                  <select
+                    name="savedNotes"
+                    onChange={handleJumpToNote}
+                    className="filter-select saved-notes-select text-xs sm:text-sm"
+                    aria-label="Jump to recipe with saved notes"
+                    title="Jump to a recipe that has saved notes"
+                    defaultValue=""
+                  >
+                    <option value="">
+                      Saved notes ({notedRecipes.length})
+                    </option>
+                    {notedRecipes.map((r) => (
+                      <option
+                        key={r.id}
+                        value={r.id}
+                        title={String(r.notes).slice(0, 120)}
+                      >
+                        {r.name}{" "}
+                        {r.notes
+                          ? ` — ${String(r.notes).slice(0, 40)}${String(r.notes).length > 40 ? "..." : ""}`
+                          : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 transition-all duration-300">
               {recipesToDisplay.length > 0 ? (
                 recipesToDisplay.map((recipe) => {
                   const canMakeRecipe = checkRecipeAvailability(recipe).canMake;
@@ -6489,7 +6817,6 @@
           () => ({
             name: "",
             description: "",
-            type: "",
             course: "",
             subCategory: "",
             cuisine: "",
@@ -6531,7 +6858,6 @@
             setFormData({
               name: editingRecipe.name || "",
               description: editingRecipe.description || "",
-              type: editingRecipe.type || "",
               course: editingRecipe.course || "",
               subCategory: editingRecipe.subCategory || "",
               cuisine: editingRecipe.cuisine || "",
@@ -6644,7 +6970,6 @@
         const validateForm = useCallback(() => {
           const errors = {};
           if (!formData.name.trim()) errors.name = "Recipe name is required.";
-          if (!formData.type.trim()) errors.type = "Recipe type is required.";
           if (!formData.ingredients.trim())
             errors.ingredients = "Ingredients are required.";
           if (!formData.directions.trim())
@@ -6706,7 +7031,6 @@
             const recipeData = {
               name: formData.name.trim(),
               description: formData.description.trim(),
-              type: formData.type.trim(),
               course: formData.course.trim(),
               subCategory: formData.subCategory.trim(),
               cuisine: formData.cuisine.trim(),
@@ -6936,29 +7260,6 @@
                       placeholder="e.g., Pasta, Grilled, Soups and Stews, Baked"
                     />
                     <ErrorMessage name="subCategory" />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="type"
-                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                    >
-                      Type <span className="text-xs">(optional)</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="type"
-                      name="type"
-                      value={formData.type}
-                      onChange={handleChange}
-                      list="meal-types"
-                      className={`modal-input ${formErrors.type ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
-                    />
-                    <datalist id="meal-types">
-                      {mealTypes.map((t) => (
-                        <option key={t} value={t} />
-                      ))}
-                    </datalist>
-                    <ErrorMessage name="type" />
                   </div>
                 </div>
                 <div>
@@ -7346,7 +7647,7 @@
                     htmlFor="tipsAndTricks"
                     className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
                   >
-                    Tips & Tricks{" "}
+                    Tips, Tricks & Cooks Notes{" "}
                     <span className="text-xs">(one tip per line)</span>
                   </label>
                   <textarea
@@ -8313,7 +8614,7 @@
             text += "\n";
           }
           if (recipe.tipsAndTricks && recipe.tipsAndTricks.length > 0) {
-            text += "Tips & Tricks:\n";
+            text += "Tips, Tricks & Cooks Notes:\n";
             recipe.tipsAndTricks.forEach((tip) => {
               text += `- ${tip}\n`;
             });

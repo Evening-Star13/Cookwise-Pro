@@ -125,6 +125,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 - **Open Shopping List**: Ctrl/Cmd + L
 - **Open Pantry**: Ctrl/Cmd + I
 - **Recipe Suggestions**: Ctrl/Cmd + S
+- **Open Photo Gallery**: Ctrl/Cmd + G
 - **Random Recipe**: Ctrl/Cmd + R
 - **Show Shortcuts**: Ctrl/Cmd + H
 
@@ -193,7 +194,16 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 3. **Set quantities** and expiration dates
 4. **Track what you have** to avoid duplicate purchases
 
-### 👨‍🍳 Using Cooking Mode
+### �️ Browsing Your Photo Gallery
+
+1. **Open the Photo Gallery** from the menu or press Ctrl/Cmd + G
+2. **Browse organized photos** - each recipe's photos are grouped together
+3. **View captions** by hovering over photos
+4. **Click any photo** to open and view the complete recipe
+5. **See photo counts** at a glance for each recipe
+6. **Enjoy a beautiful layout** that showcases your culinary creations
+
+### �👨‍🍳 Using Cooking Mode
 
 1. **Open a recipe** you want to cook
 2. **Click the "Cook" button**
@@ -217,9 +227,12 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 
 ### 📸 Recipe Photo Gallery
 
-- **Add Photos**: Attach images to recipes
-- **Caption Support**: Describe your cooking moments
-- **Gallery View**: Browse all recipe photos
+- **Add Photos**: Attach images to recipes in the Photo Gallery section
+- **Caption Support**: Describe your cooking moments with captions
+- **Browse Gallery**: Visual gallery view of all recipe photos organized by recipe
+- **Photo Grouping**: All photos from each recipe are grouped together for easy browsing
+- **One-Click Navigation**: Click any photo to open the full recipe details
+- **Professional Layout**: Beautiful responsive grid that adapts to any screen size
 
 ### 📈 Analytics & Insights
 
@@ -232,6 +245,15 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 - **Based on Pantry**: Recipes you can make now
 - **Dietary Preferences**: Tailored suggestions
 - **Seasonal Ingredients**: Fresh, seasonal options
+
+### 🖼️ Visual Photo Gallery
+
+- **Organized by Recipe**: Photos are grouped together by their recipe
+- **Professional Presentation**: Responsive grid layout that works on all devices
+- **Easy Navigation**: Click photos to access full recipe details
+- **Photo Information**: View captions and photo counts
+- **Beautiful Design**: Elegant hover effects and smooth transitions
+- **Mobile Friendly**: Touch-friendly interface for all screen sizes
 
 ## Troubleshooting
 

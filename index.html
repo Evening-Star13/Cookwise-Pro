@@ -1970,7 +1970,18 @@
             ],
           },
           {
-            title: "📁 Collections",
+            title: "�️ Photo Gallery",
+            icon: "fas fa-images",
+            steps: [
+              "Open the Photo Gallery from the menu to see all photos from your recipes",
+              "Photos are organized by recipe - all photos from each recipe are grouped together",
+              "Hover over photos to see captions and details",
+              "Click any photo to view the full recipe with all its details",
+              "Add photos to recipes in their Photo Gallery section for easy visual browsing",
+            ],
+          },
+          {
+            title: "�📁 Collections",
             icon: "fas fa-folder",
             steps: [
               "Create collections to organize recipes by theme (Breakfast, Dinner, Desserts, etc.)",
@@ -2095,6 +2106,7 @@
           { key: "Ctrl/Cmd + L", description: "Open shopping list" },
           { key: "Ctrl/Cmd + I", description: "Open ingredient inventory" },
           { key: "Ctrl/Cmd + S", description: "Show recipe suggestions" },
+          { key: "Ctrl/Cmd + G", description: "Open photo gallery" },
           { key: "Ctrl/Cmd + R", description: "Random recipe" },
           { key: "Ctrl/Cmd + H", description: "Show keyboard shortcuts" },
           { key: "Esc", description: "Close modal" },
@@ -4060,6 +4072,10 @@
                 case "s":
                   e.preventDefault();
                   setShowRecipeSuggestions(true);
+                  break;
+                case "g":
+                  e.preventDefault();
+                  setShowPhotoGalleryModal(true);
                   break;
                 case "r":
                   e.preventDefault();

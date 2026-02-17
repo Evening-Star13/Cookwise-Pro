@@ -2153,18 +2153,20 @@
 
       // Photo Gallery Modal
       const PhotoGalleryModal = ({ recipes, onClose, openRecipeDetails }) => {
-        // Filter recipes that have photos
+        // Filter recipes that have photos in their Photo Gallery
         const recipesWithPhotos = useMemo(() => {
-          return recipes.filter((recipe) => {
-            if (!recipe) return false;
-            // Check if recipe has a single image
-            if (recipe.image && typeof recipe.image === "string") return true;
-            // Check if recipe has array of photos
-            if (Array.isArray(recipe.photos) && recipe.photos.length > 0) {
-              return recipe.photos.some((photo) => photo && photo.url);
-            }
-            return false;
-          });
+          return recipes
+            .filter((recipe) => {
+              if (!recipe) return false;
+              // Only show recipes with photos in the photos array
+              if (Array.isArray(recipe.photos) && recipe.photos.length > 0) {
+                return recipe.photos.some(
+                  (photo) => photo && (photo.url || photo),
+                );
+              }
+              return false;
+            })
+            .sort((a, b) => a.name.localeCompare(b.name));
         }, [recipes]);
 
         useEffect(() => {
@@ -2176,9 +2178,17 @@
         }, [onClose]);
 
         const handleImageClick = (recipe) => {
-          onClose();
           openRecipeDetails && openRecipeDetails(recipe);
         };
+
+        // Count total photos
+        const totalPhotoCount = useMemo(() => {
+          return recipesWithPhotos.reduce((sum, recipe) => {
+            return (
+              sum + (Array.isArray(recipe.photos) ? recipe.photos.length : 0)
+            );
+          }, 0);
+        }, [recipesWithPhotos]);
 
         return (
           <div
@@ -2186,7 +2196,7 @@
             onClick={onClose}
           >
             <div
-              className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full shadow-2xl relative"
+              className="bg-white dark:bg-gray-800 rounded-lg max-w-5xl w-full shadow-2xl relative"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
@@ -2196,7 +2206,8 @@
                     Photo Gallery
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Browse all recipes with photos ({recipesWithPhotos.length})
+                    {totalPhotoCount} photos from {recipesWithPhotos.length}{" "}
+                    recipe{recipesWithPhotos.length !== 1 ? "s" : ""}
                   </p>
                 </div>
                 <button
@@ -2216,64 +2227,82 @@
                       No recipes with photos yet
                     </p>
                     <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
-                      Add photos to recipes to see them here
+                      Add photos to recipes in their Photo Gallery section
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {recipesWithPhotos.map((recipe) => {
-                      // Get the primary image (prefer photos array over single image)
-                      const primaryPhoto =
-                        Array.isArray(recipe.photos) && recipe.photos[0]
-                          ? recipe.photos[0].url || recipe.photos[0]
-                          : recipe.image;
-
-                      return (
+                  <div className="space-y-8">
+                    {recipesWithPhotos.map((recipe) => (
+                      <div
+                        key={recipe.id || recipe.name}
+                        className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0"
+                      >
+                        {/* Recipe Header */}
                         <div
-                          key={recipe.id || recipe.name}
-                          className="group relative rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer bg-gray-100 dark:bg-gray-700"
+                          className="flex items-center justify-between mb-4 cursor-pointer hover:opacity-80 transition-opacity"
                           onClick={() => handleImageClick(recipe)}
                         >
-                          <div className="aspect-square overflow-hidden bg-gray-200 dark:bg-gray-600">
-                            {primaryPhoto ? (
-                              <img
-                                src={primaryPhoto}
-                                alt={recipe.name}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
-                                <i className="fas fa-image text-3xl opacity-50"></i>
-                              </div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            {recipe.name}
+                            {recipe.isFavorite && (
+                              <i className="fas fa-star text-yellow-500 text-sm"></i>
                             )}
-                          </div>
-
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                            <div className="w-full">
-                              <h3 className="text-white font-semibold text-sm line-clamp-2 mb-1">
-                                {recipe.name}
-                              </h3>
-                              {Array.isArray(recipe.photos) &&
-                                recipe.photos.length > 1 && (
-                                  <p className="text-gray-300 text-xs">
-                                    +{recipe.photos.length - 1} more photo
-                                    {recipe.photos.length - 1 !== 1 ? "s" : ""}
-                                  </p>
-                                )}
-                              <p className="text-green-400 text-xs mt-2">
-                                Click to view full recipe
-                              </p>
-                            </div>
-                          </div>
-
-                          {recipe.isFavorite && (
-                            <div className="absolute top-2 right-2 bg-yellow-50 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300 p-2 rounded-full shadow-md">
-                              <i className="fas fa-star text-sm"></i>
-                            </div>
-                          )}
+                          </h3>
+                          <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                            {Array.isArray(recipe.photos)
+                              ? recipe.photos.length
+                              : 0}{" "}
+                            photo
+                            {Array.isArray(recipe.photos) &&
+                            recipe.photos.length !== 1
+                              ? "s"
+                              : ""}
+                          </span>
                         </div>
-                      );
-                    })}
+
+                        {/* Photos Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                          {Array.isArray(recipe.photos) &&
+                            recipe.photos.map((photo, idx) => {
+                              const photoUrl = photo.url || photo;
+                              const photoCaption =
+                                photo.caption || `Photo ${idx + 1}`;
+
+                              return (
+                                <div
+                                  key={idx}
+                                  className="group relative rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-100 dark:bg-gray-700"
+                                  onClick={() => handleImageClick(recipe)}
+                                  title={photoCaption}
+                                >
+                                  <div className="aspect-square overflow-hidden bg-gray-200 dark:bg-gray-600">
+                                    {photoUrl ? (
+                                      <img
+                                        src={photoUrl}
+                                        alt={photoCaption}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                                        <i className="fas fa-image text-2xl opacity-50"></i>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Hover overlay with caption */}
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2">
+                                    <div className="w-full">
+                                      <p className="text-white text-xs line-clamp-2">
+                                        {photoCaption}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

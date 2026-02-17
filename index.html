@@ -2151,6 +2151,137 @@
         );
       };
 
+      // Photo Gallery Modal
+      const PhotoGalleryModal = ({ recipes, onClose, openRecipeDetails }) => {
+        // Filter recipes that have photos
+        const recipesWithPhotos = useMemo(() => {
+          return recipes.filter((recipe) => {
+            if (!recipe) return false;
+            // Check if recipe has a single image
+            if (recipe.image && typeof recipe.image === "string") return true;
+            // Check if recipe has array of photos
+            if (Array.isArray(recipe.photos) && recipe.photos.length > 0) {
+              return recipe.photos.some((photo) => photo && photo.url);
+            }
+            return false;
+          });
+        }, [recipes]);
+
+        useEffect(() => {
+          const handleEsc = (e) => {
+            if (e.key === "Escape") onClose();
+          };
+          document.addEventListener("keydown", handleEsc);
+          return () => document.removeEventListener("keydown", handleEsc);
+        }, [onClose]);
+
+        const handleImageClick = (recipe) => {
+          onClose();
+          openRecipeDetails && openRecipeDetails(recipe);
+        };
+
+        return (
+          <div
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-y-auto"
+            onClick={onClose}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full shadow-2xl relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                    <i className="fas fa-images text-green-500"></i>
+                    Photo Gallery
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Browse all recipes with photos ({recipesWithPhotos.length})
+                  </p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 text-2xl"
+                  title="Close"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="p-6 max-h-[calc(90vh-150px)] overflow-y-auto">
+                {recipesWithPhotos.length === 0 ? (
+                  <div className="text-center py-12">
+                    <i className="fas fa-image text-gray-300 dark:text-gray-600 text-5xl mb-4 block"></i>
+                    <p className="text-gray-600 dark:text-gray-400 text-lg">
+                      No recipes with photos yet
+                    </p>
+                    <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
+                      Add photos to recipes to see them here
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {recipesWithPhotos.map((recipe) => {
+                      // Get the primary image (prefer photos array over single image)
+                      const primaryPhoto =
+                        Array.isArray(recipe.photos) && recipe.photos[0]
+                          ? recipe.photos[0].url || recipe.photos[0]
+                          : recipe.image;
+
+                      return (
+                        <div
+                          key={recipe.id || recipe.name}
+                          className="group relative rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer bg-gray-100 dark:bg-gray-700"
+                          onClick={() => handleImageClick(recipe)}
+                        >
+                          <div className="aspect-square overflow-hidden bg-gray-200 dark:bg-gray-600">
+                            {primaryPhoto ? (
+                              <img
+                                src={primaryPhoto}
+                                alt={recipe.name}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                                <i className="fas fa-image text-3xl opacity-50"></i>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                            <div className="w-full">
+                              <h3 className="text-white font-semibold text-sm line-clamp-2 mb-1">
+                                {recipe.name}
+                              </h3>
+                              {Array.isArray(recipe.photos) &&
+                                recipe.photos.length > 1 && (
+                                  <p className="text-gray-300 text-xs">
+                                    +{recipe.photos.length - 1} more photo
+                                    {recipe.photos.length - 1 !== 1 ? "s" : ""}
+                                  </p>
+                                )}
+                              <p className="text-green-400 text-xs mt-2">
+                                Click to view full recipe
+                              </p>
+                            </div>
+                          </div>
+
+                          {recipe.isFavorite && (
+                            <div className="absolute top-2 right-2 bg-yellow-50 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300 p-2 rounded-full shadow-md">
+                              <i className="fas fa-star text-sm"></i>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      };
+
       // Nutrition Dashboard Component
       const NutritionDashboardModal = ({ recipes, mealPlan, onClose }) => {
         const [selectedDay, setSelectedDay] = useState("all");
@@ -3480,6 +3611,7 @@
         const [timers, setTimers] = useState([]);
         const audioContextRef = useRef(null);
         const timerIntervalRef = useRef(null);
+        const alarmIntervalsRef = useRef({});
 
         const playSound = useCallback(() => {
           if (!audioContextRef.current) {
@@ -3508,6 +3640,29 @@
           oscillator.stop(audioContextRef.current.currentTime + 1);
         }, []);
 
+        const startContinuousAlarm = useCallback(
+          (timerId) => {
+            // Stop any existing alarm for this timer
+            if (alarmIntervalsRef.current[timerId]) {
+              clearInterval(alarmIntervalsRef.current[timerId]);
+            }
+            // Play sound immediately
+            playSound();
+            // Then repeat every 2 seconds
+            alarmIntervalsRef.current[timerId] = setInterval(() => {
+              playSound();
+            }, 2000);
+          },
+          [playSound],
+        );
+
+        const stopContinuousAlarm = useCallback((timerId) => {
+          if (alarmIntervalsRef.current[timerId]) {
+            clearInterval(alarmIntervalsRef.current[timerId]);
+            delete alarmIntervalsRef.current[timerId];
+          }
+        }, []);
+
         useEffect(() => {
           timerIntervalRef.current = setInterval(() => {
             setTimers((prevTimers) => {
@@ -3517,26 +3672,25 @@
                 if (timer.isRunning && timer.remaining > 0) {
                   const newRemaining = timer.remaining - 1;
                   if (newRemaining <= 0) {
-                    playSound();
+                    startContinuousAlarm(timer.id);
                     addToast(`Timer "${timer.name}" is done!`, "success");
-                    return { ...timer, remaining: 0, isRunning: false };
+                    return {
+                      ...timer,
+                      remaining: 0,
+                      isRunning: false,
+                      isAlarmActive: true,
+                    };
                   }
                   return { ...timer, remaining: newRemaining };
                 }
                 return timer;
               });
-              // Filter out timers that are finished for more than 5 minutes
-              return updatedTimers.filter(
-                (t) =>
-                  t.isRunning ||
-                  t.remaining > 0 ||
-                  Date.now() - t.finishedAt < 300000,
-              );
+              return updatedTimers;
             });
           }, 1000);
 
           return () => clearInterval(timerIntervalRef.current);
-        }, [playSound, addToast]);
+        }, [startContinuousAlarm, addToast]);
 
         const addTimer = useCallback(
           (durationInSeconds, name) => {
@@ -3549,6 +3703,7 @@
                 remaining: durationInSeconds,
                 isRunning: true,
                 finishedAt: null,
+                isAlarmActive: false,
               },
             ]);
             addToast(`Timer "${name}" started!`, "info");
@@ -3564,19 +3719,32 @@
           );
         }, []);
 
-        const removeTimer = useCallback((id) => {
-          setTimers((prev) => prev.filter((t) => t.id !== id));
-        }, []);
+        const removeTimer = useCallback(
+          (id) => {
+            stopContinuousAlarm(id);
+            setTimers((prev) => prev.filter((t) => t.id !== id));
+          },
+          [stopContinuousAlarm],
+        );
 
-        const resetTimer = useCallback((id) => {
-          setTimers((prev) =>
-            prev.map((t) =>
-              t.id === id
-                ? { ...t, remaining: t.duration, isRunning: true }
-                : t,
-            ),
-          );
-        }, []);
+        const resetTimer = useCallback(
+          (id) => {
+            stopContinuousAlarm(id);
+            setTimers((prev) =>
+              prev.map((t) =>
+                t.id === id
+                  ? {
+                      ...t,
+                      remaining: t.duration,
+                      isRunning: true,
+                      isAlarmActive: false,
+                    }
+                  : t,
+              ),
+            );
+          },
+          [stopContinuousAlarm],
+        );
 
         return { timers, addTimer, toggleTimer, removeTimer, resetTimer };
       };
@@ -3645,6 +3813,13 @@
                   >
                     <i className="fas fa-redo mr-1"></i>
                     Reset
+                  </button>
+                  <button
+                    onClick={() => onRemove(timer.id)}
+                    className="btn-modal bg-red-500 hover:bg-red-600 text-white text-xs flex-1"
+                  >
+                    <i className="fas fa-stop mr-1"></i>
+                    Stop
                   </button>
                 </div>
               </div>
@@ -3770,9 +3945,28 @@
         ] = useState(null);
         const [showNutritionDashboard, setShowNutritionDashboard] =
           useState(false);
+        const [
+          collectionMealPlans,
+          setCollectionMealPlans,
+          isLoadingCollectionPlans,
+        ] = usePersistentStorage("collectionMealPlans", {});
+        const [viewingCollectionDashboard, setViewingCollectionDashboard] =
+          useState(null);
+        const [viewingCollectionMealPlan, setViewingCollectionMealPlan] =
+          useState(null);
+        const [
+          recipeToAddToCollectionMealPlan,
+          setRecipeToAddToCollectionMealPlan,
+        ] = useState(null);
         const [showKeyboardShortcuts, setShowKeyboardShortcuts] =
           useState(false);
         const [showTutorial, setShowTutorial] = useState(false);
+        const [showPhotoGalleryModal, setShowPhotoGalleryModal] =
+          useState(false);
+
+        // Bulk Operations State
+        const [isBulkModeActive, setIsBulkModeActive] = useState(false);
+        const [selectedRecipeIds, setSelectedRecipeIds] = useState(new Set());
 
         const [displayUnitSystem, setDisplayUnitSystem] = useState("imperial");
 
@@ -3978,6 +4172,189 @@
             addToast("Failed to delete all data.", "error");
           }
         }, [setRecipes, setMealPlan, setShoppingList, addToast]);
+
+        // ===== BULK OPERATIONS =====
+        const toggleBulkSelection = useCallback((recipeId) => {
+          setSelectedRecipeIds((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(recipeId)) {
+              newSet.delete(recipeId);
+            } else {
+              newSet.add(recipeId);
+            }
+            return newSet;
+          });
+        }, []);
+
+        const toggleSelectAll = useCallback(() => {
+          if (selectedRecipeIds.size === recipes.length && recipes.length > 0) {
+            setSelectedRecipeIds(new Set());
+          } else {
+            setSelectedRecipeIds(new Set(recipes.map((r) => r.id)));
+          }
+        }, [recipes, selectedRecipeIds.size]);
+
+        const bulkDeleteRecipes = useCallback(async () => {
+          if (selectedRecipeIds.size === 0) {
+            addToast("No recipes selected", "info");
+            return;
+          }
+          if (
+            !window.confirm(
+              `Are you sure you want to delete ${selectedRecipeIds.size} recipe${selectedRecipeIds.size !== 1 ? "s" : ""}?`,
+            )
+          ) {
+            return;
+          }
+
+          try {
+            for (const id of selectedRecipeIds) {
+              await deleteItem(STORE_NAMES.RECIPES, id);
+            }
+
+            setRecipes((prev) =>
+              prev.filter((r) => !selectedRecipeIds.has(r.id)),
+            );
+
+            setMealPlan((prev) => {
+              const newPlan = JSON.parse(JSON.stringify(prev));
+              Object.keys(newPlan).forEach((day) => {
+                if (newPlan[day] && typeof newPlan[day] === "object") {
+                  Object.keys(newPlan[day]).forEach((mealTime) => {
+                    const currentRecipesInSlot = newPlan[day][mealTime] || [];
+                    newPlan[day][mealTime] = currentRecipesInSlot.filter(
+                      (recipeId) => !selectedRecipeIds.has(recipeId),
+                    );
+                  });
+                }
+              });
+              return newPlan;
+            });
+
+            setShoppingList((prev) =>
+              prev.filter((item) => !selectedRecipeIds.has(item.recipeId)),
+            );
+
+            setSelectedRecipeIds(new Set());
+            setIsBulkModeActive(false);
+            addToast(
+              `Deleted ${selectedRecipeIds.size} recipe${selectedRecipeIds.size !== 1 ? "s" : ""}!`,
+              "success",
+            );
+          } catch (error) {
+            console.error("Error bulk deleting recipes:", error);
+            addToast("Failed to delete recipes.", "error");
+          }
+        }, [
+          selectedRecipeIds,
+          setRecipes,
+          setMealPlan,
+          setShoppingList,
+          addToast,
+        ]);
+
+        const bulkExportPDF = useCallback(async () => {
+          if (selectedRecipeIds.size === 0) {
+            addToast("No recipes selected", "info");
+            return;
+          }
+          const selectedRecipes = recipes.filter((r) =>
+            selectedRecipeIds.has(r.id),
+          );
+
+          try {
+            for (const recipe of selectedRecipes) {
+              generateRecipePDF(recipe);
+            }
+            addToast(
+              `Exporting ${selectedRecipeIds.size} recipe${selectedRecipeIds.size !== 1 ? "s" : ""} as PDF`,
+              "success",
+            );
+          } catch (error) {
+            console.error("Error bulk exporting PDF:", error);
+            addToast("Failed to export recipes.", "error");
+          }
+        }, [selectedRecipeIds, recipes, generateRecipePDF, addToast]);
+
+        const bulkAddToCollection = useCallback(
+          (collection) => {
+            if (selectedRecipeIds.size === 0) {
+              addToast("No recipes selected", "info");
+              return;
+            }
+
+            const updated = collections.map((c) => {
+              if (c.id === collection.id) {
+                const existingIds = c.recipeIds || [];
+                const newIds = [
+                  ...new Set([...existingIds, ...selectedRecipeIds]),
+                ];
+                return { ...c, recipeIds: newIds };
+              }
+              return c;
+            });
+
+            setCollections(updated);
+            setSelectedRecipeIds(new Set());
+            setIsBulkModeActive(false);
+            addToast(
+              `Added ${selectedRecipeIds.size} recipe${selectedRecipeIds.size !== 1 ? "s" : ""} to "${collection.name}"`,
+              "success",
+            );
+          },
+          [selectedRecipeIds, collections, setCollections, addToast],
+        );
+
+        const removeRecipeFromCollection = useCallback(
+          (collectionId, recipeId) => {
+            const recipe = recipes.find((r) => r.id === recipeId);
+            const updated = collections.map((c) => {
+              if (c.id === collectionId) {
+                return {
+                  ...c,
+                  recipeIds: (c.recipeIds || []).filter(
+                    (id) => id !== recipeId,
+                  ),
+                };
+              }
+              return c;
+            });
+
+            setCollections(updated);
+            addToast(`Removed "${recipe?.name}" from collection`, "success");
+          },
+          [collections, setCollections, recipes, addToast],
+        );
+
+        const bulkAddToMealPlan = useCallback(
+          (day, mealTime) => {
+            if (selectedRecipeIds.size === 0) {
+              addToast("No recipes selected", "info");
+              return;
+            }
+
+            setMealPlan((prev) => {
+              const newPlan = JSON.parse(JSON.stringify(prev));
+              if (!newPlan[day]) newPlan[day] = {};
+              if (!newPlan[day][mealTime]) newPlan[day][mealTime] = [];
+
+              const currentRecipes = newPlan[day][mealTime];
+              const allIds = [
+                ...new Set([...currentRecipes, ...selectedRecipeIds]),
+              ];
+              newPlan[day][mealTime] = allIds;
+              return newPlan;
+            });
+
+            setSelectedRecipeIds(new Set());
+            setIsBulkModeActive(false);
+            addToast(
+              `Added ${selectedRecipeIds.size} recipe${selectedRecipeIds.size !== 1 ? "s" : ""} to meal plan`,
+              "success",
+            );
+          },
+          [selectedRecipeIds, setMealPlan, addToast],
+        );
 
         const addRecipe = useCallback(
           async (recipeData) => {
@@ -4833,6 +5210,21 @@
                       percentage: match.percentage,
                     };
                   }}
+                  isBulkModeActive={isBulkModeActive}
+                  selectedRecipeIds={selectedRecipeIds}
+                  toggleBulkSelection={toggleBulkSelection}
+                  toggleSelectAll={toggleSelectAll}
+                  bulkDeleteRecipes={bulkDeleteRecipes}
+                  bulkExportPDF={bulkExportPDF}
+                  bulkAddToCollection={bulkAddToCollection}
+                  bulkAddToMealPlan={bulkAddToMealPlan}
+                  setIsBulkModeActive={setIsBulkModeActive}
+                  setViewingCollectionMealPlan={setViewingCollectionMealPlan}
+                  setViewingCollectionDashboard={setViewingCollectionDashboard}
+                  setRecipeToAddToCollectionMealPlan={
+                    setRecipeToAddToCollectionMealPlan
+                  }
+                  removeRecipeFromCollection={removeRecipeFromCollection}
                 />
               )}
             </main>
@@ -4985,7 +5377,7 @@
                 onClose={() => setShowCollectionsModal(false)}
                 onSelectCollection={(collection) => {
                   setSelectedCollection(collection);
-                  setShowCollectionsModal(false);
+                  // Changed: Don't close modal automatically - user can browse collections
                   // Filter recipes to show only those in this collection
                   const filterEvent = new CustomEvent("searchRecipes", {
                     detail: {
@@ -4999,6 +5391,15 @@
                     `Showing "${collection.name}" (${collection.recipeIds?.length || 0} recipes)`,
                     "success",
                   );
+                  setShowCollectionsModal(false);
+                }}
+                onViewMealPlan={(collection) => {
+                  setViewingCollectionMealPlan(collection);
+                  setShowCollectionsModal(false);
+                }}
+                onViewNutrition={(collection) => {
+                  setViewingCollectionDashboard(collection);
+                  setShowCollectionsModal(false);
                 }}
                 addToast={addToast}
               />
@@ -5023,6 +5424,45 @@
               />
             )}
 
+            {viewingCollectionMealPlan && (
+              <CollectionMealPlanModal
+                collection={viewingCollectionMealPlan}
+                collectionMealPlan={
+                  collectionMealPlans[viewingCollectionMealPlan.mealPlanId] ||
+                  {}
+                }
+                setCollectionMealPlan={(updater) => {
+                  setCollectionMealPlans((prev) => ({
+                    ...prev,
+                    [viewingCollectionMealPlan.mealPlanId]:
+                      typeof updater === "function"
+                        ? updater(
+                            prev[viewingCollectionMealPlan.mealPlanId] || {},
+                          )
+                        : updater,
+                  }));
+                }}
+                recipes={recipes}
+                onClose={() => setViewingCollectionMealPlan(null)}
+                addToast={addToast}
+                recipeToAddToCollectionMealPlan={
+                  recipeToAddToCollectionMealPlan
+                }
+                setRecipeToAddToCollectionMealPlan={
+                  setRecipeToAddToCollectionMealPlan
+                }
+              />
+            )}
+
+            {viewingCollectionDashboard && (
+              <CollectionNutritionDashboardModal
+                collection={viewingCollectionDashboard}
+                recipes={recipes}
+                collectionMealPlans={collectionMealPlans}
+                onClose={() => setViewingCollectionDashboard(null)}
+              />
+            )}
+
             {showTutorial && (
               <TutorialModal onClose={() => setShowTutorial(false)} />
             )}
@@ -5030,6 +5470,14 @@
             {showKeyboardShortcuts && (
               <KeyboardShortcutsModal
                 onClose={() => setShowKeyboardShortcuts(false)}
+              />
+            )}
+
+            {showPhotoGalleryModal && (
+              <PhotoGalleryModal
+                recipes={recipes}
+                onClose={() => setShowPhotoGalleryModal(false)}
+                openRecipeDetails={openRecipeDetails}
               />
             )}
 
@@ -5211,6 +5659,22 @@
                         typeof recipe.image === "string" ? recipe.image : null,
                       video:
                         typeof recipe.video === "string" ? recipe.video : null,
+                      photos: Array.isArray(recipe.photos)
+                        ? recipe.photos
+                            .filter(
+                              (photo) =>
+                                photo &&
+                                typeof photo === "object" &&
+                                typeof photo.url === "string",
+                            )
+                            .map((photo) => ({
+                              id: photo.id || Date.now().toString(36),
+                              url: photo.url,
+                              caption: photo.caption || "",
+                              date: photo.date || new Date().toISOString(),
+                              thumbnail: photo.thumbnail || photo.url,
+                            }))
+                        : [],
                       notes:
                         typeof recipe.notes === "string" ? recipe.notes : "",
                       rating:
@@ -5279,6 +5743,11 @@
             label: "Recipe Suggestions",
             icon: "fas fa-lightbulb",
             action: () => openRecipeSuggestions && openRecipeSuggestions(),
+          },
+          {
+            label: "Photo Gallery",
+            icon: "fas fa-images",
+            action: () => setShowPhotoGalleryModal(true),
           },
           {
             label: "Seasonal Recipes",
@@ -5860,6 +6329,19 @@
         collections,
         checkRecipeAvailability,
         openMealPlanModal,
+        isBulkModeActive,
+        selectedRecipeIds,
+        toggleBulkSelection,
+        toggleSelectAll,
+        bulkDeleteRecipes,
+        bulkExportPDF,
+        bulkAddToCollection,
+        bulkAddToMealPlan,
+        setIsBulkModeActive,
+        setViewingCollectionMealPlan,
+        setViewingCollectionDashboard,
+        setRecipeToAddToCollectionMealPlan,
+        removeRecipeFromCollection,
       }) => {
         const [filteredRecipes, setFilteredRecipes] = useState([]);
         const [tagModal, setTagModal] = useState({ open: false, tag: null });
@@ -5883,6 +6365,27 @@
         const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
         const [advancedFiltersHeight, setAdvancedFiltersHeight] = useState(0);
         const advancedFiltersRef = useRef(null);
+        const [showBulkCollectionSelector, setShowBulkCollectionSelector] =
+          useState(false);
+        const [showBulkMealPlanSelector, setShowBulkMealPlanSelector] =
+          useState(false);
+        const [showBulkActionsMenu, setShowBulkActionsMenu] = useState(false);
+        const [bulkMealPlanDay, setBulkMealPlanDay] = useState("Monday");
+        const [bulkMealPlanTime, setBulkMealPlanTime] = useState("breakfast");
+
+        // Handle Escape key to exit bulk mode
+        useEffect(() => {
+          const handleKeyDown = (e) => {
+            if (e.key === "Escape" && isBulkModeActive) {
+              setIsBulkModeActive(false);
+            }
+          };
+
+          if (isBulkModeActive) {
+            document.addEventListener("keydown", handleKeyDown);
+            return () => document.removeEventListener("keydown", handleKeyDown);
+          }
+        }, [isBulkModeActive]);
 
         useEffect(() => {
           const isFilterActive =
@@ -6084,7 +6587,7 @@
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={() => {
                       // Trigger add recipes modal
@@ -6094,11 +6597,31 @@
                         }),
                       );
                     }}
-                    className="px-2 sm:px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition flex items-center gap-2"
+                    className="px-2 sm:px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition flex items-center gap-2 text-sm"
                     title="Add recipes to this collection"
                   >
                     <i className="fas fa-plus"></i>
                     <span className="hidden sm:inline">Add Recipes</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setViewingCollectionMealPlan(activeCollection);
+                    }}
+                    className="px-2 sm:px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition flex items-center gap-2 text-sm"
+                    title="View collection meal plan"
+                  >
+                    <i className="fas fa-calendar-alt"></i>
+                    <span className="hidden sm:inline">Meal Plan</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setViewingCollectionDashboard(activeCollection);
+                    }}
+                    className="px-2 sm:px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition flex items-center gap-2 text-sm"
+                    title="View collection nutrition dashboard"
+                  >
+                    <i className="fas fa-chart-bar"></i>
+                    <span className="hidden sm:inline">Nutrition</span>
                   </button>
                   <button
                     onClick={() => {
@@ -6109,7 +6632,7 @@
                         }),
                       );
                     }}
-                    className="px-2 sm:px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition flex items-center gap-2"
+                    className="px-2 sm:px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition flex items-center gap-2 text-sm"
                     title="Exit collection"
                   >
                     <i className="fas fa-times"></i>
@@ -6353,6 +6876,108 @@
                 </div>
               </div>
             </div>
+
+            {/* BULK ACTIONS TOOLBAR */}
+            {isBulkModeActive && (
+              <div className="mb-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-400 dark:border-blue-600 rounded-lg p-3 sm:p-4 sticky top-4 z-10">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={
+                          selectedRecipeIds.size === recipes.length &&
+                          recipes.length > 0
+                        }
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 cursor-pointer"
+                        title="Select/Deselect all recipes"
+                      />
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {selectedRecipeIds.size === 0
+                          ? "Select All"
+                          : `${selectedRecipeIds.size} selected`}
+                      </span>
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                    <button
+                      onClick={() => setIsBulkModeActive(false)}
+                      className="btn-modal btn-gray text-sm px-3 py-1.5 flex-1 sm:flex-initial"
+                      title="Exit bulk mode (Esc)"
+                    >
+                      <i className="fas fa-times mr-1"></i>Cancel
+                    </button>
+                    <button
+                      onClick={() => bulkDeleteRecipes()}
+                      className="btn-modal btn-red text-sm px-3 py-1.5 flex-1 sm:flex-initial"
+                      disabled={selectedRecipeIds.size === 0}
+                      title="Permanently delete selected recipes"
+                    >
+                      <i className="fas fa-trash mr-1"></i>Delete
+                    </button>
+                    <button
+                      onClick={() => bulkExportPDF()}
+                      className="btn-modal bg-pink-500 hover:bg-pink-600 text-white text-sm px-3 py-1.5 flex-1 sm:flex-initial"
+                      disabled={selectedRecipeIds.size === 0}
+                      title="Export selected recipes as PDF"
+                    >
+                      <i className="fas fa-file-pdf mr-1"></i>Export PDF
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          setShowBulkActionsMenu(!showBulkActionsMenu)
+                        }
+                        className="btn-modal bg-indigo-500 hover:bg-indigo-600 text-white text-sm px-3 py-1.5"
+                        disabled={selectedRecipeIds.size === 0}
+                        title="More bulk actions"
+                      >
+                        <i className="fas fa-plus-circle mr-1"></i>Add
+                      </button>
+                      {showBulkActionsMenu && (
+                        <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 z-50">
+                          <div className="py-1">
+                            <button
+                              onClick={() => {
+                                setShowBulkActionsMenu(false);
+                                setShowBulkCollectionSelector(true);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-2"
+                            >
+                              <i className="fas fa-folder-plus w-4"></i>
+                              <span>Add to Collection</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowBulkActionsMenu(false);
+                                setShowBulkMealPlanSelector(true);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-2"
+                            >
+                              <i className="fas fa-calendar-plus w-4"></i>
+                              <span>Add to Meal Plan</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* BULK MODE TOGGLE */}
+            {!isBulkModeActive && recipes.length > 0 && (
+              <button
+                onClick={() => setIsBulkModeActive(true)}
+                className="mb-3 text-xs sm:text-sm px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-lg border border-blue-400 dark:border-blue-600 transition flex items-center gap-2"
+                title="Enable selection mode to perform bulk operations"
+              >
+                <i className="fas fa-tasks"></i>Select Multiple
+              </button>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 transition-all duration-300">
               {recipesToDisplay.length > 0 ? (
                 recipesToDisplay.map((recipe) => {
@@ -6363,10 +6988,18 @@
                   return (
                     <div
                       key={recipe.id}
-                      onClick={() => openRecipeDetails(recipe)}
+                      onClick={() => {
+                        if (!isBulkModeActive) {
+                          openRecipeDetails(recipe);
+                        }
+                      }}
                       tabIndex="0"
                       aria-label={`View recipe: ${recipe.name}`}
-                      className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-xl hover:bg-green-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 flex flex-col recipe-card card-appear group relative"
+                      className={`bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-xl hover:bg-green-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 flex flex-col recipe-card card-appear group relative ${
+                        isBulkModeActive && selectedRecipeIds.has(recipe.id)
+                          ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900"
+                          : ""
+                      }`}
                       title={
                         ingredientPreview
                           ? `Ingredients: ${ingredientPreview}${(recipe.ingredients || []).length > 3 ? "..." : ""}`
@@ -6388,22 +7021,42 @@
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            toggleFavorite(recipe.id);
+                            if (isBulkModeActive) {
+                              toggleBulkSelection(recipe.id);
+                            } else {
+                              toggleFavorite(recipe.id);
+                            }
                           }}
                           aria-label={
-                            recipe.isFavorite
-                              ? "Remove Favorite"
-                              : "Add Favorite"
+                            isBulkModeActive
+                              ? selectedRecipeIds.has(recipe.id)
+                                ? "Deselect recipe"
+                                : "Select recipe"
+                              : recipe.isFavorite
+                                ? "Remove Favorite"
+                                : "Add Favorite"
                           }
-                          className={`absolute top-2 right-2 text-2xl ${
-                            recipe.isFavorite
-                              ? "text-yellow-400 filter drop-shadow(0 1px 1px rgba(0,0,0,0.5))"
-                              : "text-white text-opacity-50"
-                          } hover:text-yellow-300 hover:text-opacity-100 transition-colors duration-200 z-10`}
+                          className={`absolute top-2 right-2 text-2xl transition-colors duration-200 z-10 ${
+                            isBulkModeActive
+                              ? selectedRecipeIds.has(recipe.id)
+                                ? "bg-blue-500 text-white rounded-lg p-1.5 w-8 h-8 flex items-center justify-center"
+                                : "bg-gray-500 bg-opacity-70 text-white rounded-lg p-1.5 w-8 h-8 flex items-center justify-center hover:bg-opacity-100"
+                              : recipe.isFavorite
+                                ? "text-yellow-400 filter drop-shadow(0 1px 1px rgba(0,0,0,0.5))"
+                                : "text-white text-opacity-50"
+                          } ${
+                            !isBulkModeActive
+                              ? "hover:text-yellow-300 hover:text-opacity-100"
+                              : ""
+                          }`}
                         >
                           <i
-                            className={`fa-star ${
-                              recipe.isFavorite ? "fas" : "far"
+                            className={`${
+                              isBulkModeActive
+                                ? selectedRecipeIds.has(recipe.id)
+                                  ? "fas fa-check"
+                                  : "fas fa-plus"
+                                : `fa-star ${recipe.isFavorite ? "fas" : "far"}`
                             }`}
                           ></i>
                         </button>
@@ -6535,13 +7188,13 @@
                           </span>
                         </div>
                         {/* Hover Action Buttons */}
-                        <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-wrap">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               openRecipeDetails(recipe);
                             }}
-                            className="flex-1 py-1.5 px-2 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                            className="flex-1 min-w-[50px] py-1.5 px-2 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
                             title="Open recipe details"
                           >
                             <i className="fas fa-utensils"></i>
@@ -6552,12 +7205,57 @@
                               e.stopPropagation();
                               openMealPlanModal(recipe);
                             }}
-                            className="flex-1 py-1.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                            className="flex-1 min-w-[50px] py-1.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
                             title="Add to meal plan"
                           >
                             <i className="fas fa-calendar-plus"></i>
                             <span className="hidden sm:inline">Plan</span>
                           </button>
+                          {activeCollection && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setRecipeToAddToCollectionMealPlan(recipe);
+                                  setViewingCollectionMealPlan(
+                                    activeCollection,
+                                  );
+                                }}
+                                className="flex-1 min-w-[50px] py-1.5 px-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                                title="Add recipe to collection meal plan"
+                              >
+                                <i className="fas fa-calendar-alt"></i>
+                                <span className="hidden sm:inline">Meals</span>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setViewingCollectionDashboard(
+                                    activeCollection,
+                                  );
+                                }}
+                                className="flex-1 min-w-[50px] py-1.5 px-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                                title="View collection nutrition dashboard"
+                              >
+                                <i className="fas fa-chart-bar"></i>
+                                <span className="hidden sm:inline">Nutri</span>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeRecipeFromCollection(
+                                    activeCollection.id,
+                                    recipe.id,
+                                  );
+                                }}
+                                className="flex-1 min-w-[50px] py-1.5 px-2 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                                title="Remove recipe from collection"
+                              >
+                                <i className="fas fa-trash"></i>
+                                <span className="hidden sm:inline">Remove</span>
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -6739,6 +7437,130 @@
                           </div>
                         ))
                     )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* BULK COLLECTION SELECTOR MODAL */}
+            {showBulkCollectionSelector && (
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                      Add to Collection
+                    </h3>
+                    <button
+                      onClick={() => setShowBulkCollectionSelector(false)}
+                      className="text-gray-500 hover:text-red-500 text-2xl"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="p-4 overflow-y-auto max-h-96">
+                    {collections && collections.length > 0 ? (
+                      <div className="space-y-2">
+                        {collections.map((collection) => (
+                          <button
+                            key={collection.id}
+                            onClick={() => {
+                              bulkAddToCollection(collection);
+                              setShowBulkCollectionSelector(false);
+                            }}
+                            className="w-full text-left p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 border border-gray-200 dark:border-gray-600 transition"
+                          >
+                            <i className="fas fa-folder text-green-500 mr-2"></i>
+                            {collection.name}
+                            <span className="text-sm text-gray-500 dark:text-gray-400 ml-2 float-right">
+                              ({collection.recipeIds?.length || 0})
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i className="fas fa-folder-open text-4xl mb-2 opacity-50"></i>
+                        <p>No collections available.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* BULK MEAL PLAN SELECTOR MODAL */}
+            {showBulkMealPlanSelector && (
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-sm w-full">
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                      Add to Meal Plan
+                    </h3>
+                    <button
+                      onClick={() => setShowBulkMealPlanSelector(false)}
+                      className="text-gray-500 hover:text-red-500 text-2xl"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Day
+                      </label>
+                      <select
+                        value={bulkMealPlanDay}
+                        onChange={(e) => setBulkMealPlanDay(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500"
+                      >
+                        {[
+                          "Sunday",
+                          "Monday",
+                          "Tuesday",
+                          "Wednesday",
+                          "Thursday",
+                          "Friday",
+                          "Saturday",
+                        ].map((day) => (
+                          <option key={day} value={day}>
+                            {day}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Meal Time
+                      </label>
+                      <select
+                        value={bulkMealPlanTime}
+                        onChange={(e) => setBulkMealPlanTime(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="breakfast">Breakfast</option>
+                        <option value="morningSnack">Morning Snack</option>
+                        <option value="lunch">Lunch</option>
+                        <option value="afternoonSnack">Afternoon Snack</option>
+                        <option value="dinner">Dinner</option>
+                      </select>
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <button
+                        onClick={() => setShowBulkMealPlanSelector(false)}
+                        className="btn-modal btn-gray flex-1"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          bulkAddToMealPlan(bulkMealPlanDay, bulkMealPlanTime);
+                          setShowBulkMealPlanSelector(false);
+                        }}
+                        className="btn-modal btn-green flex-1"
+                      >
+                        Add
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -7234,11 +8056,12 @@
                       <option value="Marinades">Marinades</option>
                       <option value="Meatballs">Meatballs</option>
                       <option value="Pizza">Pizza</option>
-                      <option value="Seasonings">Seasonings</option>
                       <option value="Salads">Salads</option>
                       <option value="Sandwiches/Subs/Wraps">
                         Sandwiches/Subs/Wraps
                       </option>
+                      <option value="Seasonings">Seasonings</option>
+                      <option value="Sides">Sides</option>
                       <option value="Soups/Stews">Soups/Stews</option>
                     </select>
                     <ErrorMessage name="course" />
@@ -7989,6 +8812,8 @@
         servingsMultiplier = 1,
       }) => {
         const [currentStep, setCurrentStep] = useState(0);
+        const [showCustomTimerModal, setShowCustomTimerModal] = useState(false);
+        const [customTimerMinutes, setCustomTimerMinutes] = useState("");
         const directions = recipe?.directions || [];
         const totalSteps = directions.length;
 
@@ -8074,11 +8899,11 @@
                 <div className="text-6xl md:text-8xl font-bold text-green-500 mb-8 text-center">
                   {currentStep + 1}
                 </div>
-                <p className="text-2xl md:text-4xl leading-relaxed text-center mb-8">
+                <p className="text-lg md:text-4xl leading-relaxed text-center mb-8">
                   {directions[currentStep]}
                 </p>
                 {currentStepTime && (
-                  <div className="flex justify-center">
+                  <div className="flex flex-col md:flex-row justify-center gap-3 mb-4 w-40 md:w-auto mx-auto">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -8087,10 +8912,20 @@
                           `Step ${currentStep + 1}: ${recipe.name}`,
                         );
                       }}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg text-lg flex items-center gap-2"
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-lg text-lg flex items-center gap-2"
                     >
                       <i className="fas fa-stopwatch"></i>
-                      Start Timer ({Math.round(currentStepTime / 60)} min)
+                      Start
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowCustomTimerModal(true);
+                      }}
+                      className="bg-purple-500 hover:bg-purple-600 text-white px-5 py-3 rounded-lg text-lg flex items-center gap-2"
+                    >
+                      <i className="fas fa-plus"></i>
+                      Custom
                     </button>
                   </div>
                 )}
@@ -8098,36 +8933,96 @@
             </div>
 
             {/* Navigation Footer */}
-            <div className="bg-gray-900 text-white p-4 flex justify-between items-center">
+            <div className="bg-gray-900 text-white p-4 flex justify-between items-center gap-2">
               <button
                 onClick={goPrevious}
                 disabled={currentStep === 0}
-                className={`px-6 py-3 rounded-lg text-lg ${
+                className={`px-1.5 py-2 rounded-lg ${
                   currentStep === 0
                     ? "bg-gray-700 text-gray-500 cursor-not-allowed"
                     : "bg-gray-700 hover:bg-gray-600"
                 }`}
+                title="Previous step"
               >
-                <i className="fas fa-arrow-left mr-2"></i> Previous
+                <i className="fas fa-arrow-left text-lg"></i>
               </button>
-              <div className="text-sm text-gray-400">
-                Tap anywhere or press{" "}
-                <kbd className="bg-gray-700 px-2 py-1 rounded">Space</kbd> to
-                advance
+              <div className="text-xs md:text-sm text-gray-400 flex-1 text-center">
+                Tap Screen or Press{" "}
+                <kbd className="bg-gray-700 px-2 py-1 rounded text-xs">
+                  Space
+                </kbd>
               </div>
               <button
-                onClick={goNext}
-                disabled={currentStep === totalSteps - 1}
-                className={`px-6 py-3 rounded-lg text-lg ${
+                onClick={currentStep === totalSteps - 1 ? onClose : goNext}
+                disabled={false}
+                className={`px-1.5 py-2 rounded-lg ${
                   currentStep === totalSteps - 1
-                    ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                    ? "bg-red-500 hover:bg-red-600"
                     : "bg-green-500 hover:bg-green-600"
                 }`}
+                title={
+                  currentStep === totalSteps - 1
+                    ? "Close cooking mode"
+                    : "Next step"
+                }
               >
-                {currentStep === totalSteps - 1 ? "Done" : "Next"}{" "}
-                <i className="fas fa-arrow-right ml-2"></i>
+                <i
+                  className={`fas ${
+                    currentStep === totalSteps - 1
+                      ? "fa-stop-circle"
+                      : "fa-arrow-right"
+                  } text-lg`}
+                ></i>
               </button>
             </div>
+
+            {/* Custom Timer Input Modal */}
+            {showCustomTimerModal && (
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-sm w-full p-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    Add Custom Timer (Minutes)
+                  </h3>
+                  <input
+                    type="number"
+                    min="1"
+                    max="300"
+                    value={customTimerMinutes}
+                    onChange={(e) => setCustomTimerMinutes(e.target.value)}
+                    placeholder="Enter minutes"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-lg mb-4"
+                    autoFocus
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowCustomTimerModal(false);
+                        setCustomTimerMinutes("");
+                      }}
+                      className="flex-1 px-4 py-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        const minutes = parseInt(customTimerMinutes);
+                        if (minutes && minutes > 0) {
+                          addTimer(
+                            minutes * 60,
+                            `Custom Timer: ${recipe.name}`,
+                          );
+                          setShowCustomTimerModal(false);
+                          setCustomTimerMinutes("");
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium"
+                    >
+                      Start
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
       };
@@ -8140,6 +9035,8 @@
         onClose,
         onSelectCollection,
         addToast,
+        onViewMealPlan,
+        onViewNutrition,
       }) => {
         const [newCollectionName, setNewCollectionName] = useState("");
         const [editingId, setEditingId] = useState(null);
@@ -8155,10 +9052,28 @@
             name: newCollectionName,
             recipeIds: [],
             createdAt: new Date().toISOString(),
+            mealPlanId: Date.now().toString(),
+            nutritionData: {},
           };
           setCollections([...collections, newCollection]);
+          // Initialize empty meal plan for this collection
+          setCollectionMealPlans((prev) => ({
+            ...prev,
+            [newCollection.mealPlanId]: {
+              Sunday: {},
+              Monday: {},
+              Tuesday: {},
+              Wednesday: {},
+              Thursday: {},
+              Friday: {},
+              Saturday: {},
+            },
+          }));
           setNewCollectionName("");
-          addToast(`Collection "${newCollectionName}" created!`, "success");
+          addToast(
+            `Collection "${newCollectionName}" created with its own Meal Plan & Nutrition Dashboard!`,
+            "success",
+          );
         };
 
         const handleDeleteCollection = (id) => {
@@ -8307,10 +9222,35 @@
                                 </button>
                               </div>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                               {getRecipeCount(collection)} recipe
                               {getRecipeCount(collection) !== 1 ? "s" : ""}
                             </p>
+                            <div
+                              className="flex gap-2 flex-wrap"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                onClick={() => {
+                                  onViewMealPlan(collection);
+                                }}
+                                className="text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded"
+                                title="View Meal Plan"
+                              >
+                                <i className="fas fa-calendar-alt mr-1"></i>Meal
+                                Plan
+                              </button>
+                              <button
+                                onClick={() => {
+                                  onViewNutrition(collection);
+                                }}
+                                className="text-xs bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded"
+                                title="View Nutrition Dashboard"
+                              >
+                                <i className="fas fa-chart-bar mr-1"></i>
+                                Nutrition
+                              </button>
+                            </div>
                           </>
                         )}
                       </div>
@@ -8517,7 +9457,13 @@
         const [isEditingNotes, setIsEditingNotes] = useState(false);
         const [showActionsMenu, setShowActionsMenu] = useState(false);
         const [showPhotoGallery, setShowPhotoGallery] = useState(false);
+        const [currentRecipe, setCurrentRecipe] = useState(recipe);
         const actionsMenuRef = useRef(null);
+
+        // Sync currentRecipe when recipe prop changes
+        useEffect(() => {
+          setCurrentRecipe(recipe);
+        }, [recipe]);
 
         // Close actions menu when clicking outside
         useEffect(() => {
@@ -8669,12 +9615,21 @@
 
         const handleExportSingleRecipe = useCallback(async () => {
           try {
-            const dataStr = JSON.stringify(recipe, null, 2);
+            // Fetch the latest recipe from the database to ensure photos are included
+            const recipeStore = await getStore(STORE_NAMES.RECIPES, "readonly");
+            const latestRecipe = await new Promise((resolve, reject) => {
+              const request = recipeStore.get(recipe.id);
+              request.onsuccess = () => resolve(request.result);
+              request.onerror = () => reject(request.error);
+            });
+
+            const recipeToExport = latestRecipe || currentRecipe;
+            const dataStr = JSON.stringify(recipeToExport, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `${recipe.name
+            a.download = `${recipeToExport.name
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, "-")}-recipe.json`;
             document.body.appendChild(a);
@@ -8686,7 +9641,7 @@
             console.error("Export single recipe error:", err);
             addToast("Error exporting recipe.", "error");
           }
-        }, [recipe, addToast]);
+        }, [recipe, currentRecipe, addToast]);
 
         // Add missing ingredients to shopping list
         const handleAddMissingToShoppingList = useCallback(async () => {
@@ -9167,40 +10122,44 @@
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
                 {/* Primary Action Buttons - Most Used */}
                 <button
                   onClick={() => setShowCookingMode(true)}
-                  className="btn-modal bg-green-500 hover:bg-green-600 text-white"
+                  className="btn-modal bg-green-500 hover:bg-green-600 text-white text-sm sm:text-base px-2 sm:px-3 py-1.5 sm:py-2"
                   title="Enter cooking mode"
                 >
-                  <i className="fas fa-fire mr-1.5"></i>Cook
+                  <i className="fas fa-fire mr-1"></i>
+                  <span className="hidden sm:inline">Cook</span>
                 </button>
                 <button
                   onClick={() => editRecipe(recipe)}
-                  className="btn-modal btn-blue"
+                  className="btn-modal btn-blue text-sm sm:text-base px-2 sm:px-3 py-1.5 sm:py-2"
                 >
-                  <i className="fas fa-edit mr-1.5"></i>Edit
+                  <i className="fas fa-edit mr-1"></i>
+                  <span className="hidden sm:inline">Edit</span>
                 </button>
                 <button
                   onClick={() => deleteRecipe(recipe.id)}
-                  className="btn-modal btn-red"
+                  className="btn-modal btn-red text-sm sm:text-base px-2 sm:px-3 py-1.5 sm:py-2"
                 >
-                  <i className="fas fa-trash mr-1.5"></i>Delete
+                  <i className="fas fa-trash mr-1"></i>
+                  <span className="hidden sm:inline">Delete</span>
                 </button>
                 <button
                   onClick={() => setShowPhotoGallery(true)}
-                  className="btn-modal btn-purple"
+                  className="btn-modal btn-purple text-sm sm:text-base px-2 sm:px-3 py-1.5 sm:py-2"
                   title="View photo gallery"
                 >
-                  <i className="fas fa-images mr-1.5"></i>Photos
+                  <i className="fas fa-images mr-1"></i>
+                  <span className="hidden sm:inline">Photos</span>
                 </button>
 
                 {/* Hamburger Menu for More Actions */}
                 <div className="relative ml-auto" ref={actionsMenuRef}>
                   <button
                     onClick={() => setShowActionsMenu(!showActionsMenu)}
-                    className="btn-modal bg-gray-600 hover:bg-gray-700 text-white px-4"
+                    className="btn-modal bg-gray-600 hover:bg-gray-700 text-white px-2 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base"
                     title="More actions"
                   >
                     <i className="fas fa-ellipsis-v"></i>
@@ -9408,7 +10367,7 @@
             {/* Photo Gallery Modal */}
             {showPhotoGallery && (
               <RecipePhotoGalleryModal
-                recipe={recipe}
+                recipe={currentRecipe}
                 onClose={() => setShowPhotoGallery(false)}
                 addToast={addToast}
                 onRecipeUpdate={(updatedRecipe) => {
@@ -9416,8 +10375,8 @@
                   if (typeof onRecipeUpdate === "function") {
                     onRecipeUpdate(updatedRecipe);
                   }
-                  // Update local recipe state
-                  setRecipe(updatedRecipe);
+                  // Update local recipe state so photos are included in exports
+                  setCurrentRecipe(updatedRecipe);
                 }}
               />
             )}
@@ -10334,6 +11293,603 @@
         );
       };
 
+      // Collection Meal Plan Modal
+      const CollectionMealPlanModal = ({
+        collection,
+        collectionMealPlan,
+        setCollectionMealPlan,
+        recipes,
+        onClose,
+        addToast,
+        recipeToAddToCollectionMealPlan,
+        setRecipeToAddToCollectionMealPlan,
+      }) => {
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
+        const mealTimes = [
+          { id: "breakfast", label: "Breakfast", icon: "fa-coffee" },
+          { id: "morningSnack", label: "M. Snack", icon: "fa-apple-alt" },
+          { id: "lunch", label: "Lunch", icon: "fa-utensils" },
+          { id: "afternoonSnack", label: "A. Snack", icon: "fa-cookie-bite" },
+          { id: "dinner", label: "Dinner", icon: "fa-drumstick-bite" },
+        ];
+        const [showRecipeSelector, setShowRecipeSelector] = useState(null);
+
+        const collectionRecipes = useMemo(() => {
+          return recipes.filter((r) => collection.recipeIds?.includes(r.id));
+        }, [recipes, collection.recipeIds]);
+
+        // Auto-open recipe selector when a recipe is clicked from recipe card
+        useEffect(() => {
+          if (recipeToAddToCollectionMealPlan && !showRecipeSelector) {
+            setShowRecipeSelector({ day: null, mealTime: null });
+          }
+        }, [
+          recipeToAddToCollectionMealPlan,
+          showRecipeSelector,
+          setShowRecipeSelector,
+        ]);
+
+        const handleAddRecipeToMeal = (recipe) => {
+          if (!showRecipeSelector) return;
+          const { day, mealTime } = showRecipeSelector;
+          setCollectionMealPlan((prev) => ({
+            ...prev,
+            [day]: {
+              ...(prev[day] || {}),
+              [mealTime]: [...(prev[day]?.[mealTime] || []), recipe.id],
+            },
+          }));
+          addToast(`Added ${recipe.name} to ${day} ${mealTime}`, "success");
+          setShowRecipeSelector(null);
+          setRecipeToAddToCollectionMealPlan(null);
+        };
+
+        const handleRemoveMeal = (day, mealTime, recipeId) => {
+          setCollectionMealPlan((prev) => ({
+            ...prev,
+            [day]: {
+              ...(prev[day] || {}),
+              [mealTime]: (prev[day]?.[mealTime] || []).filter(
+                (id) => id !== recipeId,
+              ),
+            },
+          }));
+        };
+
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <i className="fas fa-calendar-alt mr-2 text-indigo-500"></i>
+                  {collection.name} - Meal Plan
+                </h2>
+                <button
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-red-500 text-3xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="p-4 space-y-6">
+                {collectionRecipes.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <i className="fas fa-info-circle text-4xl mb-4"></i>
+                    <p>
+                      Add recipes to this collection first to use meal planning!
+                    </p>
+                  </div>
+                ) : (
+                  days.map((day) => (
+                    <div
+                      key={day}
+                      className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
+                    >
+                      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
+                        {day}
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        {mealTimes.map((mealTime) => (
+                          <div
+                            key={mealTime.id}
+                            className="bg-white dark:bg-gray-600 rounded-md p-3 border border-gray-200 dark:border-gray-500"
+                          >
+                            <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              <i className={`fas ${mealTime.icon}`}></i>
+                              {mealTime.label}
+                            </div>
+                            <div className="space-y-1 mb-2 min-h-[60px]">
+                              {(
+                                collectionMealPlan?.[day]?.[mealTime.id] || []
+                              ).map((recipeId) => {
+                                const recipe = recipes.find(
+                                  (r) => r.id === recipeId,
+                                );
+                                return (
+                                  <div
+                                    key={recipeId}
+                                    className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 p-2 rounded flex justify-between items-center"
+                                  >
+                                    <span className="truncate">
+                                      {recipe?.name}
+                                    </span>
+                                    <button
+                                      onClick={() =>
+                                        handleRemoveMeal(
+                                          day,
+                                          mealTime.id,
+                                          recipeId,
+                                        )
+                                      }
+                                      className="text-red-500 hover:text-red-700 ml-1"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <button
+                              onClick={() =>
+                                setShowRecipeSelector({
+                                  day,
+                                  mealTime: mealTime.id,
+                                })
+                              }
+                              className="w-full text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded"
+                            >
+                              <i className="fas fa-plus mr-1"></i>Add
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {showRecipeSelector && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[70vh] overflow-hidden flex flex-col">
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                        {recipeToAddToCollectionMealPlan
+                          ? "Add to Meal Plan"
+                          : "Select Recipe"}
+                      </h3>
+                      <button
+                        onClick={() => setShowRecipeSelector(null)}
+                        className="text-gray-500 hover:text-red-500 text-2xl"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4">
+                      {recipeToAddToCollectionMealPlan ? (
+                        <div className="space-y-4">
+                          <div className="p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-200 dark:border-indigo-700">
+                            <div className="font-semibold text-gray-900 dark:text-white">
+                              {recipeToAddToCollectionMealPlan.name}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {recipeToAddToCollectionMealPlan.type} •{" "}
+                              {formatMinutesToHoursMinutes(
+                                parseInt(
+                                  recipeToAddToCollectionMealPlan.cookTime || 0,
+                                ) +
+                                  parseInt(
+                                    recipeToAddToCollectionMealPlan.prepTime ||
+                                      0,
+                                  ),
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Select Day:
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                              {days.map((day) => (
+                                <button
+                                  key={day}
+                                  onClick={() => {
+                                    setShowRecipeSelector({
+                                      ...showRecipeSelector,
+                                      day,
+                                    });
+                                  }}
+                                  className={`p-2 rounded text-sm font-medium transition ${
+                                    showRecipeSelector?.day === day
+                                      ? "bg-indigo-500 text-white"
+                                      : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200"
+                                  }`}
+                                >
+                                  {day.slice(0, 3)}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Select Meal Time:
+                            </label>
+                            <div className="space-y-2">
+                              {mealTimes.map((meal) => (
+                                <button
+                                  key={meal.id}
+                                  onClick={() => {
+                                    setShowRecipeSelector({
+                                      ...showRecipeSelector,
+                                      mealTime: meal.id,
+                                    });
+                                  }}
+                                  className={`w-full p-2 rounded text-sm font-medium transition text-left ${
+                                    showRecipeSelector?.mealTime === meal.id
+                                      ? "bg-indigo-500 text-white"
+                                      : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200"
+                                  }`}
+                                >
+                                  <i className={`fas ${meal.icon} mr-2`}></i>
+                                  {meal.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              handleAddRecipeToMeal(
+                                recipeToAddToCollectionMealPlan,
+                              );
+                            }}
+                            disabled={
+                              !showRecipeSelector?.day ||
+                              !showRecipeSelector?.mealTime
+                            }
+                            className="w-full p-3 bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition"
+                          >
+                            <i className="fas fa-check mr-2"></i>Add Recipe
+                          </button>
+                        </div>
+                      ) : (
+                        collectionRecipes.map((recipe) => (
+                          <button
+                            key={recipe.id}
+                            onClick={() => handleAddRecipeToMeal(recipe)}
+                            className="w-full text-left p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 mb-2"
+                          >
+                            <div className="font-semibold text-gray-900 dark:text-white">
+                              {recipe.name}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {recipe.type} •{" "}
+                              {formatMinutesToHoursMinutes(
+                                parseInt(recipe.cookTime || 0) +
+                                  parseInt(recipe.prepTime || 0),
+                              )}
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      // Collection Nutrition Dashboard Modal
+      const CollectionNutritionDashboardModal = ({
+        collection,
+        recipes,
+        onClose,
+        collectionMealPlans = {},
+      }) => {
+        const collectionRecipes = useMemo(() => {
+          return recipes.filter((r) => collection.recipeIds?.includes(r.id));
+        }, [recipes, collection.recipeIds]);
+
+        // Calculate recipe usage count from meal plan
+        const recipeUsageCount = useMemo(() => {
+          const usage = {};
+          collectionRecipes.forEach((recipe) => {
+            usage[recipe.id] = 0;
+          });
+
+          const mealPlan = collectionMealPlans[collection.mealPlanId] || {};
+          Object.values(mealPlan).forEach((dayMeals) => {
+            Object.values(dayMeals).forEach((mealRecipes) => {
+              (mealRecipes || []).forEach((recipeId) => {
+                if (usage.hasOwnProperty(recipeId)) {
+                  usage[recipeId]++;
+                }
+              });
+            });
+          });
+
+          return usage;
+        }, [collectionRecipes, collectionMealPlans, collection.mealPlanId]);
+
+        const nutritionStats = useMemo(() => {
+          if (collectionRecipes.length === 0)
+            return {
+              totalCalories: 0,
+              totalProtein: 0,
+              totalCarbs: 0,
+              totalFat: 0,
+              avgCalories: 0,
+              avgProtein: 0,
+              avgCarbs: 0,
+              avgFat: 0,
+              recipes: 0,
+              totalServings: 0,
+            };
+
+          let totalCals = 0,
+            totalProtein = 0,
+            totalCarbs = 0,
+            totalFat = 0;
+          let avgCals = 0,
+            avgProtein = 0,
+            avgCarbs = 0,
+            avgFat = 0;
+          let count = 0;
+          let totalServings = 0;
+
+          collectionRecipes.forEach((recipe) => {
+            const usageCount = recipeUsageCount[recipe.id] || 0;
+            if (
+              recipe.calories ||
+              recipe.protein ||
+              recipe.carbs ||
+              recipe.fat
+            ) {
+              // Add to totals based on meal plan usage
+              if (usageCount > 0) {
+                totalCals += (recipe.calories || 0) * usageCount;
+                totalProtein += (recipe.protein || 0) * usageCount;
+                totalCarbs += (recipe.carbs || 0) * usageCount;
+                totalFat += (recipe.fat || 0) * usageCount;
+                totalServings += usageCount;
+              }
+              // Calculate averages across all recipes
+              avgCals += recipe.calories || 0;
+              avgProtein += recipe.protein || 0;
+              avgCarbs += recipe.carbs || 0;
+              avgFat += recipe.fat || 0;
+              count++;
+            }
+          });
+
+          return {
+            totalCalories: Math.round(totalCals),
+            totalProtein: totalProtein.toFixed(1),
+            totalCarbs: totalCarbs.toFixed(1),
+            totalFat: totalFat.toFixed(1),
+            avgCalories: count > 0 ? Math.round(avgCals / count) : 0,
+            avgProtein: count > 0 ? (avgProtein / count).toFixed(1) : 0,
+            avgCarbs: count > 0 ? (avgCarbs / count).toFixed(1) : 0,
+            avgFat: count > 0 ? (avgFat / count).toFixed(1) : 0,
+            recipes: collectionRecipes.length,
+            totalServings,
+          };
+        }, [collectionRecipes, recipeUsageCount]);
+
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <i className="fas fa-chart-bar mr-2 text-orange-500"></i>
+                  {collection.name} - Nutrition Dashboard
+                </h2>
+                <button
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-red-500 text-3xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="p-6">
+                {nutritionStats.recipes === 0 ? (
+                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <i className="fas fa-info-circle text-4xl mb-4"></i>
+                    <p>No recipes with nutrition data in this collection.</p>
+                  </div>
+                ) : (
+                  <>
+                    {nutritionStats.totalServings > 0 && (
+                      <div className="mb-6 p-4 bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 rounded-lg border-2 border-green-500 dark:border-green-600">
+                        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                          <i className="fas fa-calendar-check mr-2"></i>Meal
+                          Plan Totals ({nutritionStats.totalServings} servings)
+                        </h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="bg-red-100/50 dark:bg-red-900/50 p-4 rounded-lg text-center">
+                            <div className="text-2xl font-bold text-red-600 dark:text-red-200">
+                              {nutritionStats.totalCalories}
+                            </div>
+                            <div className="text-sm text-red-700 dark:text-red-300">
+                              Calories
+                            </div>
+                          </div>
+                          <div className="bg-blue-100/50 dark:bg-blue-900/50 p-4 rounded-lg text-center">
+                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-200">
+                              {nutritionStats.totalProtein}g
+                            </div>
+                            <div className="text-sm text-blue-700 dark:text-blue-300">
+                              Protein
+                            </div>
+                          </div>
+                          <div className="bg-yellow-100/50 dark:bg-yellow-900/50 p-4 rounded-lg text-center">
+                            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-200">
+                              {nutritionStats.totalCarbs}g
+                            </div>
+                            <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                              Carbs
+                            </div>
+                          </div>
+                          <div className="bg-orange-100/50 dark:bg-orange-900/50 p-4 rounded-lg text-center">
+                            <div className="text-2xl font-bold text-orange-600 dark:text-orange-200">
+                              {nutritionStats.totalFat}g
+                            </div>
+                            <div className="text-sm text-orange-700 dark:text-orange-300">
+                              Fat
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                        <i className="fas fa-bar-chart mr-2"></i>Average Per
+                        Recipe
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-red-100 dark:bg-red-900 p-4 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-red-600 dark:text-red-200">
+                            {nutritionStats.avgCalories}
+                          </div>
+                          <div className="text-sm text-red-700 dark:text-red-300">
+                            Calories
+                          </div>
+                        </div>
+                        <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-blue-600 dark:text-blue-200">
+                            {nutritionStats.avgProtein}g
+                          </div>
+                          <div className="text-sm text-blue-700 dark:text-blue-300">
+                            Protein
+                          </div>
+                        </div>
+                        <div className="bg-yellow-100 dark:bg-yellow-900 p-4 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-200">
+                            {nutritionStats.avgCarbs}g
+                          </div>
+                          <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                            Carbs
+                          </div>
+                        </div>
+                        <div className="bg-orange-100 dark:bg-orange-900 p-4 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-orange-600 dark:text-orange-200">
+                            {nutritionStats.avgFat}g
+                          </div>
+                          <div className="text-sm text-orange-700 dark:text-orange-300">
+                            Fat
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                        <i className="fas fa-list mr-2"></i>Recipes(
+                        {nutritionStats.recipes})
+                      </h3>
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                        {collectionRecipes.map((recipe) => {
+                          const usageCount = recipeUsageCount[recipe.id] || 0;
+                          return (
+                            <div
+                              key={recipe.id}
+                              className={`p-3 rounded-lg border ${
+                                usageCount > 0
+                                  ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
+                                  : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+                              }`}
+                            >
+                              <div className="font-semibold text-gray-900 dark:text-white mb-1 flex justify-between">
+                                <span>{recipe.name}</span>
+                                {usageCount > 0 && (
+                                  <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">
+                                    Used {usageCount}x
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                                <div className="flex gap-4">
+                                  <span>
+                                    <span className="font-medium">Cal:</span>{" "}
+                                    {recipe.calories || "N/A"}
+                                    {usageCount > 0 && (
+                                      <span className="ml-1 text-green-600 dark:text-green-400 font-semibold">
+                                        ({(recipe.calories || 0) * usageCount})
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span>
+                                    <span className="font-medium">
+                                      Protein:
+                                    </span>{" "}
+                                    {recipe.protein
+                                      ? `${recipe.protein}g`
+                                      : "N/A"}
+                                    {usageCount > 0 && (
+                                      <span className="ml-1 text-green-600 dark:text-green-400 font-semibold">
+                                        (
+                                        {(
+                                          (recipe.protein || 0) * usageCount
+                                        ).toFixed(1)}
+                                        g)
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                                <div className="flex gap-4">
+                                  <span>
+                                    <span className="font-medium">Carbs:</span>{" "}
+                                    {recipe.carbs ? `${recipe.carbs}g` : "N/A"}
+                                    {usageCount > 0 && (
+                                      <span className="ml-1 text-green-600 dark:text-green-400 font-semibold">
+                                        (
+                                        {(
+                                          (recipe.carbs || 0) * usageCount
+                                        ).toFixed(1)}
+                                        g)
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span>
+                                    <span className="font-medium">Fat:</span>{" "}
+                                    {recipe.fat ? `${recipe.fat}g` : "N/A"}
+                                    {usageCount > 0 && (
+                                      <span className="ml-1 text-green-600 dark:text-green-400 font-semibold">
+                                        (
+                                        {(
+                                          (recipe.fat || 0) * usageCount
+                                        ).toFixed(1)}
+                                        g)
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      };
+
       // Function to get low stock items
       const getLowStockItems = (pantry) => {
         if (!pantry || !Array.isArray(pantry)) return [];
@@ -10676,12 +12232,106 @@
         onRecipeUpdate,
       }) => {
         const [photos, setPhotos] = useState(getRecipePhotos(recipe));
-        const [newPhoto, setNewPhoto] = useState({ url: "", caption: "" });
+        const [newPhoto, setNewPhoto] = useState({
+          url: "",
+          caption: "",
+          file: null,
+          preview: null,
+        });
         const [isAdding, setIsAdding] = useState(false);
+        const [inputMode, setInputMode] = useState("url"); // "url", "file", or "camera"
+        const fileInputRef = useRef(null);
+        const videoRef = useRef(null);
+        const canvasRef = useRef(null);
+        const [isCameraActive, setIsCameraActive] = useState(false);
+
+        // Sync photos when recipe changes
+        useEffect(() => {
+          setPhotos(getRecipePhotos(recipe));
+        }, [recipe]);
+
+        const handleFileSelect = async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+
+          if (!file.type.startsWith("image/")) {
+            addToast("Please select a valid image file", "error");
+            return;
+          }
+
+          try {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const dataUrl = event.target?.result;
+              setNewPhoto({
+                url: dataUrl,
+                caption: newPhoto.caption,
+                file: file,
+                preview: dataUrl,
+              });
+            };
+            reader.readAsDataURL(file);
+          } catch (error) {
+            console.error("Error reading file:", error);
+            addToast("Error reading file", "error");
+          }
+        };
+
+        const startCamera = async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: "environment" },
+            });
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+              setIsCameraActive(true);
+            }
+          } catch (error) {
+            console.error("Error accessing camera:", error);
+            addToast(
+              "Unable to access camera. Please check permissions.",
+              "error",
+            );
+          }
+        };
+
+        const capturePhoto = () => {
+          if (videoRef.current && canvasRef.current) {
+            const context = canvasRef.current.getContext("2d");
+            canvasRef.current.width = videoRef.current.videoWidth;
+            canvasRef.current.height = videoRef.current.videoHeight;
+            context?.drawImage(videoRef.current, 0, 0);
+            const dataUrl = canvasRef.current.toDataURL("image/jpeg");
+
+            setNewPhoto({
+              url: dataUrl,
+              caption: newPhoto.caption,
+              file: null,
+              preview: dataUrl,
+            });
+
+            // Stop camera
+            if (videoRef.current.srcObject) {
+              videoRef.current.srcObject
+                .getTracks()
+                .forEach((track) => track.stop());
+            }
+            setIsCameraActive(false);
+          }
+        };
+
+        const stopCamera = () => {
+          if (videoRef.current?.srcObject) {
+            videoRef.current.srcObject
+              .getTracks()
+              .forEach((track) => track.stop());
+          }
+          setIsCameraActive(false);
+        };
 
         const handleAddPhoto = async () => {
           if (!newPhoto.url.trim()) {
-            addToast("Please enter a photo URL", "error");
+            addToast("Please select or take a photo", "error");
             return;
           }
 
@@ -10701,8 +12351,9 @@
               onRecipeUpdate(updatedRecipe);
             }
             setPhotos(getRecipePhotos(updatedRecipe));
-            setNewPhoto({ url: "", caption: "" });
+            setNewPhoto({ url: "", caption: "", file: null, preview: null });
             setIsAdding(false);
+            setInputMode("url");
           } catch (error) {
             console.error("Error adding photo:", error);
           }
@@ -10726,6 +12377,14 @@
               console.error("Error removing photo:", error);
             }
           }
+        };
+
+        const resetForm = () => {
+          setIsAdding(false);
+          setNewPhoto({ url: "", caption: "", file: null, preview: null });
+          setInputMode("url");
+          stopCamera();
+          if (fileInputRef.current) fileInputRef.current.value = "";
         };
 
         return (
@@ -10766,18 +12425,23 @@
                         className="bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden shadow relative group"
                       >
                         <img
-                          src={photo.url}
+                          src={photo.url || photo.thumbnail}
                           alt={photo.caption || "Recipe photo"}
                           className="w-full h-48 object-cover cursor-pointer"
-                          onClick={() => window.open(photo.url, "_blank")}
+                          onClick={() =>
+                            window.open(photo.url || photo.thumbnail, "_blank")
+                          }
                         />
-                        {photo.caption && (
-                          <div className="p-2 bg-white dark:bg-gray-800">
+                        <div className="p-2 bg-white dark:bg-gray-800 space-y-1">
+                          {photo.caption && (
                             <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
                               {photo.caption}
                             </p>
-                          </div>
-                        )}
+                          )}
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {new Date(photo.date).toLocaleDateString()}
+                          </p>
+                        </div>
                         <button
                           onClick={() => handleRemovePhoto(photo.id)}
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -10785,9 +12449,6 @@
                         >
                           <i className="fas fa-times text-xs"></i>
                         </button>
-                        <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                          {new Date(photo.date).toLocaleDateString()}
-                        </div>
                       </div>
                     ))}
                   </div>
@@ -10798,52 +12459,230 @@
                 {!isAdding ? (
                   <button
                     onClick={() => setIsAdding(true)}
-                    className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-2 font-medium"
                   >
                     <i className="fas fa-plus"></i> Add Photo
                   </button>
                 ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                        Photo URL:
-                      </label>
-                      <input
-                        type="text"
-                        value={newPhoto.url}
-                        onChange={(e) =>
-                          setNewPhoto({ ...newPhoto, url: e.target.value })
-                        }
-                        placeholder="https://example.com/photo.jpg"
-                        className="modal-input w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                        Caption (optional):
-                      </label>
-                      <input
-                        type="text"
-                        value={newPhoto.caption}
-                        onChange={(e) =>
-                          setNewPhoto({ ...newPhoto, caption: e.target.value })
-                        }
-                        placeholder="Add a caption..."
-                        className="modal-input w-full"
-                      />
-                    </div>
+                  <div className="space-y-4">
+                    {/* Input Mode Selector */}
                     <div className="flex gap-2">
                       <button
-                        onClick={handleAddPhoto}
-                        className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg"
+                        onClick={() => {
+                          setInputMode("url");
+                          stopCamera();
+                        }}
+                        className={`flex-1 py-2 rounded-lg transition flex items-center justify-center gap-2 ${
+                          inputMode === "url"
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        }`}
                       >
-                        Add Photo
+                        <i className="fas fa-link"></i>
+                        <span className="hidden sm:inline">URL</span>
                       </button>
                       <button
                         onClick={() => {
-                          setIsAdding(false);
-                          setNewPhoto({ url: "", caption: "" });
+                          setInputMode("file");
+                          stopCamera();
+                          fileInputRef.current?.click();
                         }}
+                        className={`flex-1 py-2 rounded-lg transition flex items-center justify-center gap-2 ${
+                          inputMode === "file"
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        }`}
+                      >
+                        <i className="fas fa-upload"></i>
+                        <span className="hidden sm:inline">Upload</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setInputMode("camera");
+                          if (!isCameraActive) {
+                            startCamera();
+                          }
+                        }}
+                        className={`flex-1 py-2 rounded-lg transition flex items-center justify-center gap-2 ${
+                          inputMode === "camera"
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        }`}
+                      >
+                        <i className="fas fa-camera"></i>
+                        <span className="hidden sm:inline">Camera</span>
+                      </button>
+                    </div>
+
+                    {/* Content area based on input mode */}
+                    {inputMode === "url" && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                            Photo URL:
+                          </label>
+                          <input
+                            type="text"
+                            value={newPhoto.url}
+                            onChange={(e) =>
+                              setNewPhoto({ ...newPhoto, url: e.target.value })
+                            }
+                            placeholder="https://example.com/photo.jpg"
+                            className="modal-input w-full"
+                          />
+                          {newPhoto.url && (
+                            <div className="mt-2">
+                              <img
+                                src={newPhoto.url}
+                                alt="Preview"
+                                className="w-full max-h-48 object-cover rounded"
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                            Caption (optional):
+                          </label>
+                          <input
+                            type="text"
+                            value={newPhoto.caption}
+                            onChange={(e) =>
+                              setNewPhoto({
+                                ...newPhoto,
+                                caption: e.target.value,
+                              })
+                            }
+                            placeholder="Add a caption..."
+                            className="modal-input w-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {inputMode === "file" && (
+                      <div className="space-y-3">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                          aria-label="Select image file"
+                        />
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition text-gray-700 dark:text-gray-300"
+                        >
+                          <i className="fas fa-cloud-upload-alt text-2xl mb-2 block"></i>
+                          Click to select an image
+                        </button>
+                        {newPhoto.preview && (
+                          <div className="mt-2">
+                            <img
+                              src={newPhoto.preview}
+                              alt="Preview"
+                              className="w-full max-h-48 object-cover rounded"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                            Caption (optional):
+                          </label>
+                          <input
+                            type="text"
+                            value={newPhoto.caption}
+                            onChange={(e) =>
+                              setNewPhoto({
+                                ...newPhoto,
+                                caption: e.target.value,
+                              })
+                            }
+                            placeholder="Add a caption..."
+                            className="modal-input w-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {inputMode === "camera" && (
+                      <div className="space-y-3">
+                        {isCameraActive ? (
+                          <>
+                            <video
+                              ref={videoRef}
+                              autoPlay
+                              playsInline
+                              className="w-full rounded-lg bg-black"
+                            />
+                            <canvas ref={canvasRef} className="hidden" />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={capturePhoto}
+                                className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-2"
+                              >
+                                <i className="fas fa-camera"></i> Capture
+                              </button>
+                              <button
+                                onClick={stopCamera}
+                                className="flex-1 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </>
+                        ) : newPhoto.preview ? (
+                          <>
+                            <img
+                              src={newPhoto.preview}
+                              alt="Captured"
+                              className="w-full rounded-lg"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => startCamera()}
+                                className="flex-1 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                              >
+                                Retake
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <p className="text-center text-gray-600 dark:text-gray-400">
+                            Camera is ready. Click the button above to start.
+                          </p>
+                        )}
+                        <div>
+                          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                            Caption (optional):
+                          </label>
+                          <input
+                            type="text"
+                            value={newPhoto.caption}
+                            onChange={(e) =>
+                              setNewPhoto({
+                                ...newPhoto,
+                                caption: e.target.value,
+                              })
+                            }
+                            placeholder="Add a caption..."
+                            className="modal-input w-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={handleAddPhoto}
+                        className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium"
+                      >
+                        <i className="fas fa-check mr-1"></i>Add Photo
+                      </button>
+                      <button
+                        onClick={resetForm}
                         className="flex-1 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
                       >
                         Cancel

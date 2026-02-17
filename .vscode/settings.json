@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
     "allrecipes",
+    "Cals",
     "Carb",
     "Cookwise",
     "delicata",
@@ -15,6 +16,7 @@
     "kabocha",
     "mache",
     "mascarpone",
+    "Nutri",
     "overmix",
     "padano",
     "pagebreak",
@@ -27,6 +29,7 @@
     "pummelo",
     "shishito",
     "sunchokes",
+    "Tesseract",
     "tomatillos",
     "vidalia"
   ],
@@ -50,5 +53,7 @@
     "titleBar.inactiveBackground": "#6d02b099",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
-  "peacock.color": "#6d02b0"
+  "peacock.color": "#6d02b0",
+  "html.validate.styles": false,
+  "html.validate.scripts": false
 }

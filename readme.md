@@ -13,6 +13,7 @@ Transform your cooking experience with our feature-rich recipe management applic
 </div>
 
 ## 📋 Table of Contents
+
 - [Overview](#overview)
 - [Features](#features)
 - [Getting Started](#getting-started)
@@ -27,6 +28,7 @@ Transform your cooking experience with our feature-rich recipe management applic
 Cookwise Pro is a comprehensive recipe management application designed to revolutionize your kitchen experience. Built with React, Tailwind CSS, and powered by IndexedDB for offline storage, this application offers a seamless way to organize, manage, and enjoy your culinary adventures.
 
 ### ✨ Key Benefits
+
 - **Offline Access**: All your recipes stored locally for instant access
 - **Cross-device Sync**: Keep your recipes synchronized across devices
 - **Smart Organization**: Advanced filtering and categorization options
@@ -36,6 +38,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 ## Features
 
 ### 🍽️ Recipe Management
+
 - **Add Recipes**: Create detailed recipes with ingredients, directions, and nutritional information
 - **Edit Recipes**: Modify existing recipes with an intuitive form interface
 - **Delete Recipes**: Remove unwanted recipes with confirmation
@@ -48,6 +51,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 - **Recipe Sharing**: Share recipes via native sharing APIs
 
 ### 🔍 Smart Discovery
+
 - **Recipe Suggestions**: AI-powered suggestions based on your pantry
 - **Seasonal Recipes**: Highlight recipes using seasonal ingredients
 - **Ingredient Substitutions**: Smart suggestions for ingredient swaps
@@ -55,12 +59,14 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 - **Personal Notes**: Add custom notes and modifications to recipes
 
 ### 📅 Meal Planning
+
 - **Weekly Meal Planner**: Plan meals across seven days
 - **Multiple Meal Times**: Breakfast, lunch, dinner, and snack slots
 - **Easy Drag-and-Drop**: Intuitive recipe assignment to meal slots
 - **Shopping List Integration**: One-click addition of meal plan ingredients
 
 ### 🛒 Shopping List
+
 - **Automatic Generation**: Add ingredients from recipes with one click
 - **Pantry Integration**: Track what you already have
 - **Grouped Ingredients**: Automatically combine duplicate items
@@ -69,6 +75,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 - **Copy to Clipboard**: Easily transfer lists to other apps
 
 ### 📦 Pantry Management
+
 - **Ingredient Inventory**: Track what's in your pantry
 - **Expiration Tracking**: Monitor expiration dates with alerts
 - **Low Stock Alerts**: Get notified when items are running low
@@ -77,35 +84,41 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 - **Categories & Locations**: Organize items by type and storage location
 
 ### 📊 Nutrition Tracking
+
 - **Nutrition Dashboard**: Visual overview of weekly nutrition
 - **Per-Serving Calculations**: Automatic nutrition breakdowns
 - **Estimation Tools**: Estimate nutrition from ingredients
 - **Daily Tracking**: Monitor your nutritional intake
 
 ### ⏰ Cooking Assistance
+
 - **Cooking Mode**: Full-screen, step-by-step cooking guidance
 - **Built-in Timers**: Integrated timers for cooking steps
 - **Step-by-Step Navigation**: Easy progression through recipe steps
 - **Keyboard Controls**: Navigate with arrow keys and spacebar
 
 ### 📁 Collections
+
 - **Recipe Collections**: Group recipes into custom collections
 - **Collection Management**: Create, rename, and delete collections
 - **Quick Access**: Instant access to themed recipe sets
 
 ### 🎨 Customization
+
 - **Dark/Light Mode**: Choose your preferred theme
 - **Responsive Design**: Works on phones, tablets, and desktops
 - **Customizable UI**: Adjust settings to your preferences
 - **Accessibility**: Full keyboard navigation and screen reader support
 
 ### 🔐 Data Management
+
 - **Local Storage**: Secure offline data storage
 - **Import/Export**: Transfer recipes between devices
 - **Backup & Restore**: Protect your recipe collection
 - **Cross-Device Sync**: Keep everything synchronized
 
 ### ⌨️ Keyboard Shortcuts
+
 - **Quick Navigation**: Ctrl/Cmd + K to search
 - **Add Recipe**: Ctrl/Cmd + N
 - **Open Meal Plan**: Ctrl/Cmd + M
@@ -118,15 +131,18 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 ## Getting Started
 
 ### Prerequisites
+
 - Modern web browser (Chrome, Firefox, Safari, Edge)
 - Internet connection (for initial load and optional sync)
 
 ### Installation
+
 1. Download the application files
 2. Open `index.html` in your web browser
 3. Start managing your recipes!
 
 ### Initial Setup
+
 1. **Create Account** (optional for sync)
 2. **Import Existing Recipes** (optional)
 3. **Customize Preferences** (theme, units, etc.)
@@ -134,6 +150,7 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 ## Usage Guide
 
 ### 📝 Adding Your First Recipe
+
 1. **Click "Add Recipe"** button in the header
 2. **Fill in recipe details**:
    - Name and description
@@ -148,12 +165,14 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 3. **Save the recipe** to your collection
 
 ### 🔍 Finding Recipes
+
 1. **Use the search bar** at the top to search by name or type
 2. **Apply filters** for specific cuisines, dietary needs, or cooking times
 3. **Browse by tags** or use the category filters
 4. **Sort by favorites** or recently added
 
 ### 📅 Planning Your Meals
+
 1. **Open the Meal Plan** from the menu
 2. **Click on a time slot** to select a recipe
 3. **Choose from your collection** or search for recipes
@@ -161,18 +180,21 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 5. **Generate shopping list** with one click
 
 ### 🛒 Managing Your Shopping List
+
 1. **Add from recipes** by clicking the shopping cart icon
 2. **Check off items** as you purchase them
 3. **View grouped ingredients** to see combined quantities
 4. **Clear the list** when you're done shopping
 
 ### 📦 Organizing Your Pantry
+
 1. **Open the Pantry** from the menu
 2. **Add items** you currently have
 3. **Set quantities** and expiration dates
 4. **Track what you have** to avoid duplicate purchases
 
 ### 👨‍🍳 Using Cooking Mode
+
 1. **Open a recipe** you want to cook
 2. **Click the "Cook" button**
 3. **Follow the full-screen steps**
@@ -182,26 +204,31 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 ## Advanced Features
 
 ### 📊 Nutrition Analysis
+
 - **Dashboard View**: Weekly nutrition overview
 - **Per-Recipe Estimates**: Automatic calculations
 - **Custom Values**: Manual nutrition entry
 
 ### 🔄 Cross-Device Sync
+
 - **Enable Sync**: Connect accounts across devices
 - **Automatic Updates**: Real-time synchronization
 - **Conflict Resolution**: Smart merge of changes
 
 ### 📸 Recipe Photo Gallery
+
 - **Add Photos**: Attach images to recipes
 - **Caption Support**: Describe your cooking moments
 - **Gallery View**: Browse all recipe photos
 
 ### 📈 Analytics & Insights
+
 - **Most Cooked**: Track your popular recipes
 - **Cooking Frequency**: Understand your habits
 - **Nutrition Trends**: Monitor dietary patterns
 
 ### 🎯 Smart Recommendations
+
 - **Based on Pantry**: Recipes you can make now
 - **Dietary Preferences**: Tailored suggestions
 - **Seasonal Ingredients**: Fresh, seasonal options
@@ -209,26 +236,30 @@ Cookwise Pro is a comprehensive recipe management application designed to revolu
 ## Troubleshooting
 
 ### Common Issues
+
 - **Slow Loading**: Clear browser cache and reload
 - **Sync Problems**: Check internet connection and account status
 - **Image Upload**: Ensure files are under 5MB and in supported format
 - **Printing Issues**: Use Chrome's print functionality for best results
 
 ### Data Recovery
+
 - **Lost Recipes**: Check browser's local storage settings
 - **Corrupted Data**: Use the export/import feature to restore
 - **Sync Conflicts**: Manual resolution through the sync dashboard
 
 ### Performance Tips
+
 - **Large Collections**: Use filters to narrow results
 - **Browser Memory**: Close other tabs if experiencing slowdowns
 - **Offline Access**: All data remains accessible without internet
 
 ## Contributing
 
-We welcome contributions to improve Cookwise Pro! 
+We welcome contributions to improve Cookwise Pro!
 
 ### Ways to Contribute
+
 - Report bugs and suggest features
 - Improve documentation
 - Submit pull requests for enhancements
@@ -236,6 +267,7 @@ We welcome contributions to improve Cookwise Pro!
 - Create educational content
 
 ### Development Setup
+
 1. Fork the repository
 2. Clone your fork
 3. Make changes
@@ -250,7 +282,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 <div align="center">
 
-**Cookwise Pro** - *Making cooking easier, one recipe at a time*
+**Cookwise Pro** - _Making cooking easier, one recipe at a time_
 
 Made with ❤️ by BarrTech Solutions
 

@@ -5220,6 +5220,65 @@
               setShowTutorial={setShowTutorial}
               setShowPhotoGalleryModal={setShowPhotoGalleryModal}
             />
+            {/* Quick Access Shortcuts Bar */}
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 border-b border-gray-200 dark:border-gray-600 sticky top-16 z-20 shadow-sm transition-all duration-300">
+              <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex items-center gap-2 overflow-x-auto">
+                <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap hidden sm:inline">
+                  Quick Access:
+                </span>
+                <button
+                  onClick={() => {
+                    setEditingRecipe(null);
+                    setShowAddRecipeModal(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-green-100 dark:hover:bg-gray-700 transition-colors hover:text-green-600 dark:hover:text-green-400 whitespace-nowrap"
+                  title="Add a new recipe (Ctrl+N)"
+                >
+                  <i className="fas fa-plus text-green-500"></i>
+                  New
+                </button>
+                <button
+                  onClick={() => setShowMealPlanModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-orange-100 dark:hover:bg-gray-700 transition-colors hover:text-orange-600 dark:hover:text-orange-400 whitespace-nowrap"
+                  title="Plan your meals (Ctrl+M)"
+                >
+                  <i className="fas fa-calendar-alt text-orange-500"></i>
+                  Plan
+                </button>
+                <button
+                  onClick={() => setShowShoppingListModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-gray-700 transition-colors hover:text-blue-600 dark:hover:text-blue-400 whitespace-nowrap"
+                  title="Shopping list (Ctrl+L)"
+                >
+                  <i className="fas fa-shopping-cart text-blue-500"></i>
+                  Shop
+                </button>
+                <button
+                  onClick={() => setShowPantryModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-gray-700 transition-colors hover:text-purple-600 dark:hover:text-purple-400 whitespace-nowrap"
+                  title="Manage pantry (Ctrl+I)"
+                >
+                  <i className="fas fa-warehouse text-purple-500"></i>
+                  Pantry
+                </button>
+                <button
+                  onClick={() => setShowRecipeSuggestions(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-yellow-100 dark:hover:bg-gray-700 transition-colors hover:text-yellow-600 dark:hover:text-yellow-400 whitespace-nowrap"
+                  title="Get suggestions (Ctrl+S)"
+                >
+                  <i className="fas fa-lightbulb text-yellow-500"></i>
+                  Suggest
+                </button>
+                <button
+                  onClick={() => setShowPhotoGalleryModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-pink-100 dark:hover:bg-gray-700 transition-colors hover:text-pink-600 dark:hover:text-pink-400 whitespace-nowrap"
+                  title="Photo gallery (Ctrl+G)"
+                >
+                  <i className="fas fa-images text-pink-500"></i>
+                  Gallery
+                </button>
+              </div>
+            </div>
             <main className="flex-grow max-w-7xl mx-auto p-3 sm:p-4 w-full">
               {isLoading ? (
                 <div className="text-center py-10 text-gray-500 dark:text-gray-400">
@@ -5230,48 +5289,59 @@
                   </p>
                 </div>
               ) : (
-                <RecipeList
-                  recipes={recipes}
-                  searchRecipes={searchRecipes}
-                  openRecipeDetails={(recipe) => setShowRecipeDetails(recipe)}
-                  toggleFavorite={toggleFavorite}
-                  collections={collections}
-                  openMealPlanModal={(recipe) => {
-                    setRecipeToMealPlan(recipe);
-                    setShowQuickAddMealPlan(true);
-                  }}
-                  checkRecipeAvailability={(recipe) => {
-                    const match = (window.computeRecipeMatch &&
-                      window.computeRecipeMatch(recipe, pantry)) || {
-                      matchedCount: 0,
-                      totalIngredients: Array.isArray(recipe.ingredients)
-                        ? recipe.ingredients.length
-                        : 0,
-                      percentage: 0,
-                      canMake: false,
-                      missing: [],
-                    };
-                    return {
-                      canMake: match.canMake,
-                      percentage: match.percentage,
-                    };
-                  }}
-                  isBulkModeActive={isBulkModeActive}
-                  selectedRecipeIds={selectedRecipeIds}
-                  toggleBulkSelection={toggleBulkSelection}
-                  toggleSelectAll={toggleSelectAll}
-                  bulkDeleteRecipes={bulkDeleteRecipes}
-                  bulkExportPDF={bulkExportPDF}
-                  bulkAddToCollection={bulkAddToCollection}
-                  bulkAddToMealPlan={bulkAddToMealPlan}
-                  setIsBulkModeActive={setIsBulkModeActive}
-                  setViewingCollectionMealPlan={setViewingCollectionMealPlan}
-                  setViewingCollectionDashboard={setViewingCollectionDashboard}
-                  setRecipeToAddToCollectionMealPlan={
-                    setRecipeToAddToCollectionMealPlan
-                  }
-                  removeRecipeFromCollection={removeRecipeFromCollection}
-                />
+                <>
+                  <Dashboard
+                    recipes={recipes}
+                    collections={collections}
+                    mealPlan={mealPlan}
+                    openRecipeDetails={(recipe) => setShowRecipeDetails(recipe)}
+                    toggleFavorite={toggleFavorite}
+                  />
+                  <RecipeList
+                    recipes={recipes}
+                    searchRecipes={searchRecipes}
+                    openRecipeDetails={(recipe) => setShowRecipeDetails(recipe)}
+                    toggleFavorite={toggleFavorite}
+                    collections={collections}
+                    openMealPlanModal={(recipe) => {
+                      setRecipeToMealPlan(recipe);
+                      setShowQuickAddMealPlan(true);
+                    }}
+                    checkRecipeAvailability={(recipe) => {
+                      const match = (window.computeRecipeMatch &&
+                        window.computeRecipeMatch(recipe, pantry)) || {
+                        matchedCount: 0,
+                        totalIngredients: Array.isArray(recipe.ingredients)
+                          ? recipe.ingredients.length
+                          : 0,
+                        percentage: 0,
+                        canMake: false,
+                        missing: [],
+                      };
+                      return {
+                        canMake: match.canMake,
+                        percentage: match.percentage,
+                      };
+                    }}
+                    isBulkModeActive={isBulkModeActive}
+                    selectedRecipeIds={selectedRecipeIds}
+                    toggleBulkSelection={toggleBulkSelection}
+                    toggleSelectAll={toggleSelectAll}
+                    bulkDeleteRecipes={bulkDeleteRecipes}
+                    bulkExportPDF={bulkExportPDF}
+                    bulkAddToCollection={bulkAddToCollection}
+                    bulkAddToMealPlan={bulkAddToMealPlan}
+                    setIsBulkModeActive={setIsBulkModeActive}
+                    setViewingCollectionMealPlan={setViewingCollectionMealPlan}
+                    setViewingCollectionDashboard={
+                      setViewingCollectionDashboard
+                    }
+                    setRecipeToAddToCollectionMealPlan={
+                      setRecipeToAddToCollectionMealPlan
+                    }
+                    removeRecipeFromCollection={removeRecipeFromCollection}
+                  />
+                </>
               )}
             </main>
             {showAddRecipeModal && (
@@ -6372,6 +6442,216 @@
         );
       };
 
+      // Dashboard Component with Stats and Recent Recipes
+      const Dashboard = ({
+        recipes,
+        collections,
+        mealPlan,
+        openRecipeDetails,
+        toggleFavorite,
+      }) => {
+        // Calculate stats
+        const totalRecipes = recipes.filter((r) => r && r.name).length;
+        const favoriteCount = recipes.filter((r) => r && r.isFavorite).length;
+        const totalPhotos = recipes.reduce((sum, r) => {
+          return sum + (Array.isArray(r.photos) ? r.photos.length : 0);
+        }, 0);
+        const collectionsCount = Array.isArray(collections)
+          ? collections.length
+          : 0;
+
+        // Count upcoming meals in meal plan
+        const upcomingMeals = useMemo(() => {
+          let count = 0;
+          for (const day in mealPlan) {
+            if (mealPlan[day]) {
+              for (const mealType in mealPlan[day]) {
+                if (Array.isArray(mealPlan[day][mealType])) {
+                  count += mealPlan[day][mealType].length;
+                }
+              }
+            }
+          }
+          return count;
+        }, [mealPlan]);
+
+        // Get recent recipes (last 5)
+        const recentRecipes = useMemo(() => {
+          return recipes
+            .filter((r) => r && r.name)
+            .slice(-5)
+            .reverse();
+        }, [recipes]);
+
+        return (
+          <div className="pb-8">
+            {/* Welcome Section */}
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Welcome back to Cookwise Pro! 👨‍🍳
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Here's a quick overview of your recipe collection
+              </p>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+              {/* Total Recipes Card */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
+                <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-lg">
+                  <i className="fas fa-book text-2xl text-green-600 dark:text-green-400"></i>
+                </div>
+                <div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Total Recipes
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    {totalRecipes}
+                  </p>
+                </div>
+              </div>
+
+              {/* Favorite Recipes Card */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
+                <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 rounded-lg">
+                  <i className="fas fa-star text-2xl text-yellow-600 dark:text-yellow-400"></i>
+                </div>
+                <div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Favorites
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    {favoriteCount}
+                  </p>
+                </div>
+              </div>
+
+              {/* Photos Card */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
+                <div className="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-lg">
+                  <i className="fas fa-images text-2xl text-blue-600 dark:text-blue-400"></i>
+                </div>
+                <div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Recipe Photos
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    {totalPhotos}
+                  </p>
+                </div>
+              </div>
+
+              {/* Collections Card */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-lg">
+                  <i className="fas fa-folder text-2xl text-purple-600 dark:text-purple-400"></i>
+                </div>
+                <div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Collections
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    {collectionsCount}
+                  </p>
+                </div>
+              </div>
+
+              {/* Meal Plan Card */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
+                <div className="bg-orange-100 dark:bg-orange-900/30 p-4 rounded-lg">
+                  <i className="fas fa-calendar-alt text-2xl text-orange-600 dark:text-orange-400"></i>
+                </div>
+                <div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Planned Meals
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    {upcomingMeals}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Recipes Section */}
+            {recentRecipes.length > 0 && (
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <i className="fas fa-history text-green-500"></i>
+                  Recently Added
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                  {recentRecipes.map((recipe) => (
+                    <div
+                      key={recipe.id}
+                      onClick={() => openRecipeDetails(recipe)}
+                      className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all cursor-pointer transform hover:scale-105"
+                    >
+                      {/* Image */}
+                      <div className="aspect-video bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
+                        {recipe.image ? (
+                          <img
+                            src={recipe.image}
+                            alt={recipe.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                            <i className="fas fa-image text-3xl opacity-50"></i>
+                          </div>
+                        )}
+
+                        {/* Overlay with favorite button */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(recipe.id);
+                            }}
+                            className={`ml-auto text-2xl transition-colors ${
+                              recipe.isFavorite
+                                ? "text-yellow-400"
+                                : "text-white hover:text-yellow-300"
+                            }`}
+                          >
+                            <i
+                              className={`fa-star ${
+                                recipe.isFavorite ? "fas" : "far"
+                              }`}
+                            ></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-3">
+                        <h4 className="font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2">
+                          {recipe.name}
+                        </h4>
+                        <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                          {recipe.prepTime && (
+                            <span className="flex items-center gap-1">
+                              <i className="fas fa-clock"></i>
+                              {recipe.prepTime}m
+                            </span>
+                          )}
+                          {recipe.cookTime && (
+                            <span className="flex items-center gap-1">
+                              <i className="fas fa-fire"></i>
+                              {recipe.cookTime}m
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      };
+
       const RecipeList = ({
         recipes,
         searchRecipes,
@@ -7057,18 +7337,23 @@
                           : ""
                       }
                     >
-                      <div className="aspect-video w-full bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
+                      <div className="aspect-video w-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 overflow-hidden relative group/image">
                         {recipe.image ? (
                           <img
                             src={recipe.image}
                             alt={recipe.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                             <i className="fas fa-image text-4xl mb-3 opacity-50"></i>
                           </div>
                         )}
+
+                        {/* Overlay gradient for better badge visibility */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-200"></div>
+
+                        {/* Favorite/Bulk Selection Button - Top Right */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -7087,17 +7372,17 @@
                                 ? "Remove Favorite"
                                 : "Add Favorite"
                           }
-                          className={`absolute top-2 right-2 text-2xl transition-colors duration-200 z-10 ${
+                          className={`absolute top-3 right-3 text-2xl transition-all duration-200 z-20 transform hover:scale-110 ${
                             isBulkModeActive
                               ? selectedRecipeIds.has(recipe.id)
                                 ? "bg-blue-500 text-white rounded-lg p-1.5 w-8 h-8 flex items-center justify-center"
                                 : "bg-gray-500 bg-opacity-70 text-white rounded-lg p-1.5 w-8 h-8 flex items-center justify-center hover:bg-opacity-100"
                               : recipe.isFavorite
-                                ? "text-yellow-400 filter drop-shadow(0 1px 1px rgba(0,0,0,0.5))"
-                                : "text-white text-opacity-50"
+                                ? "text-yellow-300 filter drop-shadow(0 2px 4px rgba(0,0,0,0.5))"
+                                : "text-white text-opacity-60 filter drop-shadow(0 1px 2px rgba(0,0,0,0.3))"
                           } ${
                             !isBulkModeActive
-                              ? "hover:text-yellow-300 hover:text-opacity-100"
+                              ? "hover:text-yellow-200 hover:text-opacity-100"
                               : ""
                           }`}
                         >
@@ -7112,155 +7397,221 @@
                           ></i>
                         </button>
 
-                        {/* Seasonal Badge */}
-                        {isSeasonalRecipe(recipe) && (
-                          <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                            <i className="fas fa-leaf"></i>
-                            Seasonal
-                          </div>
-                        )}
+                        {/* Top Left Badges Container */}
+                        <div className="absolute top-3 left-3 flex flex-col gap-1.5 max-w-[calc(100%-3rem)]">
+                          {/* Seasonal Badge */}
+                          {isSeasonalRecipe(recipe) && (
+                            <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit shadow-md">
+                              <i className="fas fa-leaf"></i>
+                              <span className="hidden sm:inline">Seasonal</span>
+                              <span className="sm:hidden text-[10px]">
+                                Fresh
+                              </span>
+                            </div>
+                          )}
 
-                        {/* Can Make Now Badge */}
-                        {canMakeRecipe && (
-                          <div className="absolute top-2 left-2 sm:top-12 sm:left-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-0.5 animate-pulse">
-                            <i className="fas fa-check-circle"></i>
-                            <span className="hidden sm:inline">
-                              Can Make Now
-                            </span>
-                            <span className="sm:hidden">Can Make</span>
-                          </div>
-                        )}
+                          {/* Can Make Now Badge */}
+                          {canMakeRecipe && (
+                            <div className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-0.5 animate-pulse shadow-md">
+                              <i className="fas fa-check-circle"></i>
+                              <span className="hidden sm:inline">Can Make</span>
+                              <span className="sm:hidden text-[10px]">
+                                Ready
+                              </span>
+                            </div>
+                          )}
 
-                        {/* Rating Badge */}
+                          {/* Ingredient Count Badge */}
+                          {recipe.ingredients &&
+                            recipe.ingredients.length > 0 && (
+                              <div className="bg-indigo-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit shadow-md">
+                                <i className="fas fa-list"></i>
+                                <span className="hidden sm:inline">
+                                  {recipe.ingredients.length} ingredients
+                                </span>
+                                <span className="sm:hidden text-[10px]">
+                                  {recipe.ingredients.length}
+                                </span>
+                              </div>
+                            )}
+                        </div>
+
+                        {/* Bottom Left: Rating Badge */}
                         {recipe.rating && recipe.rating > 0 && (
-                          <div className="absolute bottom-2 left-2 bg-yellow-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
+                          <div className="absolute bottom-3 left-3 bg-yellow-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md">
                             <i className="fas fa-star"></i>
                             {recipe.rating}/5
                           </div>
                         )}
                       </div>
-                      <div className="p-3 sm:p-4 flex flex-col flex-grow">
+                      <div className="p-4 sm:p-4 flex flex-col flex-grow bg-white dark:bg-gray-800 hover:bg-gradient-to-b hover:from-white hover:to-green-50 dark:hover:from-gray-800 dark:hover:to-gray-750 transition-colors duration-200">
+                        {/* Recipe Name - Enhanced Typography */}
                         <h3
-                          className="text-base sm:text-lg font-semibold leading-tight mb-1 text-gray-900 dark:text-gray-100 line-clamp-2"
+                          className="text-lg sm:text-xl font-bold leading-snug mb-2 text-gray-900 dark:text-gray-50 line-clamp-2 transition-colors duration-200"
                           title={recipe.name}
                         >
                           {recipe.name}
                         </h3>
+
+                        {/* Recipe Description */}
                         {recipe.description && (
                           <p
-                            className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1 mb-2 line-clamp-2"
+                            className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2 transition-colors duration-200"
                             title={recipe.description}
                           >
                             {recipe.description}
                           </p>
                         )}
-                        {/* Course and Sub-Category display */}
-                        <div className="flex flex-wrap gap-2 mb-2">
+
+                        {/* Course, Category Badges */}
+                        <div className="flex flex-wrap gap-2 mb-3">
                           {recipe.course && (
-                            <span className="inline-flex items-center gap-1 bg-pink-100 dark:bg-pink-900 text-pink-700 dark:text-pink-300 px-2 py-0.5 rounded-full">
+                            <span
+                              className="inline-flex items-center gap-1 bg-pink-100 dark:bg-pink-900 text-pink-700 dark:text-pink-300 px-2.5 py-1 rounded-full text-xs font-medium transition-colors duration-200 cursor-help"
+                              title={`Course: ${recipe.course}`}
+                            >
                               <i className="fas fa-layer-group"></i>{" "}
                               {recipe.course}
                             </span>
                           )}
                           {recipe.subCategory && (
-                            <span className="inline-flex items-center gap-1 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">
+                            <span
+                              className="inline-flex items-center gap-1 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2.5 py-1 rounded-full text-xs font-medium transition-colors duration-200 cursor-help"
+                              title={`Type: ${recipe.subCategory}`}
+                            >
                               <i className="fas fa-th-list"></i>{" "}
                               {recipe.subCategory}
                             </span>
                           )}
                         </div>
-                        {/* Servings and Tags Row */}
-                        <div className="flex flex-wrap gap-1 my-1 text-xs items-center justify-between mb-2">
-                          <div className="flex flex-wrap gap-1">
-                            {recipe.servings && (
-                              <span className="inline-flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full">
-                                <i className="fas fa-users"></i>{" "}
-                                {recipe.servings} servings
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap gap-1 my-1 text-xs">
-                          {recipe.cuisine && (
-                            <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 rounded-full">
-                              <i className="fas fa-globe op-70"></i>{" "}
-                              {recipe.cuisine}
+
+                        {/* Servings and Cuisine */}
+                        <div className="flex flex-wrap gap-1 mb-3 text-xs">
+                          {recipe.servings && (
+                            <span className="inline-flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded-full font-medium">
+                              <i className="fas fa-users"></i> {recipe.servings}
                             </span>
                           )}
-                          {recipe.tags?.map((tag) => (
+                          {recipe.cuisine && (
+                            <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2.5 py-1 rounded-full font-medium">
+                              <i className="fas fa-globe"></i> {recipe.cuisine}
+                            </span>
+                          )}
+                          {recipe.tags && recipe.tags.length > 0 && (
                             <span
-                              key={tag}
-                              className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full tag-hover"
-                              style={{ cursor: "pointer" }}
+                              className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-full font-medium cursor-pointer hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setTagModal({ open: true, tag });
+                                setTagModal({
+                                  open: true,
+                                  tag: recipe.tags[0],
+                                });
                               }}
-                              title={`Show other recipes with tag: ${tag}`}
+                              title={`Tags: ${recipe.tags.slice(0, 2).join(", ")}`}
                             >
-                              <i className="fas fa-tag opacity-70"></i> {tag}
+                              <i className="fas fa-tag"></i> +
+                              {recipe.tags.length}
                             </span>
-                          ))}
+                          )}
                         </div>
-                        <div className="mt-auto pt-2 text-xs text-gray-500 dark:text-gray-400 grid grid-cols-2 gap-x-2 gap-y-1 mb-3">
+
+                        {/* Timing Information */}
+                        <div className="mt-auto pt-3 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-400 grid grid-cols-2 gap-x-3 gap-y-2 mb-3">
                           {recipe.prepTime > 0 && (
-                            <span title="Prep Time">
-                              <i className="fas fa-clock w-3 tc mr-0.5 op-70"></i>{" "}
-                              Prep:{" "}
-                              {formatMinutesToHoursMinutes(recipe.prepTime)}
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <i className="fas fa-clock text-green-600 dark:text-green-400 w-3.5"></i>
+                              <span className="font-medium">
+                                {formatMinutesToHoursMinutes(recipe.prepTime)}
+                              </span>
+                            </div>
                           )}
                           {recipe.cookTime > 0 && (
-                            <span title="Cook Time">
-                              <i className="fas fa-fire w-3 tc mr-0.5 op-70"></i>{" "}
-                              Cook:{" "}
-                              {formatMinutesToHoursMinutes(recipe.cookTime)}
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <i className="fas fa-fire text-orange-600 dark:text-orange-400 w-3.5"></i>
+                              <span className="font-medium">
+                                {formatMinutesToHoursMinutes(recipe.cookTime)}
+                              </span>
+                            </div>
                           )}
                           {recipe.additionalTime > 0 && (
-                            <span title="Additional Time">
-                              <i className="fas fa-hourglass-half w-3 tc mr-0.5 op-70"></i>{" "}
-                              Additional:{" "}
+                            <div className="flex items-center gap-1">
+                              <i className="fas fa-hourglass-half text-blue-600 dark:text-blue-400 w-3.5"></i>
+                              <span className="font-medium">
+                                {formatMinutesToHoursMinutes(
+                                  recipe.additionalTime,
+                                )}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1 font-bold text-green-700 dark:text-green-400 col-span-2">
+                            <i className="fas fa-stopwatch"></i>
+                            <span>
+                              Total:{" "}
                               {formatMinutesToHoursMinutes(
-                                recipe.additionalTime,
+                                parseInt(recipe.prepTime || 0) +
+                                  parseInt(recipe.cookTime || 0) +
+                                  parseInt(recipe.additionalTime || 0),
                               )}
                             </span>
-                          )}
-                          <span
-                            className="col-span-2 text-green-600 dark:text-green-400 font-medium text-sm mt-1 inline-flex items-center gap-1"
-                            title="Total Time"
-                          >
-                            <i className="fas fa-stopwatch"></i> Total:{" "}
-                            {formatMinutesToHoursMinutes(
-                              parseInt(recipe.prepTime || 0) +
-                                parseInt(recipe.cookTime || 0) +
-                                parseInt(recipe.additionalTime || 0),
-                            )}
-                          </span>
+                          </div>
                         </div>
-                        {/* Hover Action Buttons */}
-                        <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-wrap">
+                        {/* Action Buttons - Always visible on desktop, hidden on mobile */}
+                        <div className="hidden sm:flex gap-2 pt-3 pb-1 px-4 border-t border-gray-200 dark:border-gray-600 flex-wrap">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               openRecipeDetails(recipe);
                             }}
-                            className="flex-1 min-w-[50px] py-1.5 px-2 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
-                            title="Open recipe details"
+                            className="flex-1 min-w-[45px] py-2 px-2.5 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
+                            title="Open recipe details and start cooking"
                           >
                             <i className="fas fa-utensils"></i>
-                            <span className="hidden sm:inline">Cook</span>
+                            <span className="hidden md:inline">Cook</span>
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               openMealPlanModal(recipe);
                             }}
-                            className="flex-1 min-w-[50px] py-1.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                            className="flex-1 min-w-[45px] py-2 px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
                             title="Add to meal plan"
                           >
                             <i className="fas fa-calendar-plus"></i>
-                            <span className="hidden sm:inline">Plan</span>
+                            <span className="hidden md:inline">Plan</span>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openRecipeDetails(recipe);
+                            }}
+                            className="flex-1 min-w-[45px] py-2 px-2.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
+                            title="Share this recipe"
+                          >
+                            <i className="fas fa-share-alt"></i>
+                            <span className="hidden md:inline">Share</span>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(recipe.id);
+                            }}
+                            className={`flex-1 min-w-[45px] py-2 px-2.5 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95 ${
+                              recipe.isFavorite
+                                ? "bg-yellow-500 hover:bg-yellow-600"
+                                : "bg-gray-400 hover:bg-gray-500"
+                            }`}
+                            title={
+                              recipe.isFavorite
+                                ? "Remove from favorites"
+                                : "Add to favorites"
+                            }
+                          >
+                            <i
+                              className={`fa-star ${recipe.isFavorite ? "fas" : "far"}`}
+                            ></i>
+                            <span className="hidden md:inline">
+                              {recipe.isFavorite ? "Saved" : "Save"}
+                            </span>
                           </button>
                           {activeCollection && (
                             <>
@@ -7272,11 +7623,11 @@
                                     activeCollection,
                                   );
                                 }}
-                                className="flex-1 min-w-[50px] py-1.5 px-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                                className="flex-1 min-w-[45px] py-2 px-2.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
                                 title="Add recipe to collection meal plan"
                               >
                                 <i className="fas fa-calendar-alt"></i>
-                                <span className="hidden sm:inline">Meals</span>
+                                <span className="hidden md:inline">Meals</span>
                               </button>
                               <button
                                 onClick={(e) => {
@@ -7285,11 +7636,11 @@
                                     activeCollection,
                                   );
                                 }}
-                                className="flex-1 min-w-[50px] py-1.5 px-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                                className="flex-1 min-w-[45px] py-2 px-2.5 bg-violet-500 hover:bg-violet-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
                                 title="View collection nutrition dashboard"
                               >
                                 <i className="fas fa-chart-bar"></i>
-                                <span className="hidden sm:inline">Nutri</span>
+                                <span className="hidden md:inline">Nutri</span>
                               </button>
                               <button
                                 onClick={(e) => {
@@ -7299,11 +7650,11 @@
                                     recipe.id,
                                   );
                                 }}
-                                className="flex-1 min-w-[50px] py-1.5 px-2 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition flex items-center justify-center gap-1"
+                                className="flex-1 min-w-[45px] py-2 px-2.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
                                 title="Remove recipe from collection"
                               >
                                 <i className="fas fa-trash"></i>
-                                <span className="hidden sm:inline">Remove</span>
+                                <span className="hidden md:inline">Remove</span>
                               </button>
                             </>
                           )}

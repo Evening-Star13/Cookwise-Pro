@@ -1,16 +1,12 @@
 # Cookwise Pro - Comprehensive Recipe Management Application
 
-<div align="center">
-
 ![Cookwise Pro Logo](logo.png)
 
-**Your Ultimate Recipe Companion**
+## Your Ultimate Recipe Companion
 
 Transform your cooking experience with our feature-rich recipe management application.
 
 [Live Demo](#) | [Documentation](#) | [Support](mailto:BarrTechSolutions@gmail.com)
-
-</div>
 
 ## 📋 Table of Contents
 

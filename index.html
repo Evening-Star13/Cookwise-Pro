@@ -562,6 +562,64 @@
           page-break-after: always;
         }
       }
+
+      /* Drawer Slide Animation */
+      @keyframes slideInRight {
+        0% {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .animate-slideInRight {
+        animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Recipe Preview Tooltip */
+      .recipe-preview {
+        position: absolute;
+        background: white;
+        dark:background-color: #1f2937;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 50;
+        pointer-events: none;
+        font-size: 12px;
+        max-width: 200px;
+        animation: fadeInScale 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      @keyframes fadeInScale {
+        0% {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      /* Modal Sticky Header */
+      .modal-header {
+        position: sticky;
+        top: 0;
+        background: inherit;
+        z-index: 10;
+      }
+
+      /* Enhanced Form Spacing */
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      .form-group:last-child {
+        margin-bottom: 0;
+      }
     </style>
   </head>
   <body
@@ -2052,46 +2110,51 @@
             onClick={onClose}
           >
             <div
-              className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+              {/* Sticky Header */}
+              <div className="modal-header bg-white dark:bg-gray-800 flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <i className="fas fa-graduation-cap text-green-500"></i>
                   Cookwise Pro Tutorial
                 </h2>
                 <button
                   onClick={onClose}
-                  className="text-gray-500 hover:text-red-500 text-2xl"
+                  className="text-gray-500 hover:text-red-500 text-2xl transition-colors"
                 >
                   &times;
                 </button>
               </div>
-              <div className="space-y-4">
-                {tutorialSections.map((section, idx) => (
-                  <div
-                    key={idx}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50"
-                  >
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-3">
-                      <i className={`${section.icon} text-green-500`}></i>
-                      {section.title}
-                    </h3>
-                    <ul className="space-y-2 ml-6">
-                      {section.steps.map((step, stepIdx) => (
-                        <li
-                          key={stepIdx}
-                          className="text-gray-700 dark:text-gray-300 flex gap-3"
-                        >
-                          <span className="text-green-500 font-bold min-w-[1.5rem]">
-                            •
-                          </span>
-                          <span>{step}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+
+              {/* Scrollable Content */}
+              <div className="overflow-y-auto flex-1">
+                <div className="p-6 space-y-4">
+                  {tutorialSections.map((section, idx) => (
+                    <div
+                      key={idx}
+                      className="form-group border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50 hover:shadow-md transition-shadow"
+                    >
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-3">
+                        <i className={`${section.icon} text-green-500`}></i>
+                        {section.title}
+                      </h3>
+                      <ul className="space-y-2 ml-6">
+                        {section.steps.map((step, stepIdx) => (
+                          <li
+                            key={stepIdx}
+                            className="text-gray-700 dark:text-gray-300 flex gap-3"
+                          >
+                            <span className="text-green-500 font-bold min-w-[1.5rem]">
+                              •
+                            </span>
+                            <span>{step}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -2128,35 +2191,40 @@
             onClick={onClose}
           >
             <div
-              className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+              {/* Sticky Header */}
+              <div className="modal-header bg-white dark:bg-gray-800 flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <i className="fas fa-keyboard text-green-500"></i>
                   Keyboard Shortcuts
                 </h2>
                 <button
                   onClick={onClose}
-                  className="text-gray-500 hover:text-red-500 text-2xl"
+                  className="text-gray-500 hover:text-red-500 text-2xl transition-colors"
                 >
                   &times;
                 </button>
               </div>
-              <div className="space-y-3">
-                {shortcuts.map((shortcut, idx) => (
-                  <div
-                    key={idx}
-                    className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                  >
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {shortcut.description}
-                    </span>
-                    <kbd className="px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-sm font-mono text-gray-900 dark:text-gray-100 shadow-sm">
-                      {shortcut.key}
-                    </kbd>
-                  </div>
-                ))}
+
+              {/* Scrollable Content */}
+              <div className="overflow-y-auto flex-1">
+                <div className="p-6 space-y-3">
+                  {shortcuts.map((shortcut, idx) => (
+                    <div
+                      key={idx}
+                      className="form-group flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow"
+                    >
+                      <span className="text-gray-700 dark:text-gray-300 font-medium">
+                        {shortcut.description}
+                      </span>
+                      <kbd className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-sm font-mono text-gray-900 dark:text-gray-100 shadow-sm">
+                        {shortcut.key}
+                      </kbd>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -5221,7 +5289,7 @@
               setShowPhotoGalleryModal={setShowPhotoGalleryModal}
             />
             {/* Quick Access Shortcuts Bar */}
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 border-b border-gray-200 dark:border-gray-600 sticky top-16 z-20 shadow-sm transition-all duration-300">
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 border-b border-gray-200 dark:border-gray-600 sticky top-[60px] z-20 shadow-md transition-all duration-300">
               <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex items-center gap-2 overflow-x-auto">
                 <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap hidden sm:inline">
                   Quick Access:
@@ -5860,6 +5928,16 @@
             },
           },
           {
+            label: "Import Recipes",
+            icon: "fas fa-file-import",
+            action: handleImport,
+          },
+          {
+            label: "Export Recipes",
+            icon: "fas fa-file-export",
+            action: exportRecipes,
+          },
+          {
             label: "Recipe Suggestions",
             icon: "fas fa-lightbulb",
             action: () => openRecipeSuggestions && openRecipeSuggestions(),
@@ -5903,21 +5981,6 @@
             action: () => setShowNutritionDashboard(true),
           },
           {
-            label: "Tutorial",
-            icon: "fas fa-graduation-cap",
-            action: () => setShowTutorial(true),
-          },
-          {
-            label: "Keyboard Shortcuts",
-            icon: "fas fa-keyboard",
-            action: () => setShowKeyboardShortcuts(true),
-          },
-          {
-            label: "All Recipes",
-            icon: "fas fa-list-alt",
-            action: handleToggleAllRecipes,
-          },
-          {
             label: "Meal Plan",
             icon: "fas fa-calendar-alt",
             action: openMealPlanModal,
@@ -5926,6 +5989,21 @@
             label: "Shopping List",
             icon: "fas fa-shopping-cart",
             action: openShoppingListModal,
+          },
+          {
+            label: "All Recipes",
+            icon: "fas fa-list-alt",
+            action: handleToggleAllRecipes,
+          },
+          {
+            label: "Tutorial",
+            icon: "fas fa-graduation-cap",
+            action: () => setShowTutorial(true),
+          },
+          {
+            label: "Keyboard Shortcuts",
+            icon: "fas fa-keyboard",
+            action: () => setShowKeyboardShortcuts(true),
           },
           {
             label: "Pantry",
@@ -5944,16 +6022,6 @@
             label: "Share All Recipes",
             icon: "fas fa-share-alt",
             action: handleShareAll,
-          },
-          {
-            label: "Import Recipes",
-            icon: "fas fa-file-import",
-            action: handleImport,
-          },
-          {
-            label: "Export Recipes",
-            icon: "fas fa-file-export",
-            action: exportRecipes,
           },
           {
             label: "Delete All Recipes",
@@ -6001,6 +6069,8 @@
                   <i className="fas fa-plus"></i>
                   <span className="hidden sm:inline ml-1">Add Recipe</span>
                 </button>
+
+                {/* Mobile Menu Drawer Toggle */}
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="btn-header"
@@ -6008,50 +6078,58 @@
                 >
                   <i
                     className={`fas ${
-                      isMenuOpen ? "fa-times" : "fa-bars"
+                      isMenuOpen ? "fa-times" : "fa-ellipsis-v"
                     } text-green-500`}
                   ></i>
                 </button>
 
+                {/* Mobile Navigation Drawer */}
                 {isMenuOpen && (
-                  <div
-                    className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-40"
-                    role="menu"
-                    aria-orientation="vertical"
-                    aria-labelledby="menu-button"
-                  >
-                    <div className="py-1" role="none">
-                      {menuItems.map((item, index) => (
+                  <>
+                    {/* Drawer Overlay */}
+                    <div
+                      onClick={() => setIsMenuOpen(false)}
+                      className="fixed inset-0 bg-black/50 z-35"
+                    ></div>
+
+                    {/* Drawer Panel */}
+                    <div className="fixed top-0 left-0 right-0 bottom-0 w-64 ml-auto bg-white dark:bg-gray-800 shadow-lg overflow-y-auto z-40 animate-slideInRight border-l border-gray-200 dark:border-gray-700">
+                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                         <button
-                          key={index}
-                          onClick={() => {
-                            item.action();
-                            setIsMenuOpen(false);
-                          }}
-                          className={`w-full text-left px-4 py-2 text-sm flex items-center gap-3 ${
-                            item.isDestructive
-                              ? "text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/50"
-                              : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          }`}
-                          role="menuitem"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl"
                         >
-                          <i
-                            className={`${item.icon} w-4 text-center text-green-500`}
-                          ></i>
-                          <span>{item.label}</span>
+                          <i className="fas fa-times"></i>
                         </button>
-                      ))}
+                      </div>
+                      <div className="py-2">
+                        {menuItems &&
+                          menuItems.map((item, index) => (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                item.action();
+                                setIsMenuOpen(false);
+                              }}
+                              className={`w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-colors ${
+                                item.isDestructive
+                                  ? "text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/50"
+                                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              }`}
+                              role="menuitem"
+                            >
+                              <i
+                                className={`${item.icon} w-5 text-center text-green-500`}
+                              ></i>
+                              <span className="font-medium">{item.label}</span>
+                            </button>
+                          ))}
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             </nav>
-            {isMenuOpen && (
-              <div
-                onClick={() => setIsMenuOpen(false)}
-                className="fixed inset-0 z-30"
-              ></div>
-            )}
           </header>
         );
       };
@@ -6692,7 +6770,7 @@
           collectionRecipeIds: null,
         });
         const [sortBy, setSortBy] = useState("name");
-        const [hideAllExplicitly, setHideAllExplicitly] = useState(false);
+        const [hideAllExplicitly, setHideAllExplicitly] = useState(true);
         const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
         const [advancedFiltersHeight, setAdvancedFiltersHeight] = useState(0);
         const advancedFiltersRef = useRef(null);
@@ -7659,6 +7737,44 @@
                             </>
                           )}
                         </div>
+
+                        {/* Recipe Preview Overlay - Hidden on mobile, shows on hover */}
+                        <div className="hidden group-hover:flex absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex-col justify-end p-4 z-10">
+                          <div className="space-y-2 text-white text-xs font-medium">
+                            <div className="flex items-center gap-2">
+                              <i className="fas fa-clock text-yellow-400 w-4"></i>
+                              <span>
+                                {formatMinutesToHoursMinutes(
+                                  parseInt(recipe.prepTime || 0) +
+                                    parseInt(recipe.cookTime || 0) +
+                                    parseInt(recipe.additionalTime || 0),
+                                )}{" "}
+                                total
+                              </span>
+                            </div>
+                            {recipe.servings && (
+                              <div className="flex items-center gap-2">
+                                <i className="fas fa-users text-blue-400 w-4"></i>
+                                <span>{recipe.servings} servings</span>
+                              </div>
+                            )}
+                            {recipe.rating && recipe.rating > 0 && (
+                              <div className="flex items-center gap-2">
+                                <i className="fas fa-star text-yellow-300 w-4"></i>
+                                <span>{recipe.rating}/5 rating</span>
+                              </div>
+                            )}
+                            {recipe.ingredients &&
+                              recipe.ingredients.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <i className="fas fa-list text-green-400 w-4"></i>
+                                  <span>
+                                    {recipe.ingredients.length} ingredients
+                                  </span>
+                                </div>
+                              )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
@@ -8407,217 +8523,254 @@
                   &times;
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+                {/* Basic Recipe Info Section */}
+                <div className="form-group border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i className="fas fa-info-circle text-green-500"></i>
+                    Basic Information
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="name"
+                        className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+                      >
+                        Recipe Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className={`modal-input ${formErrors.name ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
+                        placeholder="Enter recipe name"
+                      />
+                      <ErrorMessage name="name" />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="course"
+                        className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+                      >
+                        Course *
+                      </label>
+                      <select
+                        id="course"
+                        name="course"
+                        value={formData.course}
+                        onChange={handleChange}
+                        required
+                        className={`modal-input ${formErrors.course ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
+                      >
+                        <option value="">Select a course</option>
+                        <option value="Appetizers">Appetizers</option>
+                        <option value="Beverages">Beverages</option>
+                        <option value="Breads">Breads</option>
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Burgers">Burgers</option>
+                        <option value="Condiments/Sauces">
+                          Condiments/Sauces
+                        </option>
+                        <option value="Desserts">Desserts</option>
+                        <option value="Dressings">Dressings</option>
+                        <option value="Hors d'oeuvres">Hors d'oeuvres</option>
+                        <option value="Main">Main</option>
+                        <option value="Marinades">Marinades</option>
+                        <option value="Meatballs">Meatballs</option>
+                        <option value="Pizza">Pizza</option>
+                        <option value="Salads">Salads</option>
+                        <option value="Sandwiches/Subs/Wraps">
+                          Sandwiches/Subs/Wraps
+                        </option>
+                        <option value="Seasonings">Seasonings</option>
+                        <option value="Sides">Sides</option>
+                        <option value="Soups/Stews">Soups/Stews</option>
+                      </select>
+                      <ErrorMessage name="course" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label
+                        htmlFor="subCategory"
+                        className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+                      >
+                        Sub-Category *
+                      </label>
+                      <input
+                        type="text"
+                        id="subCategory"
+                        name="subCategory"
+                        value={formData.subCategory}
+                        onChange={handleChange}
+                        required
+                        className={`modal-input ${formErrors.subCategory ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
+                        placeholder="e.g., Pasta, Grilled, Baked"
+                      />
+                      <ErrorMessage name="subCategory" />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="tags"
+                        className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+                      >
+                        Tags{" "}
+                        <span className="text-xs text-gray-500">
+                          (Enter/comma)
+                        </span>
+                      </label>
+                      <TagInput
+                        tags={tags}
+                        setTags={setTags}
+                        addToast={addToast}
+                      />
+                      <ErrorMessage name="tags" />
+                    </div>
+                  </div>
+                  <div className="mt-4">
                     <label
-                      htmlFor="name"
-                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                      htmlFor="description"
+                      className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
                     >
-                      Name *
+                      Description{" "}
+                      <span className="text-xs text-gray-500">(optional)</span>
                     </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
                       onChange={handleChange}
-                      required
-                      className={`modal-input ${formErrors.name ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
-                    />
-                    <ErrorMessage name="name" />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="course"
-                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                    >
-                      Course *
-                    </label>
-                    <select
-                      id="course"
-                      name="course"
-                      value={formData.course}
-                      onChange={handleChange}
-                      required
-                      className={`modal-input ${formErrors.course ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
-                    >
-                      <option value="">Select a course</option>
-                      <option value="Appetizers">Appetizers</option>
-                      <option value="Beverages">Beverages</option>
-                      <option value="Breads">Breads</option>
-                      <option value="Breakfast">Breakfast</option>
-                      <option value="Burgers">Burgers</option>
-                      <option value="Condiments/Sauces">
-                        Condiments/Sauces
-                      </option>
-                      <option value="Desserts">Desserts</option>
-                      <option value="Dressings">Dressings</option>
-                      <option value="Hors d'oeuvres">Hors d'oeuvres</option>
-                      <option value="Main">Main</option>
-                      <option value="Marinades">Marinades</option>
-                      <option value="Meatballs">Meatballs</option>
-                      <option value="Pizza">Pizza</option>
-                      <option value="Salads">Salads</option>
-                      <option value="Sandwiches/Subs/Wraps">
-                        Sandwiches/Subs/Wraps
-                      </option>
-                      <option value="Seasonings">Seasonings</option>
-                      <option value="Sides">Sides</option>
-                      <option value="Soups/Stews">Soups/Stews</option>
-                    </select>
-                    <ErrorMessage name="course" />
+                      rows="3"
+                      className="modal-textarea border-gray-300 dark:border-gray-600"
+                      placeholder="Describe your recipe..."
+                    ></textarea>
+                    <ErrorMessage name="description" />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="subCategory"
-                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                    >
-                      Sub-Category *
-                    </label>
-                    <input
-                      type="text"
-                      id="subCategory"
-                      name="subCategory"
-                      value={formData.subCategory}
-                      onChange={handleChange}
-                      required
-                      className={`modal-input ${formErrors.subCategory ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
-                      placeholder="e.g., Pasta, Grilled, Soups and Stews, Baked"
-                    />
-                    <ErrorMessage name="subCategory" />
+
+                {/* Recipe Details Section */}
+                <div className="form-group border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i className="fas fa-utensils text-orange-500"></i>
+                    Recipe Details
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="servings"
+                        className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+                      >
+                        Servings *
+                      </label>
+                      <input
+                        type="number"
+                        id="servings"
+                        name="servings"
+                        value={formData.servings}
+                        onChange={handleChange}
+                        min="1"
+                        required
+                        className={`modal-input ${
+                          formErrors.servings
+                            ? "border-red-500"
+                            : "border-gray-300 dark:border-gray-600"
+                        }`}
+                        placeholder="Number of servings"
+                      />
+                      <ErrorMessage name="servings" />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="yield"
+                        className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+                      >
+                        Yield{" "}
+                        <span className="text-xs text-gray-500">
+                          (optional)
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        id="yield"
+                        name="yield"
+                        value={formData.yield}
+                        onChange={handleChange}
+                        className={`modal-input ${
+                          formErrors.yield
+                            ? "border-red-500"
+                            : "border-gray-300 dark:border-gray-600"
+                        }`}
+                        placeholder="e.g., 8 servings, 2 dozen"
+                      />
+                      <ErrorMessage name="yield" />
+                    </div>
                   </div>
-                  <div>
-                    <label
-                      htmlFor="tags"
-                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                    >
-                      Tags <span className="text-xs">(press Enter/comma)</span>
-                    </label>
-                    <TagInput
-                      tags={tags}
-                      setTags={setTags}
-                      addToast={addToast}
-                    />
-                    <ErrorMessage name="tags" />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                    <div>
+                      <label
+                        htmlFor="cuisine"
+                        className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+                      >
+                        Cuisine{" "}
+                        <span className="text-xs text-gray-500">
+                          (optional)
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        id="cuisine"
+                        name="cuisine"
+                        value={formData.cuisine}
+                        onChange={handleChange}
+                        list="cuisine-types"
+                        className="modal-input border-gray-300 dark:border-gray-600"
+                        placeholder="e.g., Italian, Mexican"
+                      />
+                      <datalist id="cuisine-types">
+                        {cuisineTypes.map((c) => (
+                          <option key={c} value={c} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="dietaryTypes"
+                        className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+                      >
+                        Dietary{" "}
+                        <span className="text-xs text-gray-500">
+                          (optional)
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        id="dietaryTypes"
+                        name="dietaryTypes"
+                        value={formData.dietaryTypes}
+                        onChange={handleChange}
+                        list="dietary-types"
+                        className="modal-input border-gray-300 dark:border-gray-600"
+                        placeholder="Vegan, Gluten-free"
+                      />
+                      <datalist id="dietary-types">
+                        {dietaryTypesList.map((t) => (
+                          <option key={t} value={t} />
+                        ))}
+                      </datalist>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label
-                    htmlFor="description"
-                    className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                  >
-                    Description <span className="text-xs">(optional)</span>
-                  </label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows="2"
-                    className="modal-textarea border-gray-300 dark:border-gray-600"
-                  ></textarea>
-                  <ErrorMessage name="description" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="servings"
-                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                    >
-                      Servings *
-                    </label>
-                    <input
-                      type="number"
-                      id="servings"
-                      name="servings"
-                      value={formData.servings}
-                      onChange={handleChange}
-                      min="1"
-                      required
-                      className={`modal-input ${
-                        formErrors.servings
-                          ? "border-red-500"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
-                    />
-                    <ErrorMessage name="servings" />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="yield"
-                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                    >
-                      Yield <span className="text-xs">(e.g., 1.5 cups)</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="yield"
-                      name="yield"
-                      value={formData.yield}
-                      onChange={handleChange}
-                      className={`modal-input ${
-                        formErrors.yield
-                          ? "border-red-500"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
-                      placeholder="e.g., 8 servings, 2 dozen, 1 gallon"
-                    />
-                    <ErrorMessage name="yield" />
-                  </div>
-                </div>
-                <div>
-                  <label
-                    htmlFor="cuisine"
-                    className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                  >
-                    Cuisine <span className="text-xs">(optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="cuisine"
-                    name="cuisine"
-                    value={formData.cuisine}
-                    onChange={handleChange}
-                    list="cuisine-types"
-                    className="modal-input border-gray-300 dark:border-gray-600"
-                    placeholder="e.g., Italian, Mexican, American"
-                  />
-                  <datalist id="cuisine-types">
-                    {cuisineTypes.map((c) => (
-                      <option key={c} value={c} />
-                    ))}
-                  </datalist>
-                </div>
-                <div>
-                  <label
-                    htmlFor="dietaryTypes"
-                    className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                  >
-                    Dietary <span className="text-xs">(comma-sep)</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="dietaryTypes"
-                    name="dietaryTypes"
-                    value={formData.dietaryTypes}
-                    onChange={handleChange}
-                    list="dietary-types"
-                    className="modal-input border-gray-300 dark:border-gray-600"
-                  />
-                  <datalist id="dietary-types">
-                    {dietaryTypesList.map((t) => (
-                      <option key={t} value={t} />
-                    ))}
-                  </datalist>
-                </div>
-                <fieldset className="border border-gray-300 dark:border-gray-600 p-3 rounded">
-                  <legend className="text-sm font-medium px-1 text-gray-700 dark:text-gray-300">
-                    Time
-                  </legend>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+                {/* Time Section */}
+                <div className="form-group border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i className="fas fa-clock text-blue-500"></i>
+                    Cooking Times
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-xs mb-1 text-gray-600 dark:text-gray-400">
                         Prep Time *
@@ -8727,12 +8880,18 @@
                       <ErrorMessage name="additionalMinutes" />
                     </div>
                   </div>
-                </fieldset>
-                <fieldset className="border border-gray-300 dark:border-gray-600 p-3 rounded">
-                  <legend className="text-sm font-medium px-1 text-gray-700 dark:text-gray-300">
-                    Nutrition (per serving, optional)
-                  </legend>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                </div>
+
+                {/* Nutrition Section */}
+                <div className="form-group border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i className="fas fa-leaf text-green-500"></i>
+                    Nutrition{" "}
+                    <span className="text-xs font-normal text-gray-500">
+                      (per serving, optional)
+                    </span>
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
                       <label
                         htmlFor="calories"
@@ -8825,207 +8984,241 @@
                       <ErrorMessage name="fat" />
                     </div>
                   </div>
-                </fieldset>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="ingredients"
-                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                    >
-                      Ingredients *{" "}
-                      <span className="text-xs">(one per line)</span>
-                    </label>
-                    <textarea
-                      id="ingredients"
-                      name="ingredients"
-                      value={formData.ingredients}
-                      onChange={handleChange}
-                      rows="6"
-                      required
-                      className={`modal-textarea ${
-                        formErrors.ingredients
-                          ? "border-red-500"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
-                    ></textarea>
-                    <ErrorMessage name="ingredients" />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="directions"
-                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                    >
-                      Directions *{" "}
-                      <span className="text-xs">(one step per line)</span>
-                    </label>
-                    <textarea
-                      id="directions"
-                      name="directions"
-                      value={formData.directions}
-                      onChange={handleChange}
-                      rows="6"
-                      required
-                      className={`modal-textarea ${
-                        formErrors.directions
-                          ? "border-red-500"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
-                    ></textarea>
-                    <ErrorMessage name="directions" />
+                </div>
+
+                {/* Ingredients & Directions Section */}
+                <div className="form-group border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i className="fas fa-book text-purple-500"></i>
+                    Recipe Content
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="ingredients"
+                        className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                      >
+                        Ingredients *{" "}
+                        <span className="text-xs">(one per line)</span>
+                      </label>
+                      <textarea
+                        id="ingredients"
+                        name="ingredients"
+                        value={formData.ingredients}
+                        onChange={handleChange}
+                        rows="6"
+                        required
+                        className={`modal-textarea ${
+                          formErrors.ingredients
+                            ? "border-red-500"
+                            : "border-gray-300 dark:border-gray-600"
+                        }`}
+                      ></textarea>
+                      <ErrorMessage name="ingredients" />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="directions"
+                        className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                      >
+                        Directions *{" "}
+                        <span className="text-xs">(one step per line)</span>
+                      </label>
+                      <textarea
+                        id="directions"
+                        name="directions"
+                        value={formData.directions}
+                        onChange={handleChange}
+                        rows="6"
+                        required
+                        className={`modal-textarea ${
+                          formErrors.directions
+                            ? "border-red-500"
+                            : "border-gray-300 dark:border-gray-600"
+                        }`}
+                      ></textarea>
+                      <ErrorMessage name="directions" />
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label
-                    htmlFor="tipsAndTricks"
-                    className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                  >
-                    Tips, Tricks & Cooks Notes{" "}
-                    <span className="text-xs">(one tip per line)</span>
-                  </label>
-                  <textarea
-                    id="tipsAndTricks"
-                    name="tipsAndTricks"
-                    value={formData.tipsAndTricks}
-                    onChange={handleChange}
-                    rows="4"
-                    className="modal-textarea border-gray-300 dark:border-gray-600"
-                    placeholder="e.g., If you don't have fresh basil, use 1 tsp dried basil. This recipe freezes well!"
-                  ></textarea>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+
+                {/* Notes Section */}
+                <div className="form-group border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i className="fas fa-lightbulb text-yellow-500"></i>
+                    Additional Notes
+                  </h3>
                   <div>
                     <label
-                      htmlFor="rating"
+                      htmlFor="tipsAndTricks"
                       className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
                     >
-                      Rating (0-5)
-                    </label>
-                    <input
-                      id="rating"
-                      name="rating"
-                      type="number"
-                      min="0"
-                      max="5"
-                      step="0.5"
-                      value={formData.rating}
-                      onChange={handleChange}
-                      className={`modal-input ${formErrors.rating ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
-                    />
-                    <ErrorMessage name="rating" />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="notes"
-                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                    >
-                      Notes (optional)
+                      Tips, Tricks & Cooks Notes{" "}
+                      <span className="text-xs">(one tip per line)</span>
                     </label>
                     <textarea
-                      id="notes"
-                      name="notes"
-                      value={formData.notes}
+                      id="tipsAndTricks"
+                      name="tipsAndTricks"
+                      value={formData.tipsAndTricks}
                       onChange={handleChange}
-                      rows="3"
+                      rows="4"
                       className="modal-textarea border-gray-300 dark:border-gray-600"
-                      placeholder="Personal notes, substitutions, etc."
+                      placeholder="e.g., If you don't have fresh basil, use 1 tsp dried basil. This recipe freezes well!"
                     ></textarea>
                   </div>
                 </div>
-                <div>
-                  <label
-                    htmlFor="image"
-                    className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                  >
-                    Image
-                  </label>
-                  <div className="flex gap-2">
+
+                {/* Rating & Personal Notes Section */}
+                <div className="form-group border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i className="fas fa-star text-yellow-500"></i>
+                    Rating & Personal Notes
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    <div>
+                      <label
+                        htmlFor="rating"
+                        className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                      >
+                        Rating (0-5)
+                      </label>
+                      <input
+                        id="rating"
+                        name="rating"
+                        type="number"
+                        min="0"
+                        max="5"
+                        step="0.5"
+                        value={formData.rating}
+                        onChange={handleChange}
+                        className={`modal-input ${formErrors.rating ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
+                      />
+                      <ErrorMessage name="rating" />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="notes"
+                        className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                      >
+                        Notes (optional)
+                      </label>
+                      <textarea
+                        id="notes"
+                        name="notes"
+                        value={formData.notes}
+                        onChange={handleChange}
+                        rows="3"
+                        className="modal-textarea border-gray-300 dark:border-gray-600"
+                        placeholder="Personal notes, substitutions, etc."
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Media Section */}
+                <div className="form-group">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i className="fas fa-images text-pink-500"></i>
+                    Media & Photos
+                  </h3>
+                  <div>
+                    <label
+                      htmlFor="image"
+                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                    >
+                      Image
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="file"
+                        id="image"
+                        name="image"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className={`block w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 dark:file:bg-gray-600 file:text-green-700 dark:file:text-gray-200 hover:file:bg-green-100 dark:hover:file:bg-gray-500 cursor-pointer ${
+                          formErrors.image
+                            ? "border border-red-500 rounded-md"
+                            : ""
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = "image/*";
+                          input.capture = "environment";
+                          input.onchange = handleFileChange;
+                          Object.defineProperty(input, "name", {
+                            value: "image",
+                            writable: false,
+                          });
+                          input.click();
+                        }}
+                        className="btn-modal bg-blue-500 hover:bg-blue-600 text-white text-xs whitespace-nowrap"
+                        title="Take photo with camera"
+                      >
+                        <i className="fas fa-camera mr-1"></i>Camera
+                      </button>
+                    </div>
+                    <ErrorMessage name="image" />
+                    {imagePreview && (
+                      <div className="mt-2 relative group w-32 h-32 border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeMedia("image")}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                          aria-label="Remove image"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="video"
+                      className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                    >
+                      Video
+                    </label>
                     <input
                       type="file"
-                      id="image"
-                      name="image"
-                      accept="image/*"
+                      id="video"
+                      name="video"
+                      accept="video/*"
                       onChange={handleFileChange}
-                      className={`block w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 dark:file:bg-gray-600 file:text-green-700 dark:file:text-gray-200 hover:file:bg-green-100 dark:hover:file:bg-gray-500 cursor-pointer ${
-                        formErrors.image
+                      className={`block w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-gray-600 file:text-blue-700 dark:file:text-gray-200 hover:file:bg-blue-100 dark:hover:file:bg-gray-500 cursor-pointer ${
+                        formErrors.video
                           ? "border border-red-500 rounded-md"
                           : ""
                       }`}
                     />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const input = document.createElement("input");
-                        input.type = "file";
-                        input.accept = "image/*";
-                        input.capture = "environment";
-                        input.onchange = handleFileChange;
-                        Object.defineProperty(input, "name", {
-                          value: "image",
-                          writable: false,
-                        });
-                        input.click();
-                      }}
-                      className="btn-modal bg-blue-500 hover:bg-blue-600 text-white text-xs whitespace-nowrap"
-                      title="Take photo with camera"
-                    >
-                      <i className="fas fa-camera mr-1"></i>Camera
-                    </button>
+                    <ErrorMessage name="video" />
+                    {videoPreview && (
+                      <div className="mt-2 relative group max-w-xs border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
+                        <video
+                          controls
+                          className="w-full rounded max-h-40 block bg-black"
+                        >
+                          <source src={videoPreview} /> No video support.
+                        </video>
+                        <button
+                          type="button"
+                          onClick={() => removeMedia("video")}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                          aria-label="Remove video"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <ErrorMessage name="image" />
-                  {imagePreview && (
-                    <div className="mt-2 relative group w-32 h-32 border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeMedia("image")}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
-                        aria-label="Remove image"
-                      >
-                        &times;
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <label
-                    htmlFor="video"
-                    className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-                  >
-                    Video
-                  </label>
-                  <input
-                    type="file"
-                    id="video"
-                    name="video"
-                    accept="video/*"
-                    onChange={handleFileChange}
-                    className={`block w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-gray-600 file:text-blue-700 dark:file:text-gray-200 hover:file:bg-blue-100 dark:hover:file:bg-gray-500 cursor-pointer ${
-                      formErrors.video ? "border border-red-500 rounded-md" : ""
-                    }`}
-                  />
-                  <ErrorMessage name="video" />
-                  {videoPreview && (
-                    <div className="mt-2 relative group max-w-xs border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
-                      <video
-                        controls
-                        className="w-full rounded max-h-40 block bg-black"
-                      >
-                        <source src={videoPreview} /> No video support.
-                      </video>
-                      <button
-                        type="button"
-                        onClick={() => removeMedia("video")}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
-                        aria-label="Remove video"
-                      >
-                        &times;
-                      </button>
-                    </div>
-                  )}
                 </div>
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-600 mt-5">
                   <button

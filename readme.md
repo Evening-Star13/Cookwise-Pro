@@ -4,306 +4,477 @@
 
 ## Your Ultimate Recipe Companion
 
-Transform your cooking experience with our feature-rich recipe management application.
+Transform your cooking experience with our feature-rich recipe management application powered by React, Tailwind CSS, and IndexedDB—all offline and completely free.
 
-[Live Demo](#) | [Documentation](#) | [Support](mailto:BarrTechSolutions@gmail.com)
+**[Getting Started](#getting-started) | [Features](#features) | [Tutorial](#tutorial) | [Keyboard Shortcuts](#keyboard-shortcuts) | [Support](mailto:BarrTechSolutions@gmail.com)**
+
+---
 
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [Key Benefits](#key-benefits)
 - [Features](#features)
 - [Getting Started](#getting-started)
 - [Usage Guide](#usage-guide)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Tutorial](#tutorial)
 - [Advanced Features](#advanced-features)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
 
+---
+
 ## Overview
 
-Cookwise Pro is a comprehensive recipe management application designed to revolutionize your kitchen experience. Built with React, Tailwind CSS, and powered by IndexedDB for offline storage, this application offers a seamless way to organize, manage, and enjoy your culinary adventures.
+Cookwise Pro is a comprehensive, offline-first recipe management application designed to revolutionize your kitchen experience. Whether you're a home cook, meal planner, or culinary enthusiast, Cookwise Pro provides everything you need to organize, discover, and enjoy your recipes.
 
 ### ✨ Key Benefits
 
-- **Offline Access**: All your recipes stored locally for instant access
-- **Cross-device Sync**: Keep your recipes synchronized across devices
-- **Smart Organization**: Advanced filtering and categorization options
-- **Intuitive Interface**: Beautiful, responsive design with dark/light mode
-- **Comprehensive Features**: From meal planning to shopping lists
+- **💾 Offline Access**: All recipes stored locally on your device—no internet required after loading
+- **🔄 Cross-Device Sync**: Optional cloud synchronization to keep recipes in sync across devices
+- **🎨 Beautiful Interface**: Modern, responsive design with dark/light mode support
+- **⚡ Lightning Fast**: Instant search and filtering with no lag
+- **🛡️ Privacy First**: Your recipes never leave your device unless you choose to sync
+- **📱 Mobile Friendly**: Works seamlessly on phones, tablets, and desktops
+
+---
 
 ## Features
 
 ### 🍽️ Recipe Management
 
-- **Add Recipes**: Create detailed recipes with ingredients, directions, and nutritional information
-- **Edit Recipes**: Modify existing recipes with an intuitive form interface
-- **Delete Recipes**: Remove unwanted recipes with confirmation
-- **Favorite Recipes**: Mark your favorite recipes for quick access
-- **Recipe Search**: Find recipes instantly with powerful search functionality
-- **Recipe Categories**: Organize by type, cuisine, dietary restrictions, and tags
-- **Image & Video Support**: Attach photos and videos to your recipes
-- **Recipe Scaling**: Adjust serving sizes with automatic ingredient scaling
-- **PDF Export**: Generate beautiful PDFs of your recipes
-- **Recipe Sharing**: Share recipes via native sharing APIs
+- **➕ Add Detailed Recipes**: Create recipes with ingredients, directions, prep/cook times, and nutritional info
+- **✏️ Edit & Organize**: Modify recipes anytime with full control over all fields
+- **🏷️ Smart Categorization**: Organize by type (breakfast, lunch, dinner, snack), cuisine, dietary restrictions, and custom tags
+- **⭐ Favorite Marking**: Mark favorites for quick access and special displays
+- **🖼️ Rich Media Support**: Attach multiple photos with captions to visualize your dishes
+- **📊 Nutritional Information**: Full macronutrient tracking (calories, protein, carbs, fats, fiber)
+- **⚖️ Recipe Scaling**: Automatically adjust ingredient quantities for different serving sizes
+- **📄 PDF Export**: Generate beautiful, printable recipe cards
+- **🔍 Powerful Search**: Find recipes by name, ingredient, type, or cuisine instantly
+- **⭐ Rating System**: Rate and review recipes to track your favorites
 
-### 🔍 Smart Discovery
+### 📸 Photo Management
 
-- **Recipe Suggestions**: AI-powered suggestions based on your pantry
-- **Seasonal Recipes**: Highlight recipes using seasonal ingredients
-- **Ingredient Substitutions**: Smart suggestions for ingredient swaps
-- **Rating System**: Rate recipes to track your favorites
-- **Personal Notes**: Add custom notes and modifications to recipes
+#### Photo Gallery (Classic View) - `Ctrl/Cmd + G`
+
+- Browse all recipe photos in one organized interface
+- Photos grouped by recipe with photo counts
+- Click any photo to open the full recipe details
+- Beautiful responsive grid layout
+- Professional hover effects and transitions
+
+#### Photo Album (Browsable View) - `Ctrl/Cmd + A` ⭐ NEW!
+
+- **📸 Advanced Photo Browser**: Browse all recipe photos in a single searchable interface
+- **🔍 Filter by Recipe**: Quickly filter photos by selecting specific recipes
+- **🎨 Adjustable Grid Density**: Choose between compact, normal, or spacious layouts
+- **📱 Responsive Design**: Works perfectly on all screen sizes
+- **✨ Beautiful Grid Layout**: Professional presentation with smooth hover effects
+- **📊 Photo Counter**: See total photos and recipes at a glance
+
+#### Photo Lightbox (Full-Screen Viewer) ⭐ NEW!
+
+- **🔍 Full-Screen Viewing**: Enlarge and view photos in immersive full-screen mode
+- **➡️ Navigation**: Navigate between photos with intuitive Previous/Next buttons or arrow keys
+- **🔎 Zoom Feature**: Toggle zoom for detailed inspection (press Z)
+- **📤 Share Button**: Share photos via native share APIs or copy to clipboard
+- **🎨 Professional Display**: Beautiful dark overlay with recipe info and photo counter
+- **↕️ Smooth Navigation**: Navigate photos without accidentally closing the album
 
 ### 📅 Meal Planning
 
-- **Weekly Meal Planner**: Plan meals across seven days
-- **Multiple Meal Times**: Breakfast, lunch, dinner, and snack slots
-- **Easy Drag-and-Drop**: Intuitive recipe assignment to meal slots
-- **Shopping List Integration**: One-click addition of meal plan ingredients
+- **📆 Weekly Planner**: Plan meals across seven days with visual calendar
+- **🕐 Multiple Meal Times**: Breakfast, lunch, dinner, and snack slots for each day
+- **🔄 Easy Assignment**: Intuitive recipe selection and assignment
+- **➕ Bulk Add Option**: Add multiple recipes at once, assigning different dates and meal times to each
+- **🛒 Shopping List Integration**: Convert meal plan ingredients into shopping list with one click
+- **📋 Auto-Combine Ingredients**: Duplicate ingredients automatically combined with quantity updates
+- **✏️ Edit Anytime**: Modify meal plans on the fly
 
 ### 🛒 Shopping List
 
-- **Automatic Generation**: Add ingredients from recipes with one click
-- **Pantry Integration**: Track what you already have
-- **Grouped Ingredients**: Automatically combine duplicate items
-- **Check-off Items**: Mark purchased items with cross-outs
-- **Unit Conversion**: Switch between imperial and metric measurements
-- **Copy to Clipboard**: Easily transfer lists to other apps
+- **📝 Multiple Sources**: Add items from recipes, meal plans, or manually
+- **🔀 Auto-Grouping**: Duplicate ingredients automatically combined
+- **✅ Track Progress**: Check off items as you shop
+- **📋 Copy Lists**: Easy copy-to-clipboard for sharing
+- **⚖️ Unit Conversion**: Switch between metric and imperial measurements
+- **📊 Quantity Tracking**: See total quantities of combined ingredients
+- **🗑️ Bulk Clear**: Clear entire list when done shopping
 
 ### 📦 Pantry Management
 
-- **Ingredient Inventory**: Track what's in your pantry
-- **Expiration Tracking**: Monitor expiration dates with alerts
-- **Low Stock Alerts**: Get notified when items are running low
-- **Auto-add from Shopping List**: Move purchased items to inventory
-- **Recipe Availability**: See which recipes you can make with current inventory
-- **Categories & Locations**: Organize items by type and storage location
+- **🥫 Inventory Tracking**: Track all ingredients you currently have
+- **⏰ Expiration Dates**: Monitor expiration with color-coded alerts
+- **⚠️ Low Stock Warnings**: Get notified when items are running low
+- **📍 Storage Organization**: Categorize items by location
+- **🔗 Shopping List Integration**: Move purchased items to pantry
+- **🍳 Recipe Availability**: See which recipes you can make with current pantry items
+- **📊 Inventory Dashboard**: Visual overview of your pantry contents
 
 ### 📊 Nutrition Tracking
 
-- **Nutrition Dashboard**: Visual overview of weekly nutrition
-- **Per-Serving Calculations**: Automatic nutrition breakdowns
-- **Estimation Tools**: Estimate nutrition from ingredients
-- **Daily Tracking**: Monitor your nutritional intake
+- **📈 Weekly Overview**: Visual dashboard of your weekly nutrition
+- **🔢 Per-Serving Calculations**: Automatic macronutrient breakdowns
+- **📊 Macro Tracking**: Monitor protein, carbs, fat, and fiber intake
+- **🎯 Dietary Goals**: Track against personal nutrition goals
 
-### ⏰ Cooking Assistance
+### ⏰ Cooking Mode
 
-- **Cooking Mode**: Full-screen, step-by-step cooking guidance
-- **Built-in Timers**: Integrated timers for cooking steps
-- **Step-by-Step Navigation**: Easy progression through recipe steps
-- **Keyboard Controls**: Navigate with arrow keys and spacebar
+- **👨‍🍳 Full-Screen Cooking**: Dedicated, distraction-free cooking interface
+- **📍 Step-by-Step Guide**: Clear, readable instructions for each step
+- **⏱️ Built-in Timers**: Set timers directly for cooking steps
+- **⌨️ Keyboard Controls**: Navigate with arrow keys or space bar
+- **🎯 Progress Tracking**: See your progress through the recipe
+- **📱 Large Text**: Optimized for readability while cooking
 
-### 📁 Collections
+### 🍄 Recipe Discovery
 
-- **Recipe Collections**: Group recipes into custom collections
-- **Collection Management**: Create, rename, and delete collections
-- **Quick Access**: Instant access to themed recipe sets
+- **🤖 Smart Suggestions**: AI-powered recipe recommendations based on your pantry
+- **🌿 Seasonal Ingredients**: Discover recipes using seasonal produce
+- **📚 Browse by Category**: Explore recipes by type or cuisine
+- **🎲 Random Recipe**: Press Ctrl/Cmd + R for a surprise meal idea
 
-### 🎨 Customization
+### 🎨 Customization & Interface
 
-- **Dark/Light Mode**: Choose your preferred theme
-- **Responsive Design**: Works on phones, tablets, and desktops
-- **Customizable UI**: Adjust settings to your preferences
-- **Accessibility**: Full keyboard navigation and screen reader support
+- **🌙 Dark/Light Mode**: Choose your preferred theme
+- **📱 Fully Responsive**: Perfect display on phones, tablets, and desktops
+- **🎨 Modern Design**: Beautiful interface with Tailwind CSS styling
+- **♿ Accessibility**: Full keyboard navigation and screen reader support
+- **⌨️ Keyboard Shortcuts**: Power user shortcuts for every major feature
 
 ### 🔐 Data Management
 
-- **Local Storage**: Secure offline data storage
-- **Import/Export**: Transfer recipes between devices
-- **Backup & Restore**: Protect your recipe collection
-- **Cross-Device Sync**: Keep everything synchronized
+- **💾 Local Storage**: All recipes stored securely on your device
+- **📤 Export Recipes**: Export your collection as JSON or PDF
+- **📥 Import Recipes**: Easily import recipes from other sources
+- **☁️ Cloud Sync** (Optional): Sync across devices with optional cloud backup
+- **🔒 Privacy Focused**: Your data is yours—no tracking, no ads
 
-### ⌨️ Keyboard Shortcuts
-
-- **Quick Navigation**: Ctrl/Cmd + K to search
-- **Add Recipe**: Ctrl/Cmd + N
-- **Open Meal Plan**: Ctrl/Cmd + M
-- **Open Shopping List**: Ctrl/Cmd + L
-- **Open Pantry**: Ctrl/Cmd + I
-- **Recipe Suggestions**: Ctrl/Cmd + S
-- **Open Photo Gallery**: Ctrl/Cmd + G
-- **Random Recipe**: Ctrl/Cmd + R
-- **Show Shortcuts**: Ctrl/Cmd + H
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Internet connection (for initial load and optional sync)
+✓ Modern web browser (Chrome, Firefox, Safari, Edge, or any Chromium-based browser)
+✓ Internet connection for initial load (optional for regular use—works offline!)
 
 ### Installation
 
-1. Download the application files
-2. Open `index.html` in your web browser
-3. Start managing your recipes!
+1. **Download** the application files
+2. **Open** `index.html` in your web browser
+3. **Start cooking!** Your recipes are stored locally
 
-### Initial Setup
+### First Time Setup
 
-1. **Create Account** (optional for sync)
-2. **Import Existing Recipes** (optional)
-3. **Customize Preferences** (theme, units, etc.)
+1. **Explore the Interface**: Familiarize yourself with the header navigation
+2. **Add Your First Recipe**: Click "Add Recipe" and create a simple recipe
+3. **View Keyboard Shortcuts**: Press `Ctrl/Cmd + H` to see all available shortcuts
+4. **Customize Preferences**: Set your preferred theme (dark/light mode)
+5. **Start Organizing**: Begin adding your favorite recipes
+
+---
 
 ## Usage Guide
 
 ### 📝 Adding Your First Recipe
 
-1. **Click "Add Recipe"** button in the header
-2. **Fill in recipe details**:
+1. Click **"Add Recipe"** (or press **Ctrl/Cmd + N**)
+2. Fill in recipe details:
    - Name and description
-   - Type, course, and cuisine
-   - Serving size and yield
-   - Preparation and cooking times
-   - Nutritional information
-   - Ingredients (one per line)
-   - Directions (one per line)
-   - Tips and tricks
-   - Images and videos
-3. **Save the recipe** to your collection
+   - Type (breakfast, lunch, dinner, snack, dessert)
+   - Cuisine type
+   - Serving size and prep/cook times
+   - Ingredients (format: "2 cups flour")
+   - Directions (step-by-step)
+   - Nutritional info (optional)
+   - Photos with captions
+   - Tips and modifications
+3. Click **"Save Recipe"** - instantly saved locally!
 
 ### 🔍 Finding Recipes
 
-1. **Use the search bar** at the top to search by name or type
-2. **Apply filters** for specific cuisines, dietary needs, or cooking times
-3. **Browse by tags** or use the category filters
-4. **Sort by favorites** or recently added
+- **Search Bar**: Press **Ctrl/Cmd + K** to search by name or ingredient
+- **Filters**: Filter by type, cuisine, cooking time, and dietary restrictions
+- **Favorites**: Click the star to favorite recipes
+- **Collections**: Browse by meal type or cuisine
 
 ### 📅 Planning Your Meals
 
-1. **Open the Meal Plan** from the menu
-2. **Click on a time slot** to select a recipe
-3. **Choose from your collection** or search for recipes
-4. **Repeat for all desired slots**
-5. **Generate shopping list** with one click
+**Quick Add:**
 
-### 🛒 Managing Your Shopping List
+1. Click **"Meal Plan"** (or press **Ctrl/Cmd + M**)
+2. Click any meal slot (breakfast, lunch, dinner, snack)
+3. Select a recipe and confirm
 
-1. **Add from recipes** by clicking the shopping cart icon
-2. **Check off items** as you purchase them
-3. **View grouped ingredients** to see combined quantities
-4. **Clear the list** when you're done shopping
+**Bulk Add Multiple Recipes:**
 
-### 📦 Organizing Your Pantry
+1. Select multiple recipes (check the boxes)
+2. Click **"Add to Meal Plan"** → **"Select Multiple"**
+3. For each recipe, choose date and meal time
+4. Click **"Add All"**
 
-1. **Open the Pantry** from the menu
-2. **Add items** you currently have
-3. **Set quantities** and expiration dates
-4. **Track what you have** to avoid duplicate purchases
+### 📸 Browsing Your Photos
 
-### �️ Browsing Your Photo Gallery
+**Classic Gallery** (`Ctrl/Cmd + G`):
 
-1. **Open the Photo Gallery** from the menu or press Ctrl/Cmd + G
-2. **Browse organized photos** - each recipe's photos are grouped together
-3. **View captions** by hovering over photos
-4. **Click any photo** to open and view the complete recipe
-5. **See photo counts** at a glance for each recipe
-6. **Enjoy a beautiful layout** that showcases your culinary creations
+- Browse all recipe photos organized by recipe
+- Click any photo to open the recipe
 
-### �👨‍🍳 Using Cooking Mode
+**New Album View** (`Ctrl/Cmd + A`) ⭐:
 
-1. **Open a recipe** you want to cook
-2. **Click the "Cook" button**
-3. **Follow the full-screen steps**
-4. **Use keyboard shortcuts** or tap to advance
-5. **Start timers** directly from cooking steps
+- **Filter photos**: Select specific recipe
+- **Adjust density**: Compact/Normal/Spacious
+- **Hover over photos**: See recipe name and caption
+- **Click any photo**: Opens immersive lightbox viewer
+
+**Photo Lightbox** (Full-Screen):
+
+- **← / → keys or buttons**: Navigate between photos
+- **Z key**: Toggle zoom
+- **Share button**: Share or copy link
+- **Esc**: Close lightbox
+
+### 👨‍🍳 Using Cooking Mode
+
+1. Open any recipe
+2. Click **"Cook"** button
+3. Full-screen cooking interface with:
+   - Recipe photo and name
+   - Large, readable ingredients
+   - Step-by-step directions
+   - Built-in timers
+4. Navigate with arrow keys or spacebar
+5. Press Esc to exit
+
+### 🛒 Shopping List Guide
+
+1. **Add Items**: From recipes, meal plans, or manually
+2. **Check Off**: Mark items as you shop
+3. **View Grouped**: See combined quantities
+4. **Export**: Copy to clipboard or print
+
+---
+
+## Keyboard Shortcuts
+
+### Main Navigation
+
+| Shortcut         | Action                       |
+| ---------------- | ---------------------------- |
+| **Ctrl/Cmd + K** | Focus search bar             |
+| **Ctrl/Cmd + N** | Add new recipe               |
+| **Ctrl/Cmd + M** | Open meal plan               |
+| **Ctrl/Cmd + L** | Open shopping list           |
+| **Ctrl/Cmd + I** | Open pantry inventory        |
+| **Ctrl/Cmd + S** | Show recipe suggestions      |
+| **Ctrl/Cmd + G** | Open photo gallery           |
+| **Ctrl/Cmd + A** | Open photo album (browsable) |
+| **Ctrl/Cmd + R** | Get random recipe            |
+| **Ctrl/Cmd + H** | Show keyboard shortcuts      |
+
+### Photo Lightbox (when viewing photos)
+
+| Shortcut  | Action                  |
+| --------- | ----------------------- |
+| **← / →** | Navigate between photos |
+| **Z**     | Toggle zoom in/out      |
+| **Esc**   | Close lightbox          |
+
+### Cooking Mode
+
+| Shortcut       | Action                |
+| -------------- | --------------------- |
+| **Arrow Keys** | Navigate recipe steps |
+| **Space**      | Next step             |
+| **Esc**        | Exit cooking mode     |
+
+### General
+
+| Shortcut | Action          |
+| -------- | --------------- |
+| **Esc**  | Close any modal |
+
+---
+
+## Tutorial
+
+### Part 1: Getting Started (5 minutes)
+
+1. **Open the App** - Notice the clean interface with search bar, title, and action buttons
+2. **Explore the Header** - Check out all available sections
+3. **View Your Theme** - Click settings and toggle dark/light mode
+4. **Try the Shortcuts** - Press `Ctrl/Cmd + H` to see all shortcuts
+
+### Part 2: Adding Recipes (10 minutes)
+
+1. **Click "Add Recipe"** or press **Ctrl/Cmd + N**
+2. **Fill Basic Info**: Name, type, cuisine
+3. **Add Timing**: Prep time, cook time, servings
+4. **Add Ingredients**: One per line (e.g., "2 cups flour")
+5. **Add Directions**: Step-by-step instructions
+6. **Add Photos** (recommended): Upload images with captions
+7. **Save**: Click green "Save" button
+
+### Part 3: Searching & Filtering (5 minutes)
+
+1. **Use Search**: Press **Ctrl/Cmd + K** and type recipe name or ingredient
+2. **Apply Filters**: Filter by type, cuisine, and cooking time
+3. **View Favorites**: Star recipes and view favorites only
+
+### Part 4: Meal Planning (10 minutes)
+
+1. **Open Meal Plan** (`Ctrl/Cmd + M`)
+2. **Quick Add**: Click meal slot → select recipe
+3. **Bulk Add**: Select multiple recipes → assign different dates/times
+4. **Generate Shopping List**: One-click ingredient compilation
+
+### Part 5: Shopping & Pantry (10 minutes)
+
+1. **Open Shopping List** (`Ctrl/Cmd + L`) - See meal plan ingredients
+2. **Check Off Items**: Mark as shopping progresses
+3. **Open Pantry** (`Ctrl/Cmd + I`) - Add items you have at home
+4. **Track Inventory**: See what recipes you can make
+
+### Part 6: Cooking Mode (5 minutes)
+
+1. **Select Recipe** → Click **"Cook"**
+2. **Full-Screen Interface**: Photo, ingredients, directions
+3. **Navigate**: Arrow keys or spacebar
+4. **Exit**: Press Esc
+
+### Part 7: Photo Gallery & Album (8 minutes) ⭐ NEW!
+
+1. **Open Gallery** (`Ctrl/Cmd + G`): Classic view, photos grouped by recipe
+2. **Open Album** (`Ctrl/Cmd + A`):
+   - **Filter by Recipe**: Select specific recipe
+   - **Adjust Density**: Compact, Normal, or Spacious
+   - **Hover**: See recipe name and caption
+   - **Click Photo**: Opens full-screen lightbox
+
+3. **Use Lightbox**:
+   - **Navigate**: Arrow keys or Previous/Next buttons
+   - **Zoom**: Press Z or click Zoom button
+   - **Share**: Click Share for native or clipboard
+   - **Close**: Press Esc or click X
+
+### Part 8: Mastering Shortcuts (3 minutes)
+
+1. **Press Ctrl/Cmd + H**: View all shortcuts
+2. **Practice Daily**: Remember top shortcuts for faster work
+3. **Most Useful**: K (search), M (meal plan), L (shopping), A (album), R (random)
+
+---
 
 ## Advanced Features
 
-### 📊 Nutrition Analysis
+### 🔄 Recipe Scaling
 
-- **Dashboard View**: Weekly nutrition overview
-- **Per-Recipe Estimates**: Automatic calculations
-- **Custom Values**: Manual nutrition entry
+1. Open recipe
+2. Change "Servings" number
+3. All ingredient quantities automatically adjust
+4. Perfect for feeding different group sizes
 
-### 🔄 Cross-Device Sync
+### 📊 Nutrition Dashboard
 
-- **Enable Sync**: Connect accounts across devices
-- **Automatic Updates**: Real-time synchronization
-- **Conflict Resolution**: Smart merge of changes
+1. Click **"Nutrition Dashboard"**
+2. View weekly nutrition totals
+3. Monitor calories, protein, carbs, fat, fiber
+4. Plan meals based on nutrition goals
 
-### 📸 Recipe Photo Gallery
+### 🤖 Recipe Suggestions
 
-- **Add Photos**: Attach images to recipes in the Photo Gallery section
-- **Caption Support**: Describe your cooking moments with captions
-- **Browse Gallery**: Visual gallery view of all recipe photos organized by recipe
-- **Photo Grouping**: All photos from each recipe are grouped together for easy browsing
-- **One-Click Navigation**: Click any photo to open the full recipe details
-- **Professional Layout**: Beautiful responsive grid that adapts to any screen size
+1. Press **Ctrl/Cmd + S**
+2. App analyzes your pantry and history
+3. Get personalized recipe recommendations
+4. Discover dishes you can cook now
 
-### 📈 Analytics & Insights
+### 📤 Import/Export
 
-- **Most Cooked**: Track your popular recipes
-- **Cooking Frequency**: Understand your habits
-- **Nutrition Trends**: Monitor dietary patterns
+1. Go to **Settings** → **Data**
+2. **Export**: Backup all recipes as JSON
+3. **Import**: Add recipes from JSON file
+4. **Share**: Send recipes to others
 
-### 🎯 Smart Recommendations
+### ☁️ Cloud Sync (Optional)
 
-- **Based on Pantry**: Recipes you can make now
-- **Dietary Preferences**: Tailored suggestions
-- **Seasonal Ingredients**: Fresh, seasonal options
+1. Go to **Settings** → **Sync**
+2. Create account and enable sync
+3. Recipes automatically sync to other devices
+4. All changes reflected everywhere
 
-### 🖼️ Visual Photo Gallery
-
-- **Organized by Recipe**: Photos are grouped together by their recipe
-- **Professional Presentation**: Responsive grid layout that works on all devices
-- **Easy Navigation**: Click photos to access full recipe details
-- **Photo Information**: View captions and photo counts
-- **Beautiful Design**: Elegant hover effects and smooth transitions
-- **Mobile Friendly**: Touch-friendly interface for all screen sizes
+---
 
 ## Troubleshooting
 
-### Common Issues
+### 📱 Common Issues
 
-- **Slow Loading**: Clear browser cache and reload
-- **Sync Problems**: Check internet connection and account status
-- **Image Upload**: Ensure files are under 5MB and in supported format
-- **Printing Issues**: Use Chrome's print functionality for best results
+| Problem                   | Solution                                              |
+| ------------------------- | ----------------------------------------------------- |
+| **App won't load**        | Clear cache (Ctrl+Shift+Del), refresh page            |
+| **Recipes disappeared**   | Export backups regularly. Stored in browser IndexedDB |
+| **Photos won't upload**   | Keep images under 5MB. Use PNG or JPG format          |
+| **Slow performance**      | Use filters/search. Close other browser tabs          |
+| **Sync not working**      | Check internet connection. Re-enable in settings      |
+| **Shortcuts not working** | Make sure you're not in a text input field            |
 
-### Data Recovery
+### 💾 Data Recovery
 
-- **Lost Recipes**: Check browser's local storage settings
-- **Corrupted Data**: Use the export/import feature to restore
-- **Sync Conflicts**: Manual resolution through the sync dashboard
+- **Lost recipes**: Check for exported backups
+- **Pro Tip**: Regularly export recipes for backup
+- **Data location**: Stored in browser's local IndexedDB
+- **Warning**: Don't clear browser data without backup!
 
-### Performance Tips
+### ⚡ Performance Tips
 
-- **Large Collections**: Use filters to narrow results
-- **Browser Memory**: Close other tabs if experiencing slowdowns
-- **Offline Access**: All data remains accessible without internet
+- Use search/filters for large collections
+- Close unused browser tabs
+- Disable animations if scrolling is slow
+- Compress photos before uploading
+
+---
 
 ## Contributing
 
 We welcome contributions to improve Cookwise Pro!
 
-### Ways to Contribute
+### Ways to Help
 
 - Report bugs and suggest features
-- Improve documentation
-- Submit pull requests for enhancements
+- Improve documentation and tutorials
 - Translate to other languages
-- Create educational content
+- Share recipes with the community
 
-### Development Setup
+### Reporting Bugs
 
-1. Fork the repository
-2. Clone your fork
-3. Make changes
-4. Test thoroughly
-5. Submit a pull request
+Send details to: [BarrTechSolutions@gmail.com](mailto:BarrTechSolutions@gmail.com)
+
+Include:
+
+- What you were doing
+- What you expected to happen
+- What actually happened
+- Browser and device info
+
+---
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.
 
 ---
 
 <div align="center">
 
-**Cookwise Pro** - _Making cooking easier, one recipe at a time_
+## 🎉 Thank You for Using Cookwise Pro!
+
+**Making cooking easier, one recipe at a time.**
 
 Made with ❤️ by BarrTech Solutions
 
-For support, contact: [BarrTechSolutions@gmail.com](mailto:BarrTechSolutions@gmail.com)
+Questions? Contact us: [BarrTechSolutions@gmail.com](mailto:BarrTechSolutions@gmail.com)
 
 </div>

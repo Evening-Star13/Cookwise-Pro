@@ -13,7 +13,7 @@ Transform your cooking experience with our feature-rich recipe management applic
 ## 📋 Table of Contents
 
 - [Overview](#overview)
-- [Key Benefits](#key-benefits)
+- [Key Benefits](#-key-benefits)
 - [Features](#features)
 - [Getting Started](#getting-started)
 - [Usage Guide](#usage-guide)

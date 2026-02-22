@@ -648,20 +648,48 @@
   <body
     class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 font-sans"
   >
-    <div id="root"></div>
+    <div id="root">
+      <div
+        id="loading-screen"
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          background-color: #2d2d2d;
+        "
+      >
+        <img
+          src="logo.png"
+          alt="Cookwise Pro"
+          style="
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin-bottom: 1.5rem;
+          "
+        />
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: #ffffff; font-size: 1.125rem">
+          Loading...
+        </p>
+      </div>
+    </div>
 
     <script type="text/babel">
       const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
       // --- Database and Utility Functions (No Changes) ---
       const DB_NAME = "RecipeManagerDB";
-      const DB_VERSION = 2;
+      const DB_VERSION = 3;
       const STORE_NAMES = {
         RECIPES: "recipes",
         MEAL_PLAN: "mealPlan",
         SHOPPING_LIST: "shoppingList",
         PANTRY: "pantry",
         COLLECTIONS: "collections",
+        COLLECTION_MEAL_PLANS: "collectionMealPlans",
       };
       // End of RecipeSuggestionsModal
       const LOCAL_STORAGE_KEYS = {
@@ -704,9 +732,18 @@
       };
 
       const getStore = async (storeName, mode) => {
-        const database = await openDatabase();
-        const transaction = database.transaction(storeName, mode);
-        return transaction.objectStore(storeName);
+        try {
+          const database = await openDatabase();
+          if (!database.objectStoreNames.contains(storeName)) {
+            console.error(`Store ${storeName} does not exist in database`);
+            throw new Error(`Store ${storeName} not found in IndexedDB`);
+          }
+          const transaction = database.transaction(storeName, mode);
+          return transaction.objectStore(storeName);
+        } catch (error) {
+          console.error(`Error getting store ${storeName}:`, error);
+          throw error;
+        }
       };
 
       const getAllItems = async (storeName) => {
@@ -725,11 +762,18 @@
 
       const addItem = async (storeName, item) => {
         try {
+          console.log(`addItem called for ${storeName}`, item);
           const store = await getStore(storeName, "readwrite");
           const request = store.add(item);
           return new Promise((resolve, reject) => {
-            request.onsuccess = () => resolve(item);
-            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+              console.log(`addItem success for ${storeName}`, item);
+              resolve(item);
+            };
+            request.onerror = () => {
+              console.error(`addItem error for ${storeName}`, request.error);
+              reject(request.error);
+            };
           });
         } catch (error) {
           console.error(`Error adding item to ${storeName}:`, error);
@@ -739,11 +783,27 @@
 
       const updateItem = async (storeName, id, updatedItem) => {
         try {
+          console.log(
+            `updateItem called for ${storeName} id=${id}`,
+            updatedItem,
+          );
           const store = await getStore(storeName, "readwrite");
           const request = store.put(updatedItem);
           return new Promise((resolve, reject) => {
-            request.onsuccess = () => resolve(updatedItem);
-            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+              console.log(
+                `updateItem success for ${storeName} id=${id}`,
+                updatedItem,
+              );
+              resolve(updatedItem);
+            };
+            request.onerror = () => {
+              console.error(
+                `updateItem error for ${storeName} id=${id}`,
+                request.error,
+              );
+              reject(request.error);
+            };
           });
         } catch (error) {
           console.error(`Error updating item in ${storeName}:`, error);
@@ -756,8 +816,17 @@
           const store = await getStore(storeName, "readwrite");
           const request = store.delete(id);
           return new Promise((resolve, reject) => {
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+              console.log(`Successfully deleted ${id} from ${storeName}`);
+              resolve();
+            };
+            request.onerror = () => {
+              console.error(
+                `Failed to delete ${id} from ${storeName}:`,
+                request.error,
+              );
+              reject(request.error);
+            };
           });
         } catch (error) {
           console.error(`Error deleting item from ${storeName}:`, error);
@@ -767,11 +836,21 @@
 
       const clearStore = async (storeName) => {
         try {
+          console.log(`clearStore called for ${storeName}`);
           const store = await getStore(storeName, "readwrite");
           const request = store.clear();
           return new Promise((resolve, reject) => {
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+              console.log(`Successfully cleared store ${storeName}`);
+              resolve();
+            };
+            request.onerror = () => {
+              console.error(
+                `Failed to clear store ${storeName}:`,
+                request.error,
+              );
+              reject(request.error);
+            };
           });
         } catch (error) {
           console.error(`Error clearing store ${storeName}:`, error);
@@ -799,6 +878,33 @@
           .replace(/'/g, "&#039;");
       };
 
+      // ### debug helpers for IndexedDB inspection ###
+      window.debugDumpMealPlan = async () => {
+        try {
+          const store = await getStore(STORE_NAMES.MEAL_PLAN, "readonly");
+          const req = store.get(STORE_NAMES.MEAL_PLAN);
+          req.onsuccess = () => console.log("mealPlan record", req.result);
+          req.onerror = () => console.error("dump meal plan error", req.error);
+        } catch (err) {
+          console.error("debugDumpMealPlan failed", err);
+        }
+      };
+      window.debugDumpCollectionPlans = async () => {
+        try {
+          const store = await getStore(
+            STORE_NAMES.COLLECTION_MEAL_PLANS,
+            "readonly",
+          );
+          const req = store.get(STORE_NAMES.COLLECTION_MEAL_PLANS);
+          req.onsuccess = () =>
+            console.log("collectionMealPlans record", req.result);
+          req.onerror = () =>
+            console.error("dump collection plans error", req.error);
+        } catch (err) {
+          console.error("debugDumpCollectionPlans failed", err);
+        }
+      };
+
       const parseIngredient = (ingredient) => {
         if (typeof ingredient !== "string")
           return { quantity: null, unit: null, description: "" };
@@ -806,40 +912,92 @@
         // Valid measurement units (abbreviations and full names)
         const validUnits = new Set([
           // Volume
-          "tsp", "tbsp", "cup", "ml", "l", "fl oz", "pint", "quart", "gallon",
-          "teaspoon", "tablespoon", "ounce", "pound", "mg", "g", "kg",
+          "tsp",
+          "tbsp",
+          "cup",
+          "ml",
+          "l",
+          "fl oz",
+          "pint",
+          "quart",
+          "gallon",
+          "teaspoon",
+          "tablespoon",
+          "ounce",
+          "pound",
+          "mg",
+          "g",
+          "kg",
           // Weight
-          "oz", "lb", "lbs", "grams", "gram", "kilograms", "kilogram",
+          "oz",
+          "lb",
+          "lbs",
+          "grams",
+          "gram",
+          "kilograms",
+          "kilogram",
           // Abbreviations
-          "cc", "dl", "cl", "pt", "qt", "gal",
-          // Other common units  
-          "splash", "pinch", "dash", "drop", "handful", "drizzle",
+          "cc",
+          "dl",
+          "cl",
+          "pt",
+          "qt",
+          "gal",
+          // Other common units
+          "splash",
+          "pinch",
+          "dash",
+          "drop",
+          "handful",
+          "drizzle",
         ]);
 
         // Count-based items (NOT measurement units)
         const countBasedItems = new Set([
-          "egg", "eggs",
-          "piece", "pieces",
-          "clove", "cloves",
-          "leaf", "leaves",
-          "sheet", "sheets",
-          "slice", "slices",
-          "strip", "strips",
-          "sprig", "sprigs",
-          "stalk", "stalks",
-          "head", "heads",
-          "bulb", "bulbs",
-          "can", "cans",
-          "jar", "jars",
-          "package", "packages",
-          "box", "boxes",
-          "container", "containers",
-          "stick", "sticks",
-          "fillet", "fillets",
-          "bunch", "bunches",
-          "bay", "leaf",
-          "bag", "bags",
-          "rib", "ribs",
+          "egg",
+          "eggs",
+          "piece",
+          "pieces",
+          "clove",
+          "cloves",
+          "leaf",
+          "leaves",
+          "sheet",
+          "sheets",
+          "slice",
+          "slices",
+          "strip",
+          "strips",
+          "sprig",
+          "sprigs",
+          "stalk",
+          "stalks",
+          "head",
+          "heads",
+          "bulb",
+          "bulbs",
+          "can",
+          "cans",
+          "jar",
+          "jars",
+          "package",
+          "packages",
+          "box",
+          "boxes",
+          "container",
+          "containers",
+          "stick",
+          "sticks",
+          "fillet",
+          "fillets",
+          "bunch",
+          "bunches",
+          "bay",
+          "leaf",
+          "bag",
+          "bags",
+          "rib",
+          "ribs",
         ]);
 
         // Regex to parse quantity + the rest
@@ -856,11 +1014,21 @@
           let description = restString;
 
           const unicodeFractions = {
-            "½": 0.5, "¼": 0.25, "¾": 0.75,
-            "⅓": 1 / 3, "⅔": 2 / 3, "⅕": 0.2,
-            "⅖": 0.4, "⅗": 0.6, "⅘": 0.8,
-            "⅙": 1 / 6, "⅚": 5 / 6, "⅛": 0.125,
-            "⅜": 0.375, "⅝": 0.625, "⅞": 0.875,
+            "½": 0.5,
+            "¼": 0.25,
+            "¾": 0.75,
+            "⅓": 1 / 3,
+            "⅔": 2 / 3,
+            "⅕": 0.2,
+            "⅖": 0.4,
+            "⅗": 0.6,
+            "⅘": 0.8,
+            "⅙": 1 / 6,
+            "⅚": 5 / 6,
+            "⅛": 0.125,
+            "⅜": 0.375,
+            "⅝": 0.625,
+            "⅞": 0.875,
           };
 
           // Parse quantity
@@ -870,7 +1038,8 @@
               const parts = quantityString.split(/\s+/);
 
               if (parts.length === 2 && unicodeFractions[parts[1]]) {
-                totalQuantity = parseFloat(parts[0]) + unicodeFractions[parts[1]];
+                totalQuantity =
+                  parseFloat(parts[0]) + unicodeFractions[parts[1]];
               } else if (parts.length === 2 && parts[1].includes("/")) {
                 totalQuantity = parseFloat(parts[0]) + eval(parts[1]);
               } else if (parts.length === 1 && parts[0].includes("/")) {
@@ -915,7 +1084,7 @@
 
           return { quantity, unit: unit || null, description };
         }
-        
+
         return { quantity: null, unit: null, description: ingredient };
       };
 
@@ -2197,19 +2366,44 @@
 
       const KeyboardShortcutsModal = ({ onClose }) => {
         const shortcuts = [
-          { key: "Ctrl/Cmd + K", description: "Search recipes" },
-          { key: "Ctrl/Cmd + N", description: "Add new recipe" },
-          { key: "Ctrl/Cmd + M", description: "Open meal plan" },
-          { key: "Ctrl/Cmd + L", description: "Open shopping list" },
-          { key: "Ctrl/Cmd + I", description: "Open ingredient inventory" },
-          { key: "Ctrl/Cmd + S", description: "Show recipe suggestions" },
-          { key: "Ctrl/Cmd + G", description: "Open photo gallery" },
-          { key: "Ctrl/Cmd + A", description: "Open photo album (browsable)" },
-          { key: "Ctrl/Cmd + R", description: "Random recipe" },
-          { key: "Ctrl/Cmd + H", description: "Show keyboard shortcuts" },
-          { key: "Esc", description: "Close modal" },
-          { key: "Arrow Keys", description: "Navigate in cooking mode" },
-          { key: "Space", description: "Next step in cooking mode" },
+          {
+            category: "Main Navigation",
+            items: [
+              { key: "Ctrl/Cmd + K", description: "Search recipes" },
+              { key: "Ctrl/Cmd + N", description: "Add new recipe" },
+              { key: "Ctrl/Cmd + M", description: "Open meal plan" },
+              { key: "Ctrl/Cmd + L", description: "Open shopping list" },
+              { key: "Ctrl/Cmd + I", description: "Open ingredient inventory" },
+              { key: "Ctrl/Cmd + S", description: "Show recipe suggestions" },
+              { key: "Ctrl/Cmd + G", description: "Open photo gallery" },
+              {
+                key: "Ctrl/Cmd + A",
+                description: "Open photo album (browsable)",
+              },
+              { key: "Ctrl/Cmd + R", description: "Random recipe" },
+              { key: "Ctrl/Cmd + H", description: "Show keyboard shortcuts" },
+            ],
+          },
+          {
+            category: "Photo Lightbox (in album view)",
+            items: [
+              { key: "← / →", description: "Navigate between photos" },
+              { key: "Z", description: "Toggle zoom" },
+              { key: "Esc", description: "Close lightbox" },
+            ],
+          },
+          {
+            category: "Cooking Mode",
+            items: [
+              { key: "Arrow Keys", description: "Navigate steps" },
+              { key: "Space", description: "Next step" },
+              { key: "Esc", description: "Exit cooking mode" },
+            ],
+          },
+          {
+            category: "General",
+            items: [{ key: "Esc", description: "Close any modal" }],
+          },
         ];
 
         useEffect(() => {
@@ -2245,18 +2439,27 @@
 
               {/* Scrollable Content */}
               <div className="overflow-y-auto flex-1">
-                <div className="p-6 space-y-3">
-                  {shortcuts.map((shortcut, idx) => (
-                    <div
-                      key={idx}
-                      className="form-group flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow"
-                    >
-                      <span className="text-gray-700 dark:text-gray-300 font-medium">
-                        {shortcut.description}
-                      </span>
-                      <kbd className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-sm font-mono text-gray-900 dark:text-gray-100 shadow-sm">
-                        {shortcut.key}
-                      </kbd>
+                <div className="p-6 space-y-6">
+                  {shortcuts.map((group, groupIdx) => (
+                    <div key={groupIdx}>
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-3 text-green-600 dark:text-green-400">
+                        {group.category}
+                      </h3>
+                      <div className="space-y-2">
+                        {group.items.map((shortcut, idx) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow"
+                          >
+                            <span className="text-gray-700 dark:text-gray-300 font-medium">
+                              {shortcut.description}
+                            </span>
+                            <kbd className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-gray-100 shadow-sm">
+                              {shortcut.key}
+                            </kbd>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -2427,11 +2630,11 @@
       };
 
       // Photo Lightbox Modal - Individual photo viewing with navigation
-      const PhotoLightboxModal = ({ 
-        photos, 
-        initialIndex = 0, 
-        onClose, 
-        recipeName 
+      const PhotoLightboxModal = ({
+        photos,
+        initialIndex = 0,
+        onClose,
+        recipeName,
       }) => {
         const [currentIndex, setCurrentIndex] = useState(initialIndex);
         const [isZoomed, setIsZoomed] = useState(false);
@@ -2464,19 +2667,23 @@
           try {
             if (navigator.share) {
               // Try to share with the native share API
-              navigator.share({
-                title: recipeName,
-                text: photoCaption,
-              }).catch(() => {
-                // Silently catch if user cancels
-              });
+              navigator
+                .share({
+                  title: recipeName,
+                  text: photoCaption,
+                })
+                .catch(() => {
+                  // Silently catch if user cancels
+                });
             } else {
               // Fallback: copy URL to clipboard
               try {
                 await navigator.clipboard.writeText(photoUrl);
                 alert("Photo URL copied to clipboard!");
               } catch (err) {
-                alert("Share not supported on this device. Copy the URL manually.");
+                alert(
+                  "Share not supported on this device. Copy the URL manually.",
+                );
               }
             }
           } catch (error) {
@@ -2487,7 +2694,8 @@
         if (!currentPhoto) return null;
 
         const photoUrl = currentPhoto.url || currentPhoto;
-        const photoCaption = currentPhoto.caption || `Photo ${currentIndex + 1}`;
+        const photoCaption =
+          currentPhoto.caption || `Photo ${currentIndex + 1}`;
 
         return (
           <div
@@ -2495,7 +2703,10 @@
             onClick={onClose}
           >
             {/* Header */}
-            <div className="w-full max-w-6xl flex justify-between items-center mb-4 text-white" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="w-full max-w-6xl flex justify-between items-center mb-4 text-white"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex-1">
                 <h3 className="text-lg font-semibold">{recipeName}</h3>
                 <p className="text-sm text-gray-400">{photoCaption}</p>
@@ -2520,7 +2731,9 @@
               className="flex-1 flex items-center justify-center max-w-6xl w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className={`relative ${isZoomed ? "scale-150" : "scale-100"} transition-transform duration-300`}>
+              <div
+                className={`relative ${isZoomed ? "scale-150" : "scale-100"} transition-transform duration-300`}
+              >
                 {photoUrl ? (
                   <img
                     src={photoUrl}
@@ -2594,7 +2807,8 @@
       // Enhanced Photo Album View with filtering and organization
       const PhotoAlbumModal = ({ recipes, onClose, openRecipeDetails }) => {
         const [selectedRecipeFilter, setSelectedRecipeFilter] = useState("all");
-        const [selectedPhotoDensity, setSelectedPhotoDensity] = useState("normal");
+        const [selectedPhotoDensity, setSelectedPhotoDensity] =
+          useState("normal");
         const [lightboxOpen, setLightboxOpen] = useState(false);
         const [lightboxPhotos, setLightboxPhotos] = useState([]);
         const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -2626,7 +2840,9 @@
           if (selectedRecipeFilter === "all") {
             return allPhotosData;
           }
-          return allPhotosData.filter((p) => p.recipeId === selectedRecipeFilter);
+          return allPhotosData.filter(
+            (p) => p.recipeId === selectedRecipeFilter,
+          );
         }, [allPhotosData, selectedRecipeFilter]);
 
         const recipesWithPhotos = useMemo(() => {
@@ -2638,11 +2854,14 @@
         const handlePhotoClick = (e, photo, index) => {
           e.stopPropagation();
           const recipe = recipes.find((r) => r.id === photo.recipeId);
-          if (recipe && Array.isArray(recipe.photos) && recipe.photos.length > 0) {
+          if (
+            recipe &&
+            Array.isArray(recipe.photos) &&
+            recipe.photos.length > 0
+          ) {
             // Find the actual index in the recipe's photos array
-            const photoIndexInRecipe = recipe.photos.findIndex(p => 
-              (p.url || p) === (photo.url || photo) ||
-              p.id === photo.id
+            const photoIndexInRecipe = recipe.photos.findIndex(
+              (p) => (p.url || p) === (photo.url || photo) || p.id === photo.id,
             );
             setLightboxPhotos(recipe.photos);
             setLightboxIndex(photoIndexInRecipe >= 0 ? photoIndexInRecipe : 0);
@@ -2684,7 +2903,9 @@
                         Photo Album
                       </h2>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {filteredPhotos.length} photos from {recipesWithPhotos.length} recipe{recipesWithPhotos.length !== 1 ? "s" : ""}
+                        {filteredPhotos.length} photos from{" "}
+                        {recipesWithPhotos.length} recipe
+                        {recipesWithPhotos.length !== 1 ? "s" : ""}
                       </p>
                     </div>
                     <button
@@ -2703,10 +2924,14 @@
                       </label>
                       <select
                         value={selectedRecipeFilter}
-                        onChange={(e) => setSelectedRecipeFilter(e.target.value)}
+                        onChange={(e) =>
+                          setSelectedRecipeFilter(e.target.value)
+                        }
                         className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       >
-                        <option value="all">All Recipes ({allPhotosData.length})</option>
+                        <option value="all">
+                          All Recipes ({allPhotosData.length})
+                        </option>
                         {recipesWithPhotos.map((recipe) => (
                           <option key={recipe.id} value={recipe.id}>
                             {recipe.name} ({recipe.photos?.length || 0})
@@ -2721,9 +2946,17 @@
                       </label>
                       <div className="flex gap-2">
                         {[
-                          { id: "compact", icon: "fa-th-large", title: "Compact" },
+                          {
+                            id: "compact",
+                            icon: "fa-th-large",
+                            title: "Compact",
+                          },
                           { id: "normal", icon: "fa-th", title: "Normal" },
-                          { id: "spacious", icon: "fa-square", title: "Spacious" },
+                          {
+                            id: "spacious",
+                            icon: "fa-square",
+                            title: "Spacious",
+                          },
                         ].map((option) => (
                           <button
                             key={option.id}
@@ -2756,7 +2989,9 @@
                     </p>
                   </div>
                 ) : (
-                  <div className={`grid gap-3 ${gridColsClass[selectedPhotoDensity]}`}>
+                  <div
+                    className={`grid gap-3 ${gridColsClass[selectedPhotoDensity]}`}
+                  >
                     {filteredPhotos.map((photo, idx) => {
                       const photoUrl = photo.url || photo;
                       return (
@@ -2832,15 +3067,11 @@
       const NutritionDashboardModal = ({ recipes, mealPlan, onClose }) => {
         const [selectedDay, setSelectedDay] = useState("all");
         const [showRecipeCards, setShowRecipeCards] = useState(false);
-        const days = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ];
+
+        // Get all days from mealPlan keys (e.g., "Fri, Feb 20")
+        const mealPlanDays = useMemo(() => {
+          return Object.keys(mealPlan || {}).sort();
+        }, [mealPlan]);
 
         const calculateNutrition = () => {
           let totalCalories = 0;
@@ -2851,7 +3082,7 @@
           const trackedRecipeIds = new Set();
 
           const processDay = (day) => {
-            if (mealPlan[day]) {
+            if (mealPlan && mealPlan[day]) {
               Object.values(mealPlan[day]).forEach((recipeIds) => {
                 if (Array.isArray(recipeIds)) {
                   recipeIds.forEach((id) => {
@@ -2871,7 +3102,7 @@
           };
 
           if (selectedDay === "all") {
-            days.forEach(processDay);
+            mealPlanDays.forEach(processDay);
           } else {
             processDay(selectedDay);
           }
@@ -3012,7 +3243,7 @@
                   className="filter-select w-full"
                 >
                   <option value="all">Entire Week</option>
-                  {days.map((day) => (
+                  {mealPlanDays.map((day) => (
                     <option key={day} value={day}>
                       {day}
                     </option>
@@ -3342,7 +3573,10 @@
         const rounded = Math.round(num * 100) / 100;
 
         // Check if it's a whole number
-        if (Number.isInteger(rounded) || Math.abs(rounded - Math.round(rounded)) < 0.001) {
+        if (
+          Number.isInteger(rounded) ||
+          Math.abs(rounded - Math.round(rounded)) < 0.001
+        ) {
           return Math.round(rounded).toString();
         }
 
@@ -4027,15 +4261,18 @@
             try {
               // First, check if IndexedDB already has data - if so, skip migration
               let existingDataCheck;
-              if (storeName === STORE_NAMES.MEAL_PLAN) {
+              if (
+                storeName === STORE_NAMES.MEAL_PLAN ||
+                storeName === STORE_NAMES.COLLECTION_MEAL_PLANS
+              ) {
                 try {
                   const store = await getStore(storeName, "readonly");
                   const req = store.get(storeName);
-                  const mealPlanObj = await new Promise((resolve, reject) => {
+                  const obj = await new Promise((resolve, reject) => {
                     req.onsuccess = () => resolve(req.result);
                     req.onerror = () => reject(req.error);
                   });
-                  existingDataCheck = mealPlanObj ? true : false;
+                  existingDataCheck = obj ? true : false;
                 } catch (error) {
                   existingDataCheck = false;
                 }
@@ -4054,7 +4291,10 @@
                   const parsedLocalStorageData = JSON.parse(localStorageItem);
 
                   let dataToMigrate = parsedLocalStorageData;
-                  if (storeName === STORE_NAMES.MEAL_PLAN) {
+                  if (
+                    storeName === STORE_NAMES.MEAL_PLAN ||
+                    storeName === STORE_NAMES.COLLECTION_MEAL_PLANS
+                  ) {
                     const days = [
                       "Sunday",
                       "Monday",
@@ -4159,18 +4399,21 @@
               }
 
               let dataFromIndexedDB;
-              if (storeName === STORE_NAMES.MEAL_PLAN) {
+              if (
+                storeName === STORE_NAMES.MEAL_PLAN ||
+                storeName === STORE_NAMES.COLLECTION_MEAL_PLANS
+              ) {
                 try {
                   const store = await getStore(storeName, "readonly");
                   const req = store.get(storeName);
-                  const mealPlanObj = await new Promise((resolve, reject) => {
+                  const obj = await new Promise((resolve, reject) => {
                     req.onsuccess = () => resolve(req.result);
                     req.onerror = () => reject(req.error);
                   });
-                  dataFromIndexedDB = mealPlanObj ? mealPlanObj.data : null;
+                  dataFromIndexedDB = obj ? obj.data : null;
                 } catch (error) {
                   console.error(
-                    "Error loading meal plan from IndexedDB:",
+                    `Error loading ${storeName} from IndexedDB:`,
                     error,
                   );
                   dataFromIndexedDB = null;
@@ -4179,6 +4422,8 @@
                 if (!dataFromIndexedDB) {
                   dataFromIndexedDB = {};
                 }
+
+                // normalize structure for meal plans (global or collection)
                 const days = [
                   "Sunday",
                   "Monday",
@@ -4195,21 +4440,49 @@
                   "afternoonSnack",
                   "dinner",
                 ];
-                const structuredPlan = {};
-                days.forEach((day) => {
-                  structuredPlan[day] = structuredPlan[day] || {};
-                  mealTimes.forEach((mealTime) => {
-                    const existingValue = dataFromIndexedDB[day]?.[mealTime];
-                    if (Array.isArray(existingValue)) {
-                      structuredPlan[day][mealTime] = existingValue;
-                    } else if (existingValue) {
-                      structuredPlan[day][mealTime] = [existingValue];
-                    } else {
-                      structuredPlan[day][mealTime] = [];
-                    }
+                const structuredPlanRoot = {};
+
+                // if this is the global meal plan we expect dataFromIndexedDB itself
+                // to have day->mealTime keys.  for collections the object is a map
+                // of mealPlanId -> plan, so we need to normalize each entry as well.
+                if (storeName === STORE_NAMES.MEAL_PLAN) {
+                  const structuredPlan = {};
+                  days.forEach((day) => {
+                    structuredPlan[day] = structuredPlan[day] || {};
+                    mealTimes.forEach((mealTime) => {
+                      const existingValue = dataFromIndexedDB[day]?.[mealTime];
+                      if (Array.isArray(existingValue)) {
+                        structuredPlan[day][mealTime] = existingValue;
+                      } else if (existingValue) {
+                        structuredPlan[day][mealTime] = [existingValue];
+                      } else {
+                        structuredPlan[day][mealTime] = [];
+                      }
+                    });
                   });
-                });
-                dataFromIndexedDB = structuredPlan;
+                  dataFromIndexedDB = structuredPlan;
+                } else {
+                  // COLLECTION_MEAL_PLANS: normalize each nested plan
+                  Object.keys(dataFromIndexedDB).forEach((planId) => {
+                    const plan = dataFromIndexedDB[planId] || {};
+                    const structuredPlan = {};
+                    days.forEach((day) => {
+                      structuredPlan[day] = structuredPlan[day] || {};
+                      mealTimes.forEach((mealTime) => {
+                        const existingValue = plan[day]?.[mealTime];
+                        if (Array.isArray(existingValue)) {
+                          structuredPlan[day][mealTime] = existingValue;
+                        } else if (existingValue) {
+                          structuredPlan[day][mealTime] = [existingValue];
+                        } else {
+                          structuredPlan[day][mealTime] = [];
+                        }
+                      });
+                    });
+                    structuredPlanRoot[planId] = structuredPlan;
+                  });
+                  dataFromIndexedDB = structuredPlanRoot;
+                }
               } else {
                 dataFromIndexedDB = await getAllItems(storeName);
                 console.log(
@@ -4311,8 +4584,12 @@
               }
 
               setStoredValue(
-                dataFromIndexedDB.length > 0 ||
-                  (storeName === STORE_NAMES.MEAL_PLAN &&
+                // arrays are handled by length; meal plan and collection plans
+                // are objects so check key count.
+                (Array.isArray(dataFromIndexedDB) &&
+                  dataFromIndexedDB.length > 0) ||
+                  ((storeName === STORE_NAMES.MEAL_PLAN ||
+                    storeName === STORE_NAMES.COLLECTION_MEAL_PLANS) &&
                     Object.keys(dataFromIndexedDB).length > 0)
                   ? dataFromIndexedDB
                   : initialValue,
@@ -4355,13 +4632,17 @@
             storedValueRef.current = valueToStore;
 
             try {
-              if (storeName === STORE_NAMES.MEAL_PLAN) {
+              if (
+                storeName === STORE_NAMES.MEAL_PLAN ||
+                storeName === STORE_NAMES.COLLECTION_MEAL_PLANS
+              ) {
+                // single-object stores (global meal plan, collection meal plans)
                 try {
                   await updateItem(storeName, storeName, {
                     id: storeName,
                     data: valueToStore,
                   });
-                  console.log(`[${storeName}] Meal plan saved successfully`);
+                  console.log(`[${storeName}] Data saved successfully`);
                 } catch (updateError) {
                   console.warn(
                     `updateItem failed for ${storeName}, trying addItem:`,
@@ -4371,7 +4652,7 @@
                     id: storeName,
                     data: valueToStore,
                   });
-                  console.log(`[${storeName}] Meal plan added successfully`);
+                  console.log(`[${storeName}] Data added successfully`);
                 }
               } else {
                 console.log(`[${storeName}] Clearing store...`);
@@ -4834,7 +5115,11 @@
           collectionMealPlans,
           setCollectionMealPlans,
           isLoadingCollectionPlans,
-        ] = usePersistentStorage("collectionMealPlans", {});
+        ] = usePersistentStorage(
+          STORE_NAMES.COLLECTION_MEAL_PLANS,
+          {},
+          addToast,
+        );
         const [viewingCollectionDashboard, setViewingCollectionDashboard] =
           useState(null);
         const [viewingCollectionMealPlan, setViewingCollectionMealPlan] =
@@ -4848,8 +5133,7 @@
         const [showTutorial, setShowTutorial] = useState(false);
         const [showPhotoGalleryModal, setShowPhotoGalleryModal] =
           useState(false);
-        const [showPhotoAlbumModal, setShowPhotoAlbumModal] =
-          useState(false);
+        const [showPhotoAlbumModal, setShowPhotoAlbumModal] = useState(false);
         const [fabExpanded, setFabExpanded] = useState(false);
 
         // Bulk Operations State
@@ -5065,6 +5349,7 @@
             );
           } catch (error) {
             console.error("Error deleting all data:", error);
+            console.error("Stack:", error.stack);
             addToast("Failed to delete all data.", "error");
           }
         }, [setRecipes, setMealPlan, setShoppingList, addToast]);
@@ -5139,6 +5424,8 @@
             );
           } catch (error) {
             console.error("Error bulk deleting recipes:", error);
+            console.error("Stack:", error.stack);
+            console.error("Selected recipe IDs:", selectedRecipeIds);
             addToast("Failed to delete recipes.", "error");
           }
         }, [
@@ -5232,19 +5519,21 @@
 
             setMealPlan((prev) => {
               const newPlan = JSON.parse(JSON.stringify(prev));
-              
+
               // Add each recipe to its specified slot
-              for (const [recipeId, schedule] of Object.entries(recipeSchedules)) {
+              for (const [recipeId, schedule] of Object.entries(
+                recipeSchedules,
+              )) {
                 const { date, mealTime } = schedule;
                 if (!newPlan[date]) newPlan[date] = {};
                 if (!newPlan[date][mealTime]) newPlan[date][mealTime] = [];
-                
+
                 // Add recipe if not already there
                 if (!newPlan[date][mealTime].includes(recipeId)) {
                   newPlan[date][mealTime].push(recipeId);
                 }
               }
-              
+
               return newPlan;
             });
 
@@ -5357,7 +5646,9 @@
               if (showRecipeDetails?.id === id) setShowRecipeDetails(null);
               addToast("Recipe deleted.", "success");
             } catch (error) {
-              console.error("Error deleting recipe:", error);
+              console.error("Error deleting recipe with ID:", id);
+              console.error("Error detail:", error);
+              console.error("Stack:", error.stack);
               addToast("Failed to delete recipe.", "error");
             }
           },
@@ -5547,6 +5838,11 @@
 
         const updateMealPlan = useCallback(
           async (dateKey, mealTime, recipeId) => {
+            console.log("updateMealPlan called", {
+              dateKey,
+              mealTime,
+              recipeId,
+            });
             setMealPlan((prev) => {
               const newPlan = { ...prev };
               newPlan[dateKey] = newPlan[dateKey] || {};
@@ -5564,6 +5860,7 @@
                 ];
                 addToast("Recipe added to meal slot!", "success");
               }
+              console.log("new mealPlan state", newPlan);
               return newPlan;
             });
           },
@@ -6225,12 +6522,14 @@
                   Gallery
                 </button>
                 <button
-                  onClick={() => setShowPhotoAlbumModal(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-rose-100 dark:hover:bg-gray-700 transition-colors hover:text-rose-600 dark:hover:text-rose-400 whitespace-nowrap"
-                  title="Photo album view with filtering (Ctrl+A)"
+                  onClick={() => {
+                    document.dispatchEvent(new CustomEvent("openCollections"));
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-indigo-100 dark:hover:bg-gray-700 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 whitespace-nowrap"
+                  title="Collections"
                 >
-                  <i className="fas fa-album text-rose-500"></i>
-                  Album
+                  <i className="fas fa-folder text-indigo-500"></i>
+                  Collections
                 </button>
               </div>
             </div>
@@ -6513,15 +6812,23 @@
                   {}
                 }
                 setCollectionMealPlan={(updater) => {
-                  setCollectionMealPlans((prev) => ({
-                    ...prev,
-                    [viewingCollectionMealPlan.mealPlanId]:
+                  setCollectionMealPlans((prev) => {
+                    const current =
+                      prev[viewingCollectionMealPlan.mealPlanId] || {};
+                    const newVal =
                       typeof updater === "function"
-                        ? updater(
-                            prev[viewingCollectionMealPlan.mealPlanId] || {},
-                          )
-                        : updater,
-                  }));
+                        ? updater(current)
+                        : updater;
+                    console.log("updating collection meal plan", {
+                      collectionId: viewingCollectionMealPlan.mealPlanId,
+                      prev: current,
+                      next: newVal,
+                    });
+                    return {
+                      ...prev,
+                      [viewingCollectionMealPlan.mealPlanId]: newVal,
+                    };
+                  });
                 }}
                 recipes={recipes}
                 onClose={() => setViewingCollectionMealPlan(null)}
@@ -6850,12 +7157,7 @@
             icon: "fas fa-lightbulb",
             action: () => openRecipeSuggestions && openRecipeSuggestions(),
           },
-          {
-            label: "Photo Gallery",
-            icon: "fas fa-images",
-            action: () =>
-              setShowPhotoGalleryModal && setShowPhotoGalleryModal(true),
-          },
+
           {
             label: "Seasonal Recipes",
             icon: "fas fa-leaf",
@@ -6919,12 +7221,10 @@
             action: openPantryModal,
           },
           {
-            label: "Collections",
-            icon: "fas fa-folder",
-            action: () => {
-              // Will be wired up in App component
-              document.dispatchEvent(new CustomEvent("openCollections"));
-            },
+            label: "Photo Album",
+            icon: "fas fa-image",
+            action: () =>
+              setShowPhotoGalleryModal && setShowPhotoGalleryModal(true),
           },
           {
             label: "Share All Recipes",
@@ -6950,11 +7250,18 @@
         return (
           <header className="bg-white dark:bg-gray-800 shadow-md p-3 sticky top-0 z-30 transition-colors duration-300">
             <nav className="max-w-7xl mx-auto flex justify-between items-center flex-wrap gap-y-2 gap-x-3">
-              <h1 className="text-lg sm:text-xl font-bold text-green-500 whitespace-nowrap flex items-center gap-2 order-1">
-                <i className="fas fa-book-open text-green-500"></i>
-                <span className="hidden sm:inline">Cookwise Pro</span>
-                <span className="sm:hidden">Cookwise Pro</span>
-              </h1>
+              <div className="flex items-center gap-2 order-1">
+                <img
+                  src="barrtech_logo.png"
+                  alt="Barrtech"
+                  className="h-20 w-auto object-contain md:hidden"
+                />
+                <h1 className="text-lg sm:text-xl font-bold text-green-500 whitespace-nowrap flex items-center gap-2">
+                  <i className="fas fa-book-open text-green-500"></i>
+                  <span className="hidden sm:inline">Cookwise Pro</span>
+                  <span className="sm:hidden">Cookwise Pro</span>
+                </h1>
+              </div>
 
               <div className="flex-grow flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-3 py-1.5 w-full sm:w-auto sm:flex-grow sm:max-w-md md:mx-auto order-3 sm:order-2">
                 <i className="fas fa-search text-gray-400 dark:text-gray-500 mr-2 text-sm"></i>
@@ -7767,13 +8074,13 @@
                   }
                   className="relative px-4 py-2 text-white dark:text-white rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-xl overflow-hidden group"
                   style={{
-                    background: "rgba(79, 70, 255, 0.8)",
+                    background: "rgba(22, 255, 1, 0.5)",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(79, 70, 255, 0.2)";
+                    e.currentTarget.style.background = "rgba(22, 163, 74, 0.2)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(79, 70, 255, 0.8)";
+                    e.currentTarget.style.background = "rgba(22, 255, 1, 0.5)";
                   }}
                 >
                   <i className="fas fa-blender text-lg"></i>Smoothies
@@ -7782,7 +8089,7 @@
                   onClick={() =>
                     document.dispatchEvent(
                       new CustomEvent("applyQuickFilter", {
-                        detail: { course: "Breakfast" },
+                        detail: { course: "Appetizers" },
                       }),
                     )
                   }
@@ -7795,6 +8102,27 @@
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = "rgba(22, 255, 1, 0.5)";
+                  }}
+                >
+                  <i className="fas fa-champagne-glasses text-lg"></i>Appetizers
+                </button>
+                <button
+                  onClick={() =>
+                    document.dispatchEvent(
+                      new CustomEvent("applyQuickFilter", {
+                        detail: { course: "Breakfast" },
+                      }),
+                    )
+                  }
+                  className="relative px-4 py-2 text-white dark:text-white rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-xl overflow-hidden group"
+                  style={{
+                    background: "rgba(79, 70, 255, 0.8)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(79, 70, 255, 0.2)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(79, 70, 255, 0.8)";
                   }}
                 >
                   <i className="fas fa-egg text-lg"></i>Breakfast
@@ -7830,27 +8158,6 @@
                   }
                   className="relative px-4 py-2 text-white dark:text-white rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-xl overflow-hidden group"
                   style={{
-                    background: "rgba(22, 255, 1, 0.5)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(22, 163, 74, 0.2)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(22, 255, 1, 0.5)";
-                  }}
-                >
-                  <i className="fas fa-moon text-lg"></i>Dinner
-                </button>
-                <button
-                  onClick={() =>
-                    document.dispatchEvent(
-                      new CustomEvent("applyQuickFilter", {
-                        detail: { course: "Appetizers" },
-                      }),
-                    )
-                  }
-                  className="relative px-4 py-2 text-white dark:text-white rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-xl overflow-hidden group"
-                  style={{
                     background: "rgba(79, 70, 255, 0.8)",
                   }}
                   onMouseEnter={(e) => {
@@ -7860,7 +8167,7 @@
                     e.currentTarget.style.background = "rgba(79, 70, 255, 0.8)";
                   }}
                 >
-                  <i className="fas fa-champagne-glasses text-lg"></i>Appetizers
+                  <i className="fas fa-moon text-lg"></i>Dinner
                 </button>
               </div>
             </div>
@@ -8702,29 +9009,22 @@
                   <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 w-full lg:w-auto">
                     Advanced:
                   </span>
-                  {/* Dietary Type Filter */}
+                  {/* Ratings dropdown - filter by rating */}
                   <select
-                    name="dietaryType"
-                    value={filters.dietaryType}
+                    name="rating"
+                    value={filters.rating || ""}
                     onChange={handleFilterChange}
                     className="filter-select text-xs sm:text-sm"
-                    aria-label="Filter Dietary Type"
+                    aria-label="Filter by rating"
+                    title="Filter recipes by rating"
                   >
-                    <option value="">All Dietary</option>{" "}
-                    <option value="_NONE_">No Dietary Tags</option>
-                    {[
-                      ...new Set(
-                        recipes
-                          .flatMap((r) => r?.dietaryTypes || [])
-                          .filter(Boolean),
-                      ),
-                    ]
-                      .sort()
-                      .map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
+                    <option value="">Ratings</option>
+                    <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
+                    <option value="4">⭐⭐⭐⭐ (4 stars)</option>
+                    <option value="3">⭐⭐⭐ (3 stars)</option>
+                    <option value="2">⭐⭐ (2 stars)</option>
+                    <option value="1">⭐ (1 star)</option>
+                    <option value="0">No rating</option>
                   </select>
                   {/* Sub-Category Filter (dependent on Course) */}
                   <select
@@ -8757,22 +9057,29 @@
                         ));
                     })()}
                   </select>
-                  {/* Ratings dropdown - filter by rating */}
+                  {/* Dietary Type Filter */}
                   <select
-                    name="rating"
-                    value={filters.rating || ""}
+                    name="dietaryType"
+                    value={filters.dietaryType}
                     onChange={handleFilterChange}
                     className="filter-select text-xs sm:text-sm"
-                    aria-label="Filter by rating"
-                    title="Filter recipes by rating"
+                    aria-label="Filter Dietary Type"
                   >
-                    <option value="">Ratings</option>
-                    <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
-                    <option value="4">⭐⭐⭐⭐ (4 stars)</option>
-                    <option value="3">⭐⭐⭐ (3 stars)</option>
-                    <option value="2">⭐⭐ (2 stars)</option>
-                    <option value="1">⭐ (1 star)</option>
-                    <option value="0">No rating</option>
+                    <option value="">All Dietary</option>{" "}
+                    <option value="_NONE_">No Dietary Tags</option>
+                    {[
+                      ...new Set(
+                        recipes
+                          .flatMap((r) => r?.dietaryTypes || [])
+                          .filter(Boolean),
+                      ),
+                    ]
+                      .sort()
+                      .map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
                   </select>
                   {/* Saved Notes dropdown - jump to recipe that has notes */}
                   <select
@@ -9173,22 +9480,12 @@
                               openMealPlanModal(recipe);
                             }}
                             className="flex-1 min-w-[45px] py-2 px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
-                            title="Add to meal plan"
+                            title="Add to weekly meal plan"
                           >
                             <i className="fas fa-calendar-plus"></i>
                             <span className="hidden md:inline">Plan</span>
                           </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openRecipeDetails(recipe);
-                            }}
-                            className="flex-1 min-w-[45px] py-2 px-2.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
-                            title="Share this recipe"
-                          >
-                            <i className="fas fa-share-alt"></i>
-                            <span className="hidden md:inline">Share</span>
-                          </button>
+
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -9212,51 +9509,6 @@
                               {recipe.isFavorite ? "Saved" : "Save"}
                             </span>
                           </button>
-                          {activeCollection && (
-                            <>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setRecipeToAddToCollectionMealPlan(recipe);
-                                  setViewingCollectionMealPlan(
-                                    activeCollection,
-                                  );
-                                }}
-                                className="flex-1 min-w-[45px] py-2 px-2.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
-                                title="Add recipe to collection meal plan"
-                              >
-                                <i className="fas fa-calendar-alt"></i>
-                                <span className="hidden md:inline">Meals</span>
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setViewingCollectionDashboard(
-                                    activeCollection,
-                                  );
-                                }}
-                                className="flex-1 min-w-[45px] py-2 px-2.5 bg-violet-500 hover:bg-violet-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
-                                title="View collection nutrition dashboard"
-                              >
-                                <i className="fas fa-chart-bar"></i>
-                                <span className="hidden md:inline">Nutri</span>
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeRecipeFromCollection(
-                                    activeCollection.id,
-                                    recipe.id,
-                                  );
-                                }}
-                                className="flex-1 min-w-[45px] py-2 px-2.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
-                                title="Remove recipe from collection"
-                              >
-                                <i className="fas fa-trash"></i>
-                                <span className="hidden md:inline">Remove</span>
-                              </button>
-                            </>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -10948,31 +11200,25 @@
           return getUpcomingDates();
         }, [getUpcomingDates]);
 
-        const handleDateChange = useCallback(
-          (recipeId, newDate) => {
-            setRecipeSchedules((prev) => ({
-              ...prev,
-              [recipeId]: {
-                ...prev[recipeId],
-                date: newDate,
-              },
-            }));
-          },
-          []
-        );
+        const handleDateChange = useCallback((recipeId, newDate) => {
+          setRecipeSchedules((prev) => ({
+            ...prev,
+            [recipeId]: {
+              ...prev[recipeId],
+              date: newDate,
+            },
+          }));
+        }, []);
 
-        const handleMealTimeChange = useCallback(
-          (recipeId, newMealTime) => {
-            setRecipeSchedules((prev) => ({
-              ...prev,
-              [recipeId]: {
-                ...prev[recipeId],
-                mealTime: newMealTime,
-              },
-            }));
-          },
-          []
-        );
+        const handleMealTimeChange = useCallback((recipeId, newMealTime) => {
+          setRecipeSchedules((prev) => ({
+            ...prev,
+            [recipeId]: {
+              ...prev[recipeId],
+              mealTime: newMealTime,
+            },
+          }));
+        }, []);
 
         const handleConfirm = () => {
           onConfirm(recipeSchedules);
@@ -10983,7 +11229,7 @@
           (e) => {
             if (e.target === e.currentTarget) onClose();
           },
-          [onClose]
+          [onClose],
         );
 
         return (
@@ -12753,18 +12999,12 @@
 
         // Get dates for current week (Sunday to Saturday)
         const getWeekDates = useCallback(() => {
+          const weekDates = [];
           const today = new Date();
           today.setHours(0, 0, 0, 0);
-          const currentDay = today.getDay();
-          const diff = today.getDate() - currentDay;
-
-          const weekDates = [];
           for (let i = 0; i < 7; i++) {
-            const date = new Date(
-              today.getFullYear(),
-              today.getMonth(),
-              diff + i,
-            );
+            const date = new Date(today);
+            date.setDate(date.getDate() + i);
             weekDates.push(date);
           }
           return weekDates;
@@ -13801,181 +14041,174 @@
                           </h4>
                           <ul className="space-y-1.5 pl-0">
                             {group.items.map((item) => {
-                                  const { value, unit: convertedUnit } =
-                                    convertUnits(
-                                      item.quantity,
-                                      item.unit,
-                                      displayUnitSystem,
-                                    );
-                                  const displayQuantity =
-                                    value !== null
-                                      ? formatQuantity(value)
-                                      : "";
-                                  const displayUnit = convertedUnit || "";
-                                  const categoryInfo = getIngredientCategory(
-                                    item.description,
-                                  );
-                                  const isEditing = editingItemId === item.id;
+                              const { value, unit: convertedUnit } =
+                                convertUnits(
+                                  item.quantity,
+                                  item.unit,
+                                  displayUnitSystem,
+                                );
+                              const displayQuantity =
+                                value !== null ? formatQuantity(value) : "";
+                              const displayUnit = convertedUnit || "";
+                              const categoryInfo = getIngredientCategory(
+                                item.description,
+                              );
+                              const isEditing = editingItemId === item.id;
 
-                                  return (
-                                    <li
-                                      key={item.id}
-                                      className={`flex items-center gap-2 p-2 rounded transition-colors duration-200 ${
-                                        item.checked
-                                          ? "opacity-50 bg-gray-100 dark:bg-gray-600"
-                                          : "hover:bg-gray-100 dark:hover:bg-gray-600"
-                                      }`}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={item.checked}
-                                        onChange={() =>
-                                          handleToggleItem(item.id)
-                                        }
-                                        className="w-4 h-4 rounded text-green-500 focus:ring-offset-0 focus:ring-green-500 border-gray-300 dark:border-gray-500 flex-shrink-0 cursor-pointer"
-                                        aria-label={`Mark ${
-                                          item.originalText
-                                        } as ${
-                                          item.checked
-                                            ? "not purchased"
-                                            : "purchased"
-                                        }`}
-                                      />
-                                      <div
-                                        className={`inline-flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0 text-white text-base shadow-lg ${categoryInfo.shadowColor}`}
-                                        style={{
-                                          background: categoryInfo.gradient,
-                                        }}
-                                      >
-                                        <i
-                                          className={`fas ${categoryInfo.icon}`}
-                                        ></i>
+                              return (
+                                <li
+                                  key={item.id}
+                                  className={`flex items-center gap-2 p-2 rounded transition-colors duration-200 ${
+                                    item.checked
+                                      ? "opacity-50 bg-gray-100 dark:bg-gray-600"
+                                      : "hover:bg-gray-100 dark:hover:bg-gray-600"
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={item.checked}
+                                    onChange={() => handleToggleItem(item.id)}
+                                    className="w-4 h-4 rounded text-green-500 focus:ring-offset-0 focus:ring-green-500 border-gray-300 dark:border-gray-500 flex-shrink-0 cursor-pointer"
+                                    aria-label={`Mark ${item.originalText} as ${
+                                      item.checked
+                                        ? "not purchased"
+                                        : "purchased"
+                                    }`}
+                                  />
+                                  <div
+                                    className={`inline-flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0 text-white text-base shadow-lg ${categoryInfo.shadowColor}`}
+                                    style={{
+                                      background: categoryInfo.gradient,
+                                    }}
+                                  >
+                                    <i
+                                      className={`fas ${categoryInfo.icon}`}
+                                    ></i>
+                                  </div>
+                                  <div className="flex-1 flex items-center gap-2 min-w-0">
+                                    {isEditing ? (
+                                      <div className="flex gap-1 items-center flex-1">
+                                        <input
+                                          type="text"
+                                          value={editingQuantity}
+                                          onChange={(e) =>
+                                            setEditingQuantity(e.target.value)
+                                          }
+                                          onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                              handleSaveQuantity(item.id);
+                                            } else if (e.key === "Escape") {
+                                              handleCancelEdit();
+                                            }
+                                          }}
+                                          className="w-16 px-1.5 py-0.5 text-sm border-2 border-green-500 rounded focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-600"
+                                          placeholder="qty"
+                                          autoFocus
+                                        />
+                                        <input
+                                          type="text"
+                                          value={editingUnit}
+                                          onChange={(e) =>
+                                            setEditingUnit(e.target.value)
+                                          }
+                                          onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                              handleSaveQuantity(item.id);
+                                            } else if (e.key === "Escape") {
+                                              handleCancelEdit();
+                                            }
+                                          }}
+                                          className="w-20 px-1.5 py-0.5 text-sm border-2 border-green-500 rounded focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-600"
+                                          placeholder="unit"
+                                        />
+                                        <span
+                                          className={`block leading-tight text-sm flex-1 ${
+                                            item.checked
+                                              ? "line-through text-gray-500 dark:text-gray-400"
+                                              : "text-gray-800 dark:text-gray-100"
+                                          }`}
+                                        >
+                                          {escapeHTML(item.description)}
+                                        </span>
+                                        <button
+                                          onClick={() =>
+                                            handleSaveQuantity(item.id)
+                                          }
+                                          className="text-xs bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-600"
+                                          title="Save"
+                                        >
+                                          <i className="fas fa-check"></i>
+                                        </button>
+                                        <button
+                                          onClick={handleCancelEdit}
+                                          className="text-xs bg-red-500 text-white px-2 py-0.5 rounded hover:bg-red-600"
+                                          title="Cancel"
+                                        >
+                                          <i className="fas fa-times"></i>
+                                        </button>
                                       </div>
-                                      <div className="flex-1 flex items-center gap-2 min-w-0">
-                                        {isEditing ? (
-                                          <div className="flex gap-1 items-center flex-1">
-                                            <input
-                                              type="text"
-                                              value={editingQuantity}
-                                              onChange={(e) =>
-                                                setEditingQuantity(
-                                                  e.target.value,
-                                                )
-                                              }
-                                              onKeyDown={(e) => {
-                                                if (e.key === "Enter") {
-                                                  handleSaveQuantity(item.id);
-                                                } else if (e.key === "Escape") {
-                                                  handleCancelEdit();
-                                                }
-                                              }}
-                                              className="w-16 px-1.5 py-0.5 text-sm border-2 border-green-500 rounded focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-600"
-                                              placeholder="qty"
-                                              autoFocus
-                                            />
-                                            <input
-                                              type="text"
-                                              value={editingUnit}
-                                              onChange={(e) =>
-                                                setEditingUnit(e.target.value)
-                                              }
-                                              onKeyDown={(e) => {
-                                                if (e.key === "Enter") {
-                                                  handleSaveQuantity(item.id);
-                                                } else if (e.key === "Escape") {
-                                                  handleCancelEdit();
-                                                }
-                                              }}
-                                              className="w-20 px-1.5 py-0.5 text-sm border-2 border-green-500 rounded focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-600"
-                                              placeholder="unit"
-                                            />
-                                            <span
-                                              className={`block leading-tight text-sm flex-1 ${
-                                                item.checked
-                                                  ? "line-through text-gray-500 dark:text-gray-400"
-                                                  : "text-gray-800 dark:text-gray-100"
-                                              }`}
-                                            >
-                                              {escapeHTML(item.description)}
-                                            </span>
-                                            <button
-                                              onClick={() =>
-                                                handleSaveQuantity(item.id)
-                                              }
-                                              className="text-xs bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-600"
-                                              title="Save"
-                                            >
-                                              <i className="fas fa-check"></i>
-                                            </button>
-                                            <button
-                                              onClick={handleCancelEdit}
-                                              className="text-xs bg-red-500 text-white px-2 py-0.5 rounded hover:bg-red-600"
-                                              title="Cancel"
-                                            >
-                                              <i className="fas fa-times"></i>
-                                            </button>
-                                          </div>
-                                        ) : (
-                                          <>
-                                            {displayQuantity ||
-                                            item.quantity ? (
-                                              <div
-                                                className="text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer min-w-fit px-2 py-1 rounded hover:bg-green-100 dark:hover:bg-green-900 transition-colors flex-shrink-0"
-                                                onClick={() =>
-                                                  handleStartEditQuantity(
-                                                    item.id,
-                                                    displayQuantity !== ""
-                                                      ? displayQuantity
-                                                      : item.quantity,
-                                                    displayUnit !== ""
-                                                      ? displayUnit
-                                                      : item.unit,
-                                                  )
-                                                }
-                                                title="Click to edit quantity"
-                                              >
-                                                {displayQuantity && (
-                                                  <>
-                                                    <span className="font-semibold">
-                                                      {displayQuantity}
-                                                    </span>
-                                                    {displayUnit && (
-                                                      <span className="ml-1">
-                                                        {displayUnit}
-                                                      </span>
-                                                    )}
-                                                  </>
+                                    ) : (
+                                      <>
+                                        {displayQuantity || item.quantity ? (
+                                          <div
+                                            className="text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer min-w-fit px-2 py-1 rounded hover:bg-green-100 dark:hover:bg-green-900 transition-colors flex-shrink-0"
+                                            onClick={() =>
+                                              handleStartEditQuantity(
+                                                item.id,
+                                                displayQuantity !== ""
+                                                  ? displayQuantity
+                                                  : item.quantity,
+                                                displayUnit !== ""
+                                                  ? displayUnit
+                                                  : item.unit,
+                                              )
+                                            }
+                                            title="Click to edit quantity"
+                                          >
+                                            {displayQuantity && (
+                                              <>
+                                                <span className="font-semibold">
+                                                  {displayQuantity}
+                                                </span>
+                                                {displayUnit && (
+                                                  <span className="ml-1">
+                                                    {displayUnit}
+                                                  </span>
                                                 )}
-                                                {!displayQuantity &&
-                                                  item.quantity && (
-                                                    <>
-                                                      <span className="font-semibold">
-                                                        {formatQuantity(item.quantity)}
-                                                      </span>
-                                                      {item.unit && (
-                                                        <span className="ml-1">
-                                                          {item.unit}
-                                                        </span>
-                                                      )}
-                                                    </>
+                                              </>
+                                            )}
+                                            {!displayQuantity &&
+                                              item.quantity && (
+                                                <>
+                                                  <span className="font-semibold">
+                                                    {formatQuantity(
+                                                      item.quantity,
+                                                    )}
+                                                  </span>
+                                                  {item.unit && (
+                                                    <span className="ml-1">
+                                                      {item.unit}
+                                                    </span>
                                                   )}
-                                              </div>
-                                            ) : null}
-                                            <span
-                                              className={`block leading-tight text-sm ${
-                                                item.checked
-                                                  ? "line-through text-gray-500 dark:text-gray-400"
-                                                  : "text-gray-800 dark:text-gray-100"
-                                              }`}
-                                            >
-                                              {escapeHTML(item.description)}
-                                            </span>
-                                          </>
-                                        )}
-                                      </div>
-                                    </li>
-                                  );
-                                })}
+                                                </>
+                                              )}
+                                          </div>
+                                        ) : null}
+                                        <span
+                                          className={`block leading-tight text-sm ${
+                                            item.checked
+                                              ? "line-through text-gray-500 dark:text-gray-400"
+                                              : "text-gray-800 dark:text-gray-100"
+                                          }`}
+                                        >
+                                          {escapeHTML(item.description)}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </li>
+                              );
+                            })}
                           </ul>
                         </div>
                       ))}
@@ -13999,274 +14232,464 @@
         recipeToAddToCollectionMealPlan,
         setRecipeToAddToCollectionMealPlan,
       }) => {
-        const days = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ];
         const mealTimes = [
-          { id: "breakfast", label: "Breakfast", icon: "fa-coffee" },
-          { id: "morningSnack", label: "M. Snack", icon: "fa-apple-alt" },
-          { id: "lunch", label: "Lunch", icon: "fa-utensils" },
-          { id: "afternoonSnack", label: "A. Snack", icon: "fa-cookie-bite" },
-          { id: "dinner", label: "Dinner", icon: "fa-drumstick-bite" },
+          {
+            id: "breakfast",
+            label: "🌅 Breakfast",
+            icon: "fa-coffee",
+            fullLabel: "Breakfast",
+          },
+          {
+            id: "morningSnack",
+            label: "🍎 Morning Snack",
+            icon: "fa-apple-alt",
+            fullLabel: "Morning Snack",
+          },
+          {
+            id: "lunch",
+            label: "🥗 Lunch",
+            icon: "fa-utensils",
+            fullLabel: "Lunch",
+          },
+          {
+            id: "afternoonSnack",
+            label: "🍪 Afternoon Snack",
+            icon: "fa-cookie-bite",
+            fullLabel: "Afternoon Snack",
+          },
+          {
+            id: "dinner",
+            label: "🍽️ Dinner",
+            icon: "fa-drumstick-bite",
+            fullLabel: "Dinner",
+          },
         ];
         const [showRecipeSelector, setShowRecipeSelector] = useState(null);
+        const [selectedDay, setSelectedDay] = useState(null);
+        const [selectedMealTime, setSelectedMealTime] = useState(
+          mealTimes[0].id,
+        );
+        const [selectorSearch, setSelectorSearch] = useState("");
+        const [hoverRecipe, setHoverRecipe] = useState(null);
+
+        const getWeekDates = useCallback(() => {
+          const weekDates = [];
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          for (let i = 0; i < 7; i++) {
+            const date = new Date(today);
+            date.setDate(date.getDate() + i);
+            weekDates.push(date);
+          }
+          return weekDates;
+        }, []);
+
+        useEffect(() => {
+          const weekDates = getWeekDates();
+          if (weekDates.length > 0) {
+            const dayNames = [
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ];
+            setSelectedDay(dayNames[weekDates[0].getDay()]);
+          }
+        }, [getWeekDates]);
 
         const collectionRecipes = useMemo(() => {
           return recipes.filter((r) => collection.recipeIds?.includes(r.id));
         }, [recipes, collection.recipeIds]);
 
-        // Auto-open recipe selector when a recipe is clicked from recipe card
-        useEffect(() => {
-          if (recipeToAddToCollectionMealPlan && !showRecipeSelector) {
-            setShowRecipeSelector({ day: null, mealTime: null });
-          }
-        }, [
-          recipeToAddToCollectionMealPlan,
-          showRecipeSelector,
-          setShowRecipeSelector,
-        ]);
-
-        const handleAddRecipeToMeal = (recipe) => {
-          if (!showRecipeSelector) return;
-          const { day, mealTime } = showRecipeSelector;
-          setCollectionMealPlan((prev) => ({
-            ...prev,
-            [day]: {
-              ...(prev[day] || {}),
-              [mealTime]: [...(prev[day]?.[mealTime] || []), recipe.id],
-            },
-          }));
-          addToast(`Added ${recipe.name} to ${day} ${mealTime}`, "success");
-          setShowRecipeSelector(null);
-          setRecipeToAddToCollectionMealPlan(null);
+        const getDayString = (date) => {
+          if (!date) return null;
+          const dayNames = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ];
+          return dayNames[date.getDay()];
         };
 
-        const handleRemoveMeal = (day, mealTime, recipeId) => {
-          setCollectionMealPlan((prev) => ({
-            ...prev,
-            [day]: {
-              ...(prev[day] || {}),
-              [mealTime]: (prev[day]?.[mealTime] || []).filter(
-                (id) => id !== recipeId,
-              ),
-            },
-          }));
-        };
+        const filteredRecipesForSelector = useMemo(() => {
+          const query = selectorSearch.toLowerCase().trim();
+          if (!query)
+            return collectionRecipes.sort((a, b) =>
+              a.name.localeCompare(b.name),
+            );
+          return collectionRecipes
+            .filter(
+              (r) =>
+                r?.name?.toLowerCase().includes(query) ||
+                r?.type?.toLowerCase().includes(query) ||
+                r?.cuisine?.toLowerCase().includes(query),
+            )
+            .sort((a, b) => a.name.localeCompare(b.name));
+        }, [collectionRecipes, selectorSearch]);
+
+        const isDayComplete = useCallback(
+          (dayKey) => {
+            if (!collectionMealPlan?.[dayKey]) return false;
+            return mealTimes.every((mealTime) => {
+              const recipeIds = collectionMealPlan[dayKey][mealTime.id] || [];
+              return Array.isArray(recipeIds) && recipeIds.length > 0;
+            });
+          },
+          [collectionMealPlan, mealTimes],
+        );
+
+        const isMealFilled = useCallback(
+          (dayKey, mealTimeId) => {
+            const recipeIds = collectionMealPlan?.[dayKey]?.[mealTimeId] || [];
+            return Array.isArray(recipeIds) && recipeIds.length > 0;
+          },
+          [collectionMealPlan],
+        );
+
+        const handleRemoveMeal = useCallback(
+          (e, dayKey, mealTimeId, recipeIdToRemove) => {
+            if (e) e.stopPropagation();
+            setCollectionMealPlan((prev) => ({
+              ...prev,
+              [dayKey]: {
+                ...(prev[dayKey] || {}),
+                [mealTimeId]: (prev[dayKey]?.[mealTimeId] || []).filter(
+                  (id) => id !== recipeIdToRemove,
+                ),
+              },
+            }));
+          },
+          [setCollectionMealPlan],
+        );
+
+        const handleSelectRecipeClick = useCallback((dayKey, mealTimeId) => {
+          setSelectedDay(dayKey);
+          setSelectedMealTime(mealTimeId);
+          setShowRecipeSelector(true);
+          setSelectorSearch("");
+        }, []);
+
+        const handleRecipeSelect = useCallback(
+          (recipeId) => {
+            if (showRecipeSelector) {
+              const { dayKey, mealTime } = showRecipeSelector;
+              setCollectionMealPlan((prev) => ({
+                ...prev,
+                [dayKey]: {
+                  ...(prev[dayKey] || {}),
+                  [mealTime]: [...(prev[dayKey]?.[mealTime] || []), recipeId],
+                },
+              }));
+              addToast("Recipe added", "success");
+            }
+            setShowRecipeSelector(null);
+          },
+          [showRecipeSelector, setCollectionMealPlan, addToast],
+        );
+
+        const handleOverlayClick = useCallback(
+          (e) => {
+            if (e.target === e.currentTarget) onClose();
+          },
+          [onClose],
+        );
+
+        const handleSelectorOverlayClick = useCallback((e) => {
+          if (e.target === e.currentTarget) setShowRecipeSelector(null);
+        }, []);
 
         return (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  <i className="fas fa-calendar-alt mr-2 text-indigo-500"></i>
-                  {collection.name} - Meal Plan
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="text-gray-500 hover:text-red-500 text-3xl leading-none"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="p-4 space-y-6">
-                {collectionRecipes.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                    <i className="fas fa-info-circle text-4xl mb-4"></i>
-                    <p>
-                      Add recipes to this collection first to use meal planning!
-                    </p>
-                  </div>
-                ) : (
-                  days.map((day) => (
-                    <div
-                      key={day}
-                      className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
-                    >
-                      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-                        {day}
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                        {mealTimes.map((mealTime) => (
+          <>
+            <div
+              className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-2 sm:p-4"
+              onClick={handleOverlayClick}
+            >
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-7xl h-[90vh] flex flex-col modal-scale-enter">
+                <div className="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-600 pb-3 flex-shrink-0 gap-4 flex-wrap">
+                  <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                    <i className="fas fa-folder text-indigo-500"></i>
+                    <span>{collection.name} - Meal Plan</span>
+                  </h2>
+                  <button
+                    onClick={onClose}
+                    className="text-gray-500 dark:text-gray-400 hover:text-red-500 text-3xl leading-none"
+                    aria-label="Close"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto pb-4 pr-2">
+                  {collectionRecipes.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                      <i className="fas fa-info-circle text-4xl mb-4"></i>
+                      <p>
+                        Add recipes to this collection first to use meal
+                        planning!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {getWeekDates().map((date) => {
+                        const dayKey = getDayString(date);
+                        const dayName = dayKey;
+                        const dateNum = date.getDate();
+                        const month = date.toLocaleDateString("en-US", {
+                          month: "short",
+                        });
+                        const isComplete = isDayComplete(dayKey);
+                        const dayMealCount = mealTimes.filter((mt) =>
+                          isMealFilled(dayKey, mt.id),
+                        ).length;
+                        return (
                           <div
-                            key={mealTime.id}
-                            className="bg-white dark:bg-gray-600 rounded-md p-3 border border-gray-200 dark:border-gray-500"
+                            key={dayKey}
+                            className={`rounded-lg p-4 transition-all duration-200 border-2 ${
+                              isComplete
+                                ? "bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 shadow-md"
+                                : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-indigo-400 dark:hover:border-indigo-600"
+                            }`}
                           >
-                            <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                              <i className={`fas ${mealTime.icon}`}></i>
-                              {mealTime.label}
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                                  {dayName}
+                                </h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  {month} {dateNum}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  {dayMealCount} / {mealTimes.length} meals
+                                </p>
+                              </div>
+                              {isComplete && (
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-500 text-white">
+                                  <i className="fas fa-check text-sm"></i>
+                                </span>
+                              )}
                             </div>
-                            <div className="space-y-1 mb-2 min-h-[60px]">
-                              {(
-                                collectionMealPlan?.[day]?.[mealTime.id] || []
-                              ).map((recipeId) => {
-                                const recipe = recipes.find(
-                                  (r) => r.id === recipeId,
-                                );
-                                return (
-                                  <div
-                                    key={recipeId}
-                                    className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 p-2 rounded flex justify-between items-center"
-                                  >
-                                    <span className="truncate">
-                                      {recipe?.name}
-                                    </span>
-                                    <button
-                                      onClick={() =>
-                                        handleRemoveMeal(
-                                          day,
-                                          mealTime.id,
-                                          recipeId,
-                                        )
-                                      }
-                                      className="text-red-500 hover:text-red-700 ml-1"
-                                    >
-                                      ×
-                                    </button>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <button
-                              onClick={() =>
-                                setShowRecipeSelector({
-                                  day,
-                                  mealTime: mealTime.id,
-                                })
-                              }
-                              className="w-full text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded"
-                            >
-                              <i className="fas fa-plus mr-1"></i>Add
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {showRecipeSelector && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[70vh] overflow-hidden flex flex-col">
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                        {recipeToAddToCollectionMealPlan
-                          ? "Add to Meal Plan"
-                          : "Select Recipe"}
-                      </h3>
-                      <button
-                        onClick={() => setShowRecipeSelector(null)}
-                        className="text-gray-500 hover:text-red-500 text-2xl"
-                      >
-                        ×
-                      </button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4">
-                      {recipeToAddToCollectionMealPlan ? (
-                        <div className="space-y-4">
-                          <div className="p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-200 dark:border-indigo-700">
-                            <div className="font-semibold text-gray-900 dark:text-white">
-                              {recipeToAddToCollectionMealPlan.name}
-                            </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                              {recipeToAddToCollectionMealPlan.type} •{" "}
-                              {formatMinutesToHoursMinutes(
-                                parseInt(
-                                  recipeToAddToCollectionMealPlan.cookTime || 0,
-                                ) +
-                                  parseInt(
-                                    recipeToAddToCollectionMealPlan.prepTime ||
-                                      0,
-                                  ),
+                            <div className="space-y-2">
+                              {mealTimes.map(
+                                ({ id, label, fullLabel, icon }) => {
+                                  const recipeIdsInSlot =
+                                    collectionMealPlan?.[dayKey]?.[id] || [];
+                                  const filled = recipeIdsInSlot.length > 0;
+                                  return (
+                                    <div key={id}>
+                                      <div
+                                        onClick={() =>
+                                          handleSelectRecipeClick(dayKey, id)
+                                        }
+                                        className={`p-2 rounded cursor-pointer transition-all text-xs flex items-center gap-2 border ${
+                                          filled
+                                            ? "bg-indigo-100 dark:bg-indigo-900/50 border-indigo-300 dark:border-indigo-700 text-indigo-800 dark:text-indigo-200"
+                                            : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                        }`}
+                                      >
+                                        <i className={`fas ${icon}`}></i>
+                                        <div className="flex-1 truncate">
+                                          {filled ? "+" : label}
+                                        </div>
+                                        {filled && (
+                                          <span className="bg-indigo-600 text-white px-1.5 py-0.5 rounded text-xs">
+                                            {recipeIdsInSlot.length}
+                                          </span>
+                                        )}
+                                      </div>
+                                      {filled && (
+                                        <div className="space-y-1 mt-1">
+                                          {recipeIdsInSlot.map((recipeId) => {
+                                            const recipe = recipes.find(
+                                              (r) => r?.id === recipeId,
+                                            );
+                                            return (
+                                              <div
+                                                key={recipeId}
+                                                onClick={() => {
+                                                  setHoverRecipe(recipe);
+                                                }}
+                                                className="bg-indigo-50 dark:bg-indigo-900/30 p-1.5 rounded text-xs flex items-center justify-between border border-indigo-200 dark:border-indigo-700 cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
+                                              >
+                                                <span className="truncate flex-1">
+                                                  {escapeHTML(
+                                                    recipe?.name || "Recipe",
+                                                  )}
+                                                </span>
+                                                <button
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveMeal(
+                                                      e,
+                                                      dayKey,
+                                                      id,
+                                                      recipeId,
+                                                    );
+                                                  }}
+                                                  className="text-red-500 hover:text-red-700 ml-1"
+                                                  title="Remove recipe"
+                                                >
+                                                  <i className="fas fa-times text-xs"></i>
+                                                </button>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                },
                               )}
                             </div>
                           </div>
-
-                          <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                              Select Day:
-                            </label>
-                            <div className="grid grid-cols-2 gap-2">
-                              {days.map((day) => (
-                                <button
-                                  key={day}
-                                  onClick={() => {
-                                    setShowRecipeSelector({
-                                      ...showRecipeSelector,
-                                      day,
-                                    });
-                                  }}
-                                  className={`p-2 rounded text-sm font-medium transition ${
-                                    showRecipeSelector?.day === day
-                                      ? "bg-indigo-500 text-white"
-                                      : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200"
-                                  }`}
-                                >
-                                  {day.slice(0, 3)}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                              Select Meal Time:
-                            </label>
-                            <div className="space-y-2">
-                              {mealTimes.map((meal) => (
-                                <button
-                                  key={meal.id}
-                                  onClick={() => {
-                                    setShowRecipeSelector({
-                                      ...showRecipeSelector,
-                                      mealTime: meal.id,
-                                    });
-                                  }}
-                                  className={`w-full p-2 rounded text-sm font-medium transition text-left ${
-                                    showRecipeSelector?.mealTime === meal.id
-                                      ? "bg-indigo-500 text-white"
-                                      : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200"
-                                  }`}
-                                >
-                                  <i className={`fas ${meal.icon} mr-2`}></i>
-                                  {meal.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <button
-                            onClick={() => {
-                              handleAddRecipeToMeal(
-                                recipeToAddToCollectionMealPlan,
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            {showRecipeSelector && (
+              <div
+                className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60] p-4"
+                onClick={handleSelectorOverlayClick}
+              >
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 sm:p-5 w-full max-w-sm modal-scale-enter">
+                  <div className="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-600 pb-3">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+                      Add Recipe to {collection.name}
+                    </h3>
+                    <button
+                      onClick={() => setShowRecipeSelector(null)}
+                      className="text-gray-500 dark:text-gray-400 hover:text-red-500 text-2xl leading-none"
+                      aria-label="Close"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="collectionSelectDay"
+                        className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                      >
+                        Select Day:
+                      </label>
+                      <select
+                        id="collectionSelectDay"
+                        value={selectedDay || ""}
+                        onChange={(e) => setSelectedDay(e.target.value)}
+                        className="modal-input-sm"
+                      >
+                        {getWeekDates().map((date) => {
+                          const dayNames = [
+                            "Sunday",
+                            "Monday",
+                            "Tuesday",
+                            "Wednesday",
+                            "Thursday",
+                            "Friday",
+                            "Saturday",
+                          ];
+                          const dayName = dayNames[date.getDay()];
+                          const dateStr = date.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          });
+                          return (
+                            <option key={dayName} value={dayName}>
+                              {dayName}, {dateStr}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="collectionSelectMealTime"
+                        className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                      >
+                        Select Meal Time:
+                      </label>
+                      <select
+                        id="collectionSelectMealTime"
+                        value={selectedMealTime}
+                        onChange={(e) => setSelectedMealTime(e.target.value)}
+                        className="modal-input-sm"
+                      >
+                        {mealTimes.map((time) => (
+                          <option key={time.id} value={time.id}>
+                            {time.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Current recipes for {selectedDay}{" "}
+                      {
+                        mealTimes.find((mt) => mt.id === selectedMealTime)
+                          ?.label
+                      }
+                      :
+                      <div className="font-semibold mt-1">
+                        {collectionMealPlan?.[selectedDay]?.[selectedMealTime]
+                          ?.length > 0
+                          ? collectionMealPlan[selectedDay][
+                              selectedMealTime
+                            ].map((id, index) => {
+                              const assignedRecipe = recipes.find(
+                                (r) => r.id === id,
                               );
-                            }}
-                            disabled={
-                              !showRecipeSelector?.day ||
-                              !showRecipeSelector?.mealTime
-                            }
-                            className="w-full p-3 bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-300 text-white font-semibold rounded-lg transition"
-                          >
-                            <i className="fas fa-check mr-2"></i>Add Recipe
-                          </button>
-                        </div>
-                      ) : (
-                        collectionRecipes.map((recipe) => (
+                              return (
+                                <span key={id} className="block">
+                                  {assignedRecipe?.name || "Unknown Recipe"}
+                                </span>
+                              );
+                            })
+                          : "None"}
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="search"
+                        placeholder="Search recipes..."
+                        value={selectorSearch}
+                        onChange={(e) => setSelectorSearch(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        aria-label="Search recipes"
+                      />
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto space-y-2 border border-gray-200 dark:border-gray-600 rounded-lg p-2">
+                      {filteredRecipesForSelector.length > 0 ? (
+                        filteredRecipesForSelector.map((recipe) => (
                           <button
                             key={recipe.id}
-                            onClick={() => handleAddRecipeToMeal(recipe)}
-                            className="w-full text-left p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 mb-2"
+                            onClick={() => {
+                              setCollectionMealPlan((prev) => ({
+                                ...prev,
+                                [selectedDay]: {
+                                  ...(prev[selectedDay] || {}),
+                                  [selectedMealTime]: [
+                                    ...(prev[selectedDay]?.[selectedMealTime] ||
+                                      []),
+                                    recipe.id,
+                                  ],
+                                },
+                              }));
+                              addToast("Recipe added", "success");
+                              setShowRecipeSelector(null);
+                            }}
+                            className="w-full text-left p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-gray-200 dark:border-gray-600 transition-colors"
                           >
-                            <div className="font-semibold text-gray-900 dark:text-white">
-                              {recipe.name}
+                            <div className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                              {escapeHTML(recipe.name)}
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                            <div className="text-xs text-gray-600 dark:text-gray-400">
                               {recipe.type} •{" "}
                               {formatMinutesToHoursMinutes(
                                 parseInt(recipe.cookTime || 0) +
@@ -14275,13 +14698,27 @@
                             </div>
                           </button>
                         ))
+                      ) : (
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                          <i className="fas fa-search text-2xl mb-2 opacity-50"></i>
+                          <p className="text-sm">No recipes found</p>
+                        </div>
                       )}
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+                      <button
+                        type="button"
+                        onClick={() => setShowRecipeSelector(null)}
+                        className="btn-modal btn-gray"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            )}
+          </>
         );
       };
 
@@ -15447,20 +15884,30 @@
         const emailAddress = "BarrTechSolutions@gmail.com";
 
         return (
-          <footer className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-4 text-center text-sm mt-8">
+          <footer className="bg-gray-200 dark:bg-transparent text-gray-700 dark:text-gray-300 py-2 text-center text-sm mt-2">
             <div className="max-w-7xl mx-auto px-4">
-              <p>
-                &copy; {currentYear} BarrTech Solutions. All rights reserved.
-              </p>
-              <p className="mt-1">
-                Contact:{" "}
-                <a
-                  href={`mailto:${emailAddress}`}
-                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-green-500"
-                >
-                  {emailAddress}
-                </a>
-              </p>
+              <div className="flex flex-col md:flex-row items-center justify-center gap-3">
+                <img
+                  src="barrtech_logo.png"
+                  alt="Barrtech"
+                  className="h-28 w-auto object-contain hidden md:block"
+                />
+                <div className="flex flex-col items-center md:items-start">
+                  <p>
+                    &copy; {currentYear} BarrTech Solutions. All rights
+                    reserved.
+                  </p>
+                  <p className="mt-1">
+                    Contact:{" "}
+                    <a
+                      href={`mailto:${emailAddress}`}
+                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-green-500"
+                    >
+                      {emailAddress}
+                    </a>
+                  </p>
+                </div>
+              </div>
             </div>
           </footer>
         );
@@ -15470,6 +15917,18 @@
       if (rootElement) {
         const reactRoot = ReactDOM.createRoot(rootElement);
         reactRoot.render(<App />);
+
+        // Hide loading screen once React has mounted
+        setTimeout(() => {
+          const loadingScreen = document.getElementById("loading-screen");
+          if (loadingScreen) {
+            loadingScreen.style.opacity = "0";
+            loadingScreen.style.transition = "opacity 0.3s ease";
+            setTimeout(() => {
+              loadingScreen.remove();
+            }, 300);
+          }
+        }, 100);
       } else {
         console.error("Root element not found! React app cannot be mounted.");
       }

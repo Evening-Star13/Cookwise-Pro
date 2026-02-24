@@ -159,6 +159,31 @@
         background: #6a7788;
       }
 
+      /* Custom scrollbar for Conversion Modal */
+      .conversion-modal-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .conversion-modal-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .conversion-modal-scroll::-webkit-scrollbar-thumb {
+        background: #22c55e60;
+        border-radius: 6px;
+        transition: background 0.2s ease;
+      }
+      .conversion-modal-scroll::-webkit-scrollbar-thumb:hover {
+        background: #22c55e;
+      }
+      .dark .conversion-modal-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .dark .conversion-modal-scroll::-webkit-scrollbar-thumb {
+        background: #22c55e70;
+      }
+      .dark .conversion-modal-scroll::-webkit-scrollbar-thumb:hover {
+        background: #22c55e;
+      }
+
       body.modal-open {
         overflow: hidden;
       }
@@ -642,6 +667,17 @@
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         flex-shrink: 0;
         scroll-snap-align: start;
+      }
+
+      /* Animated Border for Ingredient Modal */
+      .animated-border-card {
+        position: relative;
+        border-radius: 1rem;
+        border: 2px solid #22c55e;
+      }
+      /* Shopping List Modal Border */
+      .shopping-list-border {
+        border: 1px solid #22c55e;
       }
     </style>
   </head>
@@ -3063,6 +3099,831 @@
         );
       };
 
+      // Saved Notes Modal
+      const SavedNotesModal = ({
+        recipes,
+        onClose,
+        updateNote,
+        onOpenRecipe,
+      }) => {
+        const notedRecipes = useMemo(() => {
+          return recipes.filter(
+            (r) => r && r.notes && String(r.notes).trim().length > 0,
+          );
+        }, [recipes]);
+
+        const [currentId, setCurrentId] = useState(
+          notedRecipes.length ? notedRecipes[0].id : "",
+        );
+        const [noteText, setNoteText] = useState("");
+
+        useEffect(() => {
+          const rec = notedRecipes.find((r) => r.id === currentId);
+          setNoteText(rec ? rec.notes : "");
+        }, [currentId, notedRecipes]);
+
+        // close on escape
+        useEffect(() => {
+          const handleEsc = (e) => {
+            if (e.key === "Escape") onClose();
+          };
+          document.addEventListener("keydown", handleEsc);
+          return () => document.removeEventListener("keydown", handleEsc);
+        }, [onClose]);
+
+        const handleSave = () => {
+          if (currentId) updateNote(currentId, noteText);
+        };
+
+        const selectedRecipe = notedRecipes.find((r) => r.id === currentId);
+
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="border-2 border-[#22c55e36] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col modal-scale-enter">
+              {/* Header */}
+              <div className="bg-[#22C55E36] px-6 py-4 rounded-t-2xl flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <i className="fas fa-sticky-note text-[#22c55e]"></i>
+                  Saved Notes
+                  <span className="bg-white/20 text-white text-sm font-semibold px-3 py-1 rounded-full">
+                    {notedRecipes.length}
+                  </span>
+                </h2>
+                <button
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-red-500 text-3xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {notedRecipes.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="text-6xl mb-4 text-gray-300 dark:text-gray-600">
+                      <i className="fas fa-clipboard-list"></i>
+                    </div>
+                    <p className="text-xl font-semibold text-gray-500 dark:text-gray-400 mb-2">
+                      No notes available
+                    </p>
+                    <p className="text-gray-400 dark:text-gray-500">
+                      Add notes to your recipes to see them here
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Recipe Selector */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i className="fas fa-utensils mr-1 text-[#22c55e]"></i>
+                        Select Recipe
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={currentId}
+                          onChange={(e) => setCurrentId(e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-[#22c55e36] rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e50] focus:border-[#22c55e50] appearance-none cursor-pointer font-medium"
+                        >
+                          {notedRecipes.map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.name}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#22c55e95]">
+                          <i className="fas fa-chevron-down"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recipe Preview Card */}
+                    {selectedRecipe && (
+                      <div
+                        className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-[#22c55e36] rounded-lg p-4 cursor-pointer hover:shadow-lg hover:border-[#22c55e] transition-all duration-200 group"
+                        onClick={() => {
+                          onClose();
+                          if (onOpenRecipe) onOpenRecipe(selectedRecipe);
+                        }}
+                        title="Click to view recipe details"
+                      >
+                        <div className="flex items-start gap-3">
+                          {selectedRecipe.image ? (
+                            <img
+                              src={selectedRecipe.image}
+                              alt={selectedRecipe.name}
+                              className="w-20 h-20 object-cover rounded-lg shadow-md border-2 border-white dark:border-gray-600 group-hover:scale-105 transition-transform"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg shadow-md flex items-center justify-center text-white group-hover:scale-105 transition-transform">
+                              <i className="fas fa-utensils text-2xl"></i>
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate group-hover:text-[#22c55e] transition-colors">
+                                {selectedRecipe.name}
+                              </h3>
+                              <i className="fas fa-external-link-alt text-xs text-gray-400 group-hover:text-[#22c55e] transition-colors"></i>
+                            </div>
+                            {selectedRecipe.cuisine && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                <i className="fas fa-globe mr-1 text-[#22c55e]"></i>
+                                {selectedRecipe.cuisine}
+                              </p>
+                            )}
+                            {selectedRecipe.servings && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                <i className="fas fa-users mr-1 text-[#22c55e]"></i>
+                                {selectedRecipe.servings} servings
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Note Editor */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i className="fas fa-pen mr-1 text-[#22c55e]"></i>
+                        Your Note
+                      </label>
+                      <textarea
+                        className="w-full h-40 p-4 border-2 border-[#22c55e36] rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] resize-none font-medium"
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        placeholder="Add your personal notes, tips, or modifications for this recipe..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              {notedRecipes.length > 0 && (
+                <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-900 rounded-b-2xl flex justify-end gap-3">
+                  <button
+                    onClick={onClose}
+                    className="px-6 py-2.5 rounded-lg font-semibold bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
+                  >
+                    <i className="fas fa-times"></i>
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="px-6 py-2.5 rounded-lg font-semibold bg-[#22C55E36] text-white hover:bg-[#16a34a] transition-colors flex items-center gap-2 shadow-md"
+                  >
+                    <i className="fas fa-save"></i>
+                    Save Note
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      // Cooking Conversion Modal Component
+      const ConversionModal = ({ onClose }) => {
+        const [activeTab, setActiveTab] = useState("liquid");
+        const [liquidValue, setLiquidValue] = useState("");
+        const [liquidFromUnit, setLiquidFromUnit] = useState("cup");
+        const [liquidToUnit, setLiquidToUnit] = useState("ml");
+        const [measureValue, setMeasureValue] = useState("");
+        const [measureFromUnit, setMeasureFromUnit] = useState("cup");
+        const [measureToUnit, setMeasureToUnit] = useState("tbsp");
+        const [tempValue, setTempValue] = useState("");
+        const [tempUnit, setTempUnit] = useState("F");
+
+        // Liquid conversion factors (base unit: ml)
+        const liquidUnits = {
+          gallon: { name: "Gallons", toBase: 3785.41, fromBase: 1 / 3785.41 },
+          quart: { name: "Quarts", toBase: 946.353, fromBase: 1 / 946.353 },
+          pint: { name: "Pints", toBase: 473.176, fromBase: 1 / 473.176 },
+          cup: { name: "Cups", toBase: 236.588, fromBase: 1 / 236.588 },
+          floz: {
+            name: "Fluid Ounces",
+            toBase: 29.5735,
+            fromBase: 1 / 29.5735,
+          },
+          ml: { name: "Milliliters", toBase: 1, fromBase: 1 },
+          L: { name: "Liters", toBase: 1000, fromBase: 1 / 1000 },
+        };
+
+        // Measurement conversion factors (base unit: grams for weight, ml for volume)
+        const measureUnits = {
+          cup: {
+            name: "Cups",
+            type: "volume",
+            toBase: 236.588,
+            fromBase: 1 / 236.588,
+          },
+          tbsp: {
+            name: "Tablespoons",
+            type: "volume",
+            toBase: 14.787,
+            fromBase: 1 / 14.787,
+          },
+          tsp: {
+            name: "Teaspoons",
+            type: "volume",
+            toBase: 4.929,
+            fromBase: 1 / 4.929,
+          },
+          floz: {
+            name: "Fluid Ounces",
+            type: "volume",
+            toBase: 29.5735,
+            fromBase: 1 / 29.5735,
+          },
+          ml: { name: "Milliliters", type: "volume", toBase: 1, fromBase: 1 },
+          oz: {
+            name: "Ounces (weight)",
+            type: "weight",
+            toBase: 28.3495,
+            fromBase: 1 / 28.3495,
+          },
+          g: { name: "Grams", type: "weight", toBase: 1, fromBase: 1 },
+          lb: {
+            name: "Pounds",
+            type: "weight",
+            toBase: 453.592,
+            fromBase: 1 / 453.592,
+          },
+          kg: {
+            name: "Kilograms",
+            type: "weight",
+            toBase: 1000,
+            fromBase: 1 / 1000,
+          },
+        };
+
+        const convertLiquid = useCallback(() => {
+          const value = parseFloat(liquidValue);
+          if (isNaN(value)) return "---";
+          const fromUnit = liquidUnits[liquidFromUnit];
+          const toUnit = liquidUnits[liquidToUnit];
+          const baseValue = value * fromUnit.toBase;
+          const result = baseValue * toUnit.fromBase;
+          return result >= 100
+            ? result.toFixed(1)
+            : result >= 1
+              ? result.toFixed(2)
+              : result.toFixed(3);
+        }, [liquidValue, liquidFromUnit, liquidToUnit]);
+
+        const convertMeasure = useCallback(() => {
+          const value = parseFloat(measureValue);
+          if (isNaN(value)) return "---";
+          const fromUnit = measureUnits[measureFromUnit];
+          const toUnit = measureUnits[measureToUnit];
+          if (fromUnit.type !== toUnit.type) {
+            return "N/A";
+          }
+          const baseValue = value * fromUnit.toBase;
+          const result = baseValue * toUnit.fromBase;
+          return result >= 100
+            ? result.toFixed(1)
+            : result >= 1
+              ? result.toFixed(2)
+              : result.toFixed(3);
+        }, [measureValue, measureFromUnit, measureToUnit]);
+
+        const convertTemp = useCallback(() => {
+          const value = parseFloat(tempValue);
+          if (isNaN(value)) return "---";
+          if (tempUnit === "F") {
+            const C = (((value - 32) * 5) / 9).toFixed(1);
+            const K = (((value - 32) * 5) / 9 + 273.15).toFixed(1);
+            return { F: value, C, K };
+          } else {
+            const F = ((value * 9) / 5 + 32).toFixed(1);
+            const K = (value + 273.15).toFixed(1);
+            return { F, C: value, K };
+          }
+        }, [tempValue, tempUnit]);
+
+        const tempResult = convertTemp();
+
+        // Common conversions reference data
+        const commonConversions = [
+          { label: "1 cup", values: "8 fl oz | 240 ml | 16 tbsp" },
+          { label: "1/2 cup", values: "4 fl oz | 118 ml | 8 tbsp" },
+          { label: "1/4 cup", values: "2 fl oz | 59 ml | 4 tbsp" },
+          { label: "1 tbsp", values: "3 tsp | 15 ml | 0.5 fl oz" },
+          { label: "1 tsp", values: "5 ml | 0.17 fl oz" },
+          { label: "1 fl oz", values: "30 ml | 2 tbsp" },
+          { label: "1 pint", values: "2 cups | 16 fl oz | 473 ml" },
+          { label: "1 quart", values: "4 cups | 32 fl oz | 946 ml" },
+          { label: "1 gallon", values: "16 cups | 128 fl oz | 3.78 L" },
+          { label: "1 oz (weight)", values: "28 g | 0.06 lb" },
+          { label: "1 lb", values: "454 g | 16 oz" },
+          { label: "1 kg", values: "2.2 lb | 1000 g" },
+        ];
+
+        const temperatureReference = [
+          { F: 100, C: 38, desc: "Very Low" },
+          { F: 150, C: 65, desc: "Low" },
+          { F: 200, C: 93, desc: "Low-Moderate" },
+          { F: 250, C: 121, desc: "Moderate" },
+          { F: 300, C: 150, desc: "Moderate-Hot" },
+          { F: 325, C: 163, desc: "Hot (Baking)" },
+          { F: 350, C: 177, desc: "Hot (Standard)" },
+          { F: 375, C: 190, desc: "Hot" },
+          { F: 400, C: 200, desc: "Very Hot" },
+          { F: 425, C: 220, desc: "Very Hot" },
+          { F: 450, C: 230, desc: "Extremely Hot" },
+          { F: 500, C: 260, desc: "Maximum" },
+        ];
+
+        return (
+          <div
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-2 sm:p-4"
+            onClick={onClose}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 shadow-2xl w-full max-w-5xl max-h-[90vh] modal-scale-enter border-2 border-[#22c55e50] rounded-xl sm:rounded-2xl flex flex-col overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#22c55e20] to-[#22c55e50] rounded-t-lg sm:rounded-t-2xl px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i className="fas fa-exchange-alt text-white text-base sm:text-xl"></i>
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-lg sm:text-2xl font-bold text-white whitespace-nowrap">
+                      Cooking Conversion Chart
+                    </h2>
+                    <p className="text-green-100 text-xs sm:text-sm hidden sm:block">
+                      Convert between liquid, measurement, and temperature units
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="text-white/80 hover:text-white text-3xl leading-none hover:bg-white/20 rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center transition-all flex-shrink-0"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Tab Navigation */}
+              <div className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 overflow-x-auto flex-shrink-0">
+                <button
+                  onClick={() => setActiveTab("liquid")}
+                  className={`flex-1 min-w-[100px] px-2 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap ${
+                    activeTab === "liquid"
+                      ? "bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 border-b-2 border-[#22c55e50]"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <i className="fas fa-tint text-xs sm:text-sm"></i>
+                  <span className="hidden xs:inline">Liquid Volume</span>
+                  <span className="xs:hidden">Liquid</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab("measure")}
+                  className={`flex-1 min-w-[100px] px-2 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap ${
+                    activeTab === "measure"
+                      ? "bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 border-b-2 border-[#22c55e50]"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <i className="fas fa-balance-scale text-xs sm:text-sm"></i>
+                  <span className="hidden xs:inline">Measurements</span>
+                  <span className="xs:hidden">Measure</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab("temperature")}
+                  className={`flex-1 min-w-[100px] px-2 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap ${
+                    activeTab === "temperature"
+                      ? "bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 border-b-2 border-[#22c55e50]"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <i className="fas fa-thermometer-half text-xs sm:text-sm"></i>
+                  <span className="hidden xs:inline">Temperature</span>
+                  <span className="xs:hidden">Temp</span>
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 conversion-modal-scroll">
+                {/* Liquid Volume Converter */}
+                {activeTab === "liquid" && (
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-lg border dark:border-blue-900">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+                        <i className="fas fa-calculator text-blue-500"></i>
+                        <span className="hidden xs:inline">
+                          Liquid Volume Converter
+                        </span>
+                        <span className="xs:hidden">Liquid Converter</span>
+                      </h3>
+                      <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                        <div>
+                          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Value
+                          </label>
+                          <input
+                            type="number"
+                            value={liquidValue}
+                            onChange={(e) => setLiquidValue(e.target.value)}
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-base sm:text-lg font-semibold"
+                            placeholder="Enter value"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              From
+                            </label>
+                            <select
+                              value={liquidFromUnit}
+                              onChange={(e) =>
+                                setLiquidFromUnit(e.target.value)
+                              }
+                              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm font-medium"
+                            >
+                              {Object.entries(liquidUnits).map(
+                                ([key, unit]) => (
+                                  <option key={key} value={key}>
+                                    {unit.name}
+                                  </option>
+                                ),
+                              )}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              To
+                            </label>
+                            <select
+                              value={liquidToUnit}
+                              onChange={(e) => setLiquidToUnit(e.target.value)}
+                              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm font-medium"
+                            >
+                              {Object.entries(liquidUnits).map(
+                                ([key, unit]) => (
+                                  <option key={key} value={key}>
+                                    {unit.name}
+                                  </option>
+                                ),
+                              )}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 sm:mt-6 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-4 sm:p-5 border-2 border-blue-100 dark:border-blue-900">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
+                            Result:
+                          </span>
+                          <span className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 break-all">
+                            {liquidValue
+                              ? `${convertLiquid()} ${liquidUnits[liquidToUnit].name}`
+                              : "---"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Common Liquid Conversions */}
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-lg border border-purple-100 dark:border-purple-900">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+                        <i className="fas fa-list text-purple-500"></i>
+                        <span className="hidden xs:inline">
+                          Common Liquid Conversions
+                        </span>
+                        <span className="xs:hidden">Common Conversions</span>
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                        {commonConversions.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3 border border-orange-100 dark:border-orange-900"
+                          >
+                            <div className="font-bold text-gray-700 dark:text-gray-400 text-xs sm:text-sm">
+                              {item.label}
+                            </div>
+                            <div className="text-xs text-gray-700 dark:text-gray-200 mt-0.5">
+                              {item.values}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Measurements Converter */}
+                {activeTab === "measure" && (
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-lg border border-blue-100 dark:border-blue-900">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+                        <i className="fas fa-balance-scale text-blue-500"></i>
+                        <span className="hidden xs:inline">
+                          Measurement Converter
+                        </span>
+                        <span className="xs:hidden">Measure Converter</span>
+                      </h3>
+                      <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                        <div>
+                          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Value
+                          </label>
+                          <input
+                            type="number"
+                            value={measureValue}
+                            onChange={(e) => setMeasureValue(e.target.value)}
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg font-semibold"
+                            placeholder="Enter value"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              From
+                            </label>
+                            <select
+                              value={measureFromUnit}
+                              onChange={(e) =>
+                                setMeasureFromUnit(e.target.value)
+                              }
+                              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm font-medium"
+                            >
+                              {Object.entries(measureUnits).map(
+                                ([key, unit]) => (
+                                  <option key={key} value={key}>
+                                    {unit.name}
+                                  </option>
+                                ),
+                              )}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              To
+                            </label>
+                            <select
+                              value={measureToUnit}
+                              onChange={(e) => setMeasureToUnit(e.target.value)}
+                              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm font-medium"
+                            >
+                              {Object.entries(measureUnits).map(
+                                ([key, unit]) => (
+                                  <option key={key} value={key}>
+                                    {unit.name}
+                                  </option>
+                                ),
+                              )}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 sm:mt-6 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-4 sm:p-5 border-2 border-blue-300 dark:border-blue-700">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
+                            Result:
+                          </span>
+                          <span className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 break-all">
+                            {measureValue
+                              ? `${convertMeasure()} ${measureUnits[measureToUnit].name}`
+                              : "---"}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 sm:gap-2">
+                        <i className="fas fa-info-circle"></i>
+                        <span>
+                          Note: Volume and weight cannot be mixed (density
+                          required).
+                        </span>
+                      </p>
+                    </div>
+
+                    {/* Weight & Volume Reference */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 shadow-lg border border-purple-100 dark:border-purple-900">
+                        <h4 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                          <i className="fas fa-flask text-purple-500"></i>
+                          Volume Equivalents
+                        </h4>
+                        <div className="space-y-2 text-xs sm:text-sm">
+                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              1 cup
+                            </span>
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              236.6 ml
+                            </span>
+                          </div>
+                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              1 tbsp
+                            </span>
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              14.8 ml
+                            </span>
+                          </div>
+                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              1 tsp
+                            </span>
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              4.9 ml
+                            </span>
+                          </div>
+                          <div className="flex justify-between py-2">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              1 fl oz
+                            </span>
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              29.6 ml
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 shadow-lg border border-orange-100 dark:border-orange-900">
+                        <h4 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                          <i className="fas fa-weight text-orange-500"></i>
+                          Weight Equivalents
+                        </h4>
+                        <div className="space-y-2 text-xs sm:text-sm">
+                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              1 oz
+                            </span>
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              28.35 g
+                            </span>
+                          </div>
+                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              1 lb
+                            </span>
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              453.6 g
+                            </span>
+                          </div>
+                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              1 kg
+                            </span>
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              2.2 lb
+                            </span>
+                          </div>
+                          <div className="flex justify-between py-2">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              100 g
+                            </span>
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              3.5 oz
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Temperature Converter */}
+                {activeTab === "temperature" && (
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-lg border border-red-100 dark:border-red-900">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+                        <i className="fas fa-thermometer-three-quarters text-red-500"></i>
+                        <span className="hidden xs:inline">
+                          Temperature Converter
+                        </span>
+                        <span className="xs:hidden">Temp Converter</span>
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Value
+                          </label>
+                          <input
+                            type="number"
+                            value={tempValue}
+                            onChange={(e) => setTempValue(e.target.value)}
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-base sm:text-lg font-semibold"
+                            placeholder="Enter temperature"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Unit
+                          </label>
+                          <select
+                            value={tempUnit}
+                            onChange={(e) => setTempUnit(e.target.value)}
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-xs sm:text-sm font-medium"
+                          >
+                            <option value="F">Fahrenheit (°F)</option>
+                            <option value="C">Celsius (°C)</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4">
+                        <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl p-2 sm:p-4 border-2 border-red-300 dark:border-red-700 text-center">
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            Fahrenheit
+                          </div>
+                          <div className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">
+                            {tempValue ? `${tempResult.F}°F` : "---"}
+                          </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-2 sm:p-4 border-2 border-blue-300 dark:border-blue-700 text-center">
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            Celsius
+                          </div>
+                          <div className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                            {tempValue ? `${tempResult.C}°C` : "---"}
+                          </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-2 sm:p-4 border-2 border-purple-300 dark:border-purple-700 text-center">
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            Kelvin
+                          </div>
+                          <div className="text-lg sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
+                            {tempValue ? `${tempResult.K} K` : "---"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Temperature Reference Chart */}
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-lg border border-red-100 dark:border-red-900">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+                        <i className="fas fa-table text-red-500"></i>
+                        <span className="hidden xs:inline">
+                          Oven Temperature Reference
+                        </span>
+                        <span className="xs:hidden">Temp Reference</span>
+                      </h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs sm:text-sm">
+                          <thead>
+                            <tr className="bg-gradient-to-r from-red-500 to-orange-500 text-white">
+                              <th className="px-3 sm:px-4 py-2 sm:py-3 text-left font-semibold whitespace-nowrap">
+                                Fahrenheit
+                              </th>
+                              <th className="px-3 sm:px-4 py-2 sm:py-3 text-left font-semibold whitespace-nowrap">
+                                Celsius
+                              </th>
+                              <th className="px-3 sm:px-4 py-2 sm:py-3 text-left font-semibold">
+                                Description
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {temperatureReference.map((temp, idx) => (
+                              <tr
+                                key={idx}
+                                className={`border-b border-gray-100 dark:border-gray-700 ${
+                                  idx % 2 === 0
+                                    ? "bg-gray-50 dark:bg-gray-700/50"
+                                    : "bg-white dark:bg-gray-800"
+                                }`}
+                              >
+                                <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                                  {temp.F}°F
+                                </td>
+                                <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                                  {temp.C}°C
+                                </td>
+                                <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-600 dark:text-gray-400">
+                                  {temp.desc}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 dark:bg-transparent flex justify-center flex-shrink-0">
+                <button
+                  onClick={onClose}
+                  className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-sm sm:text-base"
+                >
+                  <i className="fas fa-check-circle"></i>
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
       // Nutrition Dashboard Component
       const NutritionDashboardModal = ({ recipes, mealPlan, onClose }) => {
         const [selectedDay, setSelectedDay] = useState("all");
@@ -4250,6 +5111,21 @@
         const [isLoading, setIsLoading] = useState(true);
         const isMounted = useRef(true);
         const storedValueRef = useRef(storedValue);
+        // track whether IndexedDB is usable; if false we will keep using localStorage
+        const dbAccessibleRef = useRef(true);
+        const markDbUnavailable = () => {
+          if (dbAccessibleRef.current) {
+            console.warn(
+              `[${storeName}] IndexedDB unavailable, falling back to localStorage/pure-memory`,
+            );
+            addToast(
+              "IndexedDB unavailable; using fallback storage.",
+              "warning",
+            );
+          }
+          dbAccessibleRef.current = false;
+        };
+
         useEffect(() => {
           storedValueRef.current = storedValue;
         }, [storedValue]);
@@ -4259,6 +5135,7 @@
             if (!isMounted.current) return;
             setIsLoading(true);
             try {
+              if (!dbAccessibleRef.current) throw new Error("DB disabled");
               // First, check if IndexedDB already has data - if so, skip migration
               let existingDataCheck;
               if (
@@ -4602,8 +5479,19 @@
                 `Error loading data from IndexedDB for ${storeName}:`,
                 error,
               );
-              addToast(`Error loading ${storeName} data.`, "error");
-              setStoredValue(initialValue);
+              // mark DB unavailable so we don't try again
+              markDbUnavailable();
+              // fallback to localStorage if possible
+              try {
+                const raw = localStorage.getItem(storeName);
+                if (raw) {
+                  setStoredValue(JSON.parse(raw));
+                } else {
+                  setStoredValue(initialValue);
+                }
+              } catch (inner) {
+                setStoredValue(initialValue);
+              }
             } finally {
               if (isMounted.current) {
                 setIsLoading(false);
@@ -4631,6 +5519,16 @@
             // update ref immediately to avoid races with concurrent updates
             storedValueRef.current = valueToStore;
 
+            // if DB flagged unavailable, just use localStorage
+            if (!dbAccessibleRef.current) {
+              try {
+                localStorage.setItem(storeName, JSON.stringify(valueToStore));
+              } catch (e) {
+                console.warn(`localStorage write failed for ${storeName}`, e);
+              }
+              return;
+            }
+
             try {
               if (
                 storeName === STORE_NAMES.MEAL_PLAN ||
@@ -4648,11 +5546,30 @@
                     `updateItem failed for ${storeName}, trying addItem:`,
                     updateError,
                   );
-                  await addItem(storeName, {
-                    id: storeName,
-                    data: valueToStore,
-                  });
-                  console.log(`[${storeName}] Data added successfully`);
+                  try {
+                    await addItem(storeName, {
+                      id: storeName,
+                      data: valueToStore,
+                    });
+                    console.log(`[${storeName}] Data added successfully`);
+                  } catch (addErr) {
+                    console.error(
+                      `Both updateItem and addItem failed for ${storeName}:`,
+                      addErr,
+                    );
+                    markDbUnavailable();
+                    try {
+                      localStorage.setItem(
+                        storeName,
+                        JSON.stringify(valueToStore),
+                      );
+                    } catch (lsErr) {
+                      console.warn(
+                        `localStorage backup failed for ${storeName}`,
+                        lsErr,
+                      );
+                    }
+                  }
                 }
               } else {
                 console.log(`[${storeName}] Clearing store...`);
@@ -4748,28 +5665,6 @@
         );
 
         return [storedValue, setValue, isLoading];
-      };
-
-      const Toast = ({ message, type, onClose }) => {
-        useEffect(() => {
-          const timer = setTimeout(onClose, 3000);
-          return () => clearTimeout(timer);
-        }, [onClose]);
-
-        const bgColor =
-          type === "success"
-            ? "bg-green-500"
-            : type === "error"
-              ? "bg-red-500"
-              : "bg-blue-500";
-
-        return (
-          <div
-            className={`p-3 rounded-lg shadow-lg text-white text-sm ${bgColor} animate-fade-in-out`}
-          >
-            {message}
-          </div>
-        );
       };
 
       // --- Smart Cooking Hooks & Components ---
@@ -5038,18 +5933,19 @@
           return () => document.removeEventListener("openCollections", handler);
         }, []);
 
-        const [toasts, setToasts] = useState([]);
-
-        const addToast = useCallback((message, type = "info") => {
-          const newToast = { id: Date.now(), message, type };
-          setToasts((prevToasts) => [...prevToasts, newToast]);
-          setTimeout(() => removeToast(newToast.id), 3000);
+        // Listen for openPhotoAlbum event (used by both quick-access and menu)
+        useEffect(() => {
+          const handler = () => {
+            setShowPhotoAlbumModal(true);
+          };
+          document.addEventListener("openPhotoAlbum", handler);
+          return () => document.removeEventListener("openPhotoAlbum", handler);
         }, []);
 
-        const removeToast = useCallback((id) => {
-          setToasts((prevToasts) =>
-            prevToasts.filter((toast) => toast.id !== id),
-          );
+        // Silent logging function (replaced toast notifications)
+        const addToast = useCallback((message, type = "info") => {
+          // Toasts disabled - logging to console only
+          console.log(`[${type.toUpperCase()}] ${message}`);
         }, []);
 
         const [recipes, setRecipes, isLoadingRecipes] = usePersistentStorage(
@@ -5095,9 +5991,8 @@
         const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
         const [showPantryModal, setShowPantryModal] = useState(false);
         const [showRecipeDetails, setShowRecipeDetails] = useState(null);
-        const [showMealPlanModal, setShowMealPlanModal] = useState(false);
-        const [recipeToMealPlan, setRecipeToMealPlan] = useState(null);
-        const [showQuickAddMealPlan, setShowQuickAddMealPlan] = useState(false);
+        const [showSideRecipeDetails, setShowSideRecipeDetails] =
+          useState(null);
         const [showShoppingListModal, setShowShoppingListModal] =
           useState(false);
         const [editingRecipe, setEditingRecipe] = useState(null);
@@ -5111,6 +6006,8 @@
         ] = useState(null);
         const [showNutritionDashboard, setShowNutritionDashboard] =
           useState(false);
+        // Saved notes modal
+        const [showSavedNotesModal, setShowSavedNotesModal] = useState(false);
         const [
           collectionMealPlans,
           setCollectionMealPlans,
@@ -5134,7 +6031,8 @@
         const [showPhotoGalleryModal, setShowPhotoGalleryModal] =
           useState(false);
         const [showPhotoAlbumModal, setShowPhotoAlbumModal] = useState(false);
-        const [fabExpanded, setFabExpanded] = useState(false);
+        const [showConversionModal, setShowConversionModal] = useState(false);
+        // FAB removed per user request
 
         // Bulk Operations State
         const [isBulkModeActive, setIsBulkModeActive] = useState(false);
@@ -5188,10 +6086,7 @@
                   setEditingRecipe(null);
                   setShowAddRecipeModal(true);
                   break;
-                case "m":
-                  e.preventDefault();
-                  setShowMealPlanModal(true);
-                  break;
+
                 case "l":
                   e.preventDefault();
                   setShowShoppingListModal(true);
@@ -5206,11 +6101,12 @@
                   break;
                 case "g":
                   e.preventDefault();
-                  setShowPhotoGalleryModal(true);
+                  // open the album view for consistency
+                  document.dispatchEvent(new CustomEvent("openPhotoAlbum"));
                   break;
                 case "a":
                   e.preventDefault();
-                  setShowPhotoAlbumModal(true);
+                  document.dispatchEvent(new CustomEvent("openPhotoAlbum"));
                   break;
                 case "r":
                   e.preventDefault();
@@ -5264,10 +6160,7 @@
         useEffect(() => {
           const body = document.body;
           const isModalOpen =
-            showAddRecipeModal ||
-            !!showRecipeDetails ||
-            showMealPlanModal ||
-            showShoppingListModal;
+            showAddRecipeModal || !!showRecipeDetails || showShoppingListModal;
 
           if (isModalOpen) {
             body.classList.add("modal-open");
@@ -5275,12 +6168,7 @@
             body.classList.remove("modal-open");
           }
           return () => body.classList.remove("modal-open");
-        }, [
-          showAddRecipeModal,
-          showRecipeDetails,
-          showMealPlanModal,
-          showShoppingListModal,
-        ]);
+        }, [showAddRecipeModal, showRecipeDetails, showShoppingListModal]);
 
         // Initialize sync when app loads
         useEffect(() => {
@@ -5685,6 +6573,26 @@
             } catch (error) {
               console.error("Error toggling favorite:", error);
               addToast("Failed to update favorite status.", "error");
+            }
+          },
+          [recipes, setRecipes, addToast],
+        );
+
+        // Update the note text for a given recipe and persist
+        const handleUpdateNote = useCallback(
+          async (id, note) => {
+            const recipeToUpdate = recipes.find((r) => r.id === id);
+            if (!recipeToUpdate) return;
+            const updatedRecipe = { ...recipeToUpdate, notes: note };
+            try {
+              await updateItem(STORE_NAMES.RECIPES, id, updatedRecipe);
+              setRecipes((prev) =>
+                prev.map((r) => (r.id === id ? updatedRecipe : r)),
+              );
+              addToast("Note saved", "success");
+            } catch (err) {
+              console.error("Error saving note:", err);
+              addToast("Failed to save note.", "error");
             }
           },
           [recipes, setRecipes, addToast],
@@ -6344,92 +7252,6 @@
 
         return (
           <div className="min-h-screen flex flex-col relative">
-            {/* Floating Action Button (FAB) - Top Level for proper fixed positioning */}
-            <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 pointer-events-none">
-              {/* FAB Action Items - Show when expanded */}
-              {fabExpanded && (
-                <div className="absolute bottom-20 right-0 flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-200 pointer-events-auto">
-                  {/* Add Recipe */}
-                  <button
-                    onClick={() => {
-                      setEditingRecipe(null);
-                      setShowAddRecipeModal(true);
-                      setFabExpanded(false);
-                    }}
-                    className="flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95 group"
-                    title="Add a new recipe"
-                  >
-                    <span className="text-sm font-medium">New Recipe</span>
-                    <i className="fas fa-plus text-lg"></i>
-                  </button>
-
-                  {/* Add to Meal Plan */}
-                  <button
-                    onClick={() => {
-                      setShowMealPlanModal(true);
-                      setFabExpanded(false);
-                    }}
-                    className="flex items-center gap-3 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95"
-                    title="Add recipes to meal plan"
-                  >
-                    <span className="text-sm font-medium">Meal Plan</span>
-                    <i className="fas fa-calendar-plus text-lg"></i>
-                  </button>
-
-                  {/* Shopping List */}
-                  <button
-                    onClick={() => {
-                      setShowShoppingListModal(true);
-                      setFabExpanded(false);
-                    }}
-                    className="flex items-center gap-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95"
-                    title="View shopping list"
-                  >
-                    <span className="text-sm font-medium">Shopping</span>
-                    <i className="fas fa-shopping-cart text-lg"></i>
-                  </button>
-
-                  {/* Pantry */}
-                  <button
-                    onClick={() => {
-                      setShowPantryModal(true);
-                      setFabExpanded(false);
-                    }}
-                    className="flex items-center gap-3 bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95"
-                    title="Manage pantry items"
-                  >
-                    <span className="text-sm font-medium">Pantry</span>
-                    <i className="fas fa-leaf text-lg"></i>
-                  </button>
-                </div>
-              )}
-
-              {/* Backdrop for FAB menu - semi-transparent when expanded */}
-              {fabExpanded && (
-                <button
-                  onClick={() => setFabExpanded(false)}
-                  className="fixed inset-0 z-30"
-                  aria-label="Close FAB menu"
-                />
-              )}
-
-              {/* Main FAB Button */}
-              <button
-                onClick={() => setFabExpanded(!fabExpanded)}
-                className={`relative w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center pointer-events-auto ${
-                  fabExpanded ? "scale-110" : "hover:scale-110"
-                } active:scale-95`}
-                title="Quick actions menu"
-                aria-label={fabExpanded ? "Close FAB menu" : "Open FAB menu"}
-              >
-                <i
-                  className={`fas ${fabExpanded ? "fa-times" : "fa-plus"} text-2xl transition-transform duration-300 ${
-                    fabExpanded ? "rotate-90" : ""
-                  }`}
-                ></i>
-              </button>
-            </div>
-
             {showRecipeSuggestions && (
               <RecipeSuggestionsModal
                 recipes={recipes}
@@ -6448,7 +7270,6 @@
                 setEditingRecipe(null);
                 setShowAddRecipeModal(true);
               }}
-              openMealPlanModal={() => setShowMealPlanModal(true)}
               openShoppingListModal={() => setShowShoppingListModal(true)}
               openPantryModal={() => setShowPantryModal(true)}
               openRecipeSuggestions={() => setShowRecipeSuggestions(true)}
@@ -6462,7 +7283,7 @@
               setShowNutritionDashboard={setShowNutritionDashboard}
               setShowKeyboardShortcuts={setShowKeyboardShortcuts}
               setShowTutorial={setShowTutorial}
-              setShowPhotoGalleryModal={setShowPhotoGalleryModal}
+              setShowConversionModal={setShowConversionModal}
             />
             {/* Quick Access Shortcuts Bar */}
             <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 border-b border-gray-200 dark:border-gray-600 sticky top-[60px] z-20 shadow-md transition-all duration-300">
@@ -6482,12 +7303,14 @@
                   New
                 </button>
                 <button
-                  onClick={() => setShowMealPlanModal(true)}
+                  onClick={() =>
+                    document.dispatchEvent(new CustomEvent("openCollections"))
+                  }
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-orange-100 dark:hover:bg-gray-700 transition-colors hover:text-orange-600 dark:hover:text-orange-400 whitespace-nowrap"
-                  title="Plan your meals (Ctrl+M)"
+                  title="Select a collection to view its meal plan"
                 >
-                  <i className="fas fa-calendar-alt text-orange-500"></i>
-                  Plan
+                  <i className="fas fa-folder text-indigo-500"></i>
+                  Collections
                 </button>
                 <button
                   onClick={() => setShowShoppingListModal(true)}
@@ -6514,22 +7337,20 @@
                   Suggest
                 </button>
                 <button
+                  onClick={() => setShowSavedNotesModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-teal-100 dark:hover:bg-gray-700 transition-colors hover:text-teal-600 dark:hover:text-teal-400 whitespace-nowrap"
+                  title="Saved notes"
+                >
+                  <i className="fas fa-sticky-note text-teal-500"></i>
+                  Notes
+                </button>
+                <button
                   onClick={() => setShowPhotoGalleryModal(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-pink-100 dark:hover:bg-gray-700 transition-colors hover:text-pink-600 dark:hover:text-pink-400 whitespace-nowrap"
                   title="Photo gallery (Ctrl+G)"
                 >
                   <i className="fas fa-images text-pink-500"></i>
                   Gallery
-                </button>
-                <button
-                  onClick={() => {
-                    document.dispatchEvent(new CustomEvent("openCollections"));
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-full text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-indigo-100 dark:hover:bg-gray-700 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 whitespace-nowrap"
-                  title="Collections"
-                >
-                  <i className="fas fa-folder text-indigo-500"></i>
-                  Collections
                 </button>
               </div>
             </div>
@@ -6553,7 +7374,6 @@
                     mealPlan={mealPlan}
                     openRecipeDetails={(recipe) => setShowRecipeDetails(recipe)}
                     toggleFavorite={toggleFavorite}
-                    openMealPlanModal={() => setShowMealPlanModal(true)}
                   />
                   <RecipeList
                     recipes={recipes.map((r) => ({
@@ -6564,10 +7384,6 @@
                     openRecipeDetails={(recipe) => setShowRecipeDetails(recipe)}
                     toggleFavorite={toggleFavorite}
                     collections={collections}
-                    openMealPlanModal={(recipe) => {
-                      setRecipeToMealPlan(recipe);
-                      setShowQuickAddMealPlan(true);
-                    }}
                     checkRecipeAvailability={(recipe) => {
                       const match = (window.computeRecipeMatch &&
                         window.computeRecipeMatch(recipe, pantry)) || {
@@ -6619,64 +7435,82 @@
                 recipes={recipes}
               />
             )}
-            {showRecipeDetails && (
-              <RecipeDetailsModal
-                recipe={showRecipeDetails}
-                onClose={() => setShowRecipeDetails(null)}
-                addToShoppingList={addToShoppingList}
-                generateRecipePDF={generateRecipePDF}
-                deleteRecipe={deleteRecipe}
-                editRecipe={(recipe) => {
-                  setEditingRecipe(recipe);
-                  setShowRecipeDetails(null);
-                  setShowAddRecipeModal(true);
-                }}
-                toggleFavorite={toggleFavorite}
-                addToast={addToast}
-                updateMealPlan={updateMealPlan}
-                mealPlan={mealPlan}
-                recipes={recipes}
-                setRecipes={setRecipes}
-                addTimer={addTimer}
-                pantry={pantry}
-                shoppingList={shoppingList}
-                setShoppingList={setShoppingList}
-                collections={collections}
-                setCollections={setCollections}
-                onRecipeUpdate={(updatedRecipe) => {
-                  // Update the recipe in the main recipes list
-                  setRecipes((prev) =>
-                    prev.map((r) =>
-                      r.id === updatedRecipe.id ? updatedRecipe : r,
-                    ),
-                  );
-                  // Update the currently displayed recipe
-                  setShowRecipeDetails(updatedRecipe);
-                }}
-              />
-            )}
-            {showMealPlanModal && (
-              <MealPlanModal
-                mealPlan={mealPlan}
-                recipes={recipes}
-                updateMealPlan={updateMealPlan}
-                removeMealFromPlan={removeMealFromPlan}
-                addMultipleRecipesToShoppingList={
-                  addMultipleRecipesToShoppingList
-                }
-                onClose={() => setShowMealPlanModal(false)}
-              />
-            )}
-            {showQuickAddMealPlan && recipeToMealPlan && (
-              <QuickAddMealPlanModal
-                recipe={recipeToMealPlan}
-                updateMealPlan={updateMealPlan}
-                addToast={addToast}
-                onClose={() => {
-                  setShowQuickAddMealPlan(false);
-                  setRecipeToMealPlan(null);
-                }}
-              />
+            {(showRecipeDetails || showSideRecipeDetails) && (
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                <div className="flex flex-col md:flex-row gap-6 max-h-[90vh] overflow-y-auto overflow-x-auto">
+                  {showRecipeDetails && (
+                    <RecipeDetailsModal
+                      recipe={showRecipeDetails}
+                      onClose={() => setShowRecipeDetails(null)}
+                      onOpenSide={setShowSideRecipeDetails}
+                      addToShoppingList={addToShoppingList}
+                      generateRecipePDF={generateRecipePDF}
+                      deleteRecipe={deleteRecipe}
+                      editRecipe={(recipe) => {
+                        setEditingRecipe(recipe);
+                        setShowRecipeDetails(null);
+                        setShowAddRecipeModal(true);
+                      }}
+                      toggleFavorite={toggleFavorite}
+                      addToast={addToast}
+                      updateMealPlan={updateMealPlan}
+                      mealPlan={mealPlan}
+                      recipes={recipes}
+                      setRecipes={setRecipes}
+                      addTimer={addTimer}
+                      pantry={pantry}
+                      shoppingList={shoppingList}
+                      setShoppingList={setShoppingList}
+                      collections={collections}
+                      setCollections={setCollections}
+                      onRecipeUpdate={(updatedRecipe) => {
+                        // Update the recipe in the main recipes list
+                        setRecipes((prev) =>
+                          prev.map((r) =>
+                            r.id === updatedRecipe.id ? updatedRecipe : r,
+                          ),
+                        );
+                        // Update the currently displayed recipe
+                        setShowRecipeDetails(updatedRecipe);
+                      }}
+                    />
+                  )}
+                  {showSideRecipeDetails && (
+                    <RecipeDetailsModal
+                      recipe={showSideRecipeDetails}
+                      onClose={() => setShowSideRecipeDetails(null)}
+                      addToShoppingList={addToShoppingList}
+                      generateRecipePDF={generateRecipePDF}
+                      deleteRecipe={deleteRecipe}
+                      editRecipe={(recipe) => {
+                        setEditingRecipe(recipe);
+                        setShowSideRecipeDetails(null);
+                        setShowAddRecipeModal(true);
+                      }}
+                      toggleFavorite={toggleFavorite}
+                      addToast={addToast}
+                      updateMealPlan={updateMealPlan}
+                      mealPlan={mealPlan}
+                      recipes={recipes}
+                      setRecipes={setRecipes}
+                      addTimer={addTimer}
+                      pantry={pantry}
+                      shoppingList={shoppingList}
+                      setShoppingList={setShoppingList}
+                      collections={collections}
+                      setCollections={setCollections}
+                      onRecipeUpdate={(updatedRecipe) => {
+                        setRecipes((prev) =>
+                          prev.map((r) =>
+                            r.id === updatedRecipe.id ? updatedRecipe : r,
+                          ),
+                        );
+                        setShowSideRecipeDetails(updatedRecipe);
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
             )}
             {showShoppingListModal && (
               <ShoppingListModal
@@ -6882,6 +7716,19 @@
                 }}
               />
             )}
+            {showSavedNotesModal && (
+              <SavedNotesModal
+                recipes={recipes}
+                onClose={() => setShowSavedNotesModal(false)}
+                updateNote={handleUpdateNote}
+                onOpenRecipe={(recipe) => {
+                  setShowRecipeDetails(recipe);
+                }}
+              />
+            )}
+            {showConversionModal && (
+              <ConversionModal onClose={() => setShowConversionModal(false)} />
+            )}
 
             <TimerTray
               timers={timers}
@@ -6889,16 +7736,6 @@
               onRemove={removeTimer}
               onReset={resetTimer}
             />
-            <div className="fixed bottom-4 right-4 z-[100] space-y-2">
-              {toasts.map((toast) => (
-                <Toast
-                  key={toast.id}
-                  message={toast.message}
-                  type={toast.type}
-                  onClose={() => removeToast(toast.id)}
-                />
-              ))}
-            </div>
             <Footer />
           </div>
         );
@@ -6906,7 +7743,6 @@
 
       const Header = ({
         openAddRecipeModal,
-        openMealPlanModal,
         openShoppingListModal,
         openPantryModal,
         openRecipeSuggestions,
@@ -6920,7 +7756,7 @@
         setShowNutritionDashboard,
         setShowKeyboardShortcuts,
         setShowTutorial,
-        setShowPhotoGalleryModal,
+        setShowConversionModal,
       }) => {
         const [searchQuery, setSearchQuery] = useState("");
         const debounceTimeoutRef = useRef(null);
@@ -7153,12 +7989,6 @@
             action: exportRecipes,
           },
           {
-            label: "Recipe Suggestions",
-            icon: "fas fa-lightbulb",
-            action: () => openRecipeSuggestions && openRecipeSuggestions(),
-          },
-
-          {
             label: "Seasonal Recipes",
             icon: "fas fa-leaf",
             action: () => {
@@ -7186,21 +8016,6 @@
             },
           },
           {
-            label: "Nutrition Dashboard",
-            icon: "fas fa-chart-pie",
-            action: () => setShowNutritionDashboard(true),
-          },
-          {
-            label: "Meal Plan",
-            icon: "fas fa-calendar-alt",
-            action: openMealPlanModal,
-          },
-          {
-            label: "Shopping List",
-            icon: "fas fa-shopping-cart",
-            action: openShoppingListModal,
-          },
-          {
             label: "All Recipes",
             icon: "fas fa-list-alt",
             action: handleToggleAllRecipes,
@@ -7211,20 +8026,20 @@
             action: () => setShowTutorial(true),
           },
           {
+            label: "Conversion Chart",
+            icon: "fas fa-exchange-alt",
+            action: () => setShowConversionModal(true),
+          },
+          {
             label: "Keyboard Shortcuts",
             icon: "fas fa-keyboard",
             action: () => setShowKeyboardShortcuts(true),
           },
           {
-            label: "Pantry",
-            icon: "fas fa-warehouse",
-            action: openPantryModal,
-          },
-          {
             label: "Photo Album",
             icon: "fas fa-image",
             action: () =>
-              setShowPhotoGalleryModal && setShowPhotoGalleryModal(true),
+              document.dispatchEvent(new CustomEvent("openPhotoAlbum")),
           },
           {
             label: "Share All Recipes",
@@ -7742,7 +8557,6 @@
         mealPlan,
         openRecipeDetails,
         toggleFavorite,
-        openMealPlanModal,
       }) => {
         const [expandRecent, setExpandRecent] = useState(false);
         const [expandFrequent, setExpandFrequent] = useState(false);
@@ -8504,7 +9318,6 @@
         toggleFavorite,
         collections,
         checkRecipeAvailability,
-        openMealPlanModal,
         isBulkModeActive,
         selectedRecipeIds,
         toggleBulkSelection,
@@ -8521,7 +9334,11 @@
         mealPlan,
       }) => {
         const [filteredRecipes, setFilteredRecipes] = useState([]);
-        const [tagModal, setTagModal] = useState({ open: false, tag: null });
+        const [tagModal, setTagModal] = useState({
+          open: false,
+          recipeId: null,
+          tags: [],
+        });
         const [typeModal, setTypeModal] = useState({ open: false, type: null });
         const [activeCollection, setActiveCollection] = useState(null);
         const [filters, setFilters] = useState({
@@ -8748,28 +9565,6 @@
             [name]: type === "checkbox" ? checked : value,
           }));
         }, []);
-
-        // Memoized list of recipes that currently have saved notes
-        const notedRecipes = useMemo(() => {
-          return recipes.filter(
-            (r) => r && r.notes && String(r.notes).trim().length > 0,
-          );
-        }, [recipes]);
-
-        // Handler to jump to a recipe with notes when selected
-        const handleJumpToNote = useCallback(
-          (e) => {
-            const id = e.target.value;
-            if (!id) return;
-            const recipeToOpen = recipes.find((r) => r.id === id);
-            if (recipeToOpen) {
-              openRecipeDetails(recipeToOpen);
-              // reset select so users can choose again
-              e.target.value = "";
-            }
-          },
-          [recipes, openRecipeDetails],
-        );
 
         // Apply sorting
         const sortRecipes = (recipesToSort) => {
@@ -9009,22 +9804,28 @@
                   <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 w-full lg:w-auto">
                     Advanced:
                   </span>
-                  {/* Ratings dropdown - filter by rating */}
+                  {/* Tags Filter */}
                   <select
-                    name="rating"
-                    value={filters.rating || ""}
+                    name="tag"
+                    value={filters.tag || ""}
                     onChange={handleFilterChange}
                     className="filter-select text-xs sm:text-sm"
-                    aria-label="Filter by rating"
-                    title="Filter recipes by rating"
+                    aria-label="Filter by Tag"
+                    title="Filter recipes by tag"
                   >
-                    <option value="">Ratings</option>
-                    <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
-                    <option value="4">⭐⭐⭐⭐ (4 stars)</option>
-                    <option value="3">⭐⭐⭐ (3 stars)</option>
-                    <option value="2">⭐⭐ (2 stars)</option>
-                    <option value="1">⭐ (1 star)</option>
-                    <option value="0">No rating</option>
+                    <option value="">All Tags</option>
+                    <option value="_NONE_">No Tags</option>
+                    {[
+                      ...new Set(
+                        recipes.flatMap((r) => r?.tags || []).filter(Boolean),
+                      ),
+                    ]
+                      .sort()
+                      .map((tag) => (
+                        <option key={tag} value={tag}>
+                          {tag}
+                        </option>
+                      ))}
                   </select>
                   {/* Sub-Category Filter (dependent on Course) */}
                   <select
@@ -9081,30 +9882,22 @@
                         </option>
                       ))}
                   </select>
-                  {/* Saved Notes dropdown - jump to recipe that has notes */}
+                  {/* Ratings dropdown - filter by rating */}
                   <select
-                    name="savedNotes"
-                    onChange={handleJumpToNote}
-                    className="filter-select saved-notes-select text-xs sm:text-sm"
-                    aria-label="Jump to recipe with saved notes"
-                    title="Jump to a recipe that has saved notes"
-                    defaultValue=""
+                    name="rating"
+                    value={filters.rating || ""}
+                    onChange={handleFilterChange}
+                    className="filter-select text-xs sm:text-sm"
+                    aria-label="Filter by rating"
+                    title="Filter recipes by rating"
                   >
-                    <option value="">
-                      Saved notes ({notedRecipes.length})
-                    </option>
-                    {notedRecipes.map((r) => (
-                      <option
-                        key={r.id}
-                        value={r.id}
-                        title={String(r.notes).slice(0, 120)}
-                      >
-                        {r.name}{" "}
-                        {r.notes
-                          ? ` — ${String(r.notes).slice(0, 40)}${String(r.notes).length > 40 ? "..." : ""}`
-                          : ""}
-                      </option>
-                    ))}
+                    <option value="">Ratings</option>
+                    <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
+                    <option value="4">⭐⭐⭐⭐ (4 stars)</option>
+                    <option value="3">⭐⭐⭐ (3 stars)</option>
+                    <option value="2">⭐⭐ (2 stars)</option>
+                    <option value="1">⭐ (1 star)</option>
+                    <option value="0">No rating</option>
                   </select>
                 </div>
               </div>
@@ -9410,10 +10203,11 @@
                                 e.stopPropagation();
                                 setTagModal({
                                   open: true,
-                                  tag: recipe.tags[0],
+                                  recipeId: recipe.id,
+                                  tags: recipe.tags,
                                 });
                               }}
-                              title={`Tags: ${recipe.tags.slice(0, 2).join(", ")}`}
+                              title={`Tags: ${recipe.tags.join(", ")}`}
                             >
                               <i className="fas fa-tag"></i> +
                               {recipe.tags.length}
@@ -9474,17 +10268,7 @@
                             <i className="fas fa-utensils"></i>
                             <span className="hidden md:inline">Cook</span>
                           </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openMealPlanModal(recipe);
-                            }}
-                            className="flex-1 min-w-[45px] py-2 px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
-                            title="Add to weekly meal plan"
-                          >
-                            <i className="fas fa-calendar-plus"></i>
-                            <span className="hidden md:inline">Plan</span>
-                          </button>
+                          {/* plan button removed per request */}
 
                           <button
                             onClick={(e) => {
@@ -9560,69 +10344,113 @@
                 </div>
               )}
             </div>
-            {/* Tag Modal */}
             {tagModal.open && (
               <div
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 modal-fade"
-                onClick={() => setTagModal({ open: false, tag: null })}
+                onClick={() =>
+                  setTagModal({ open: false, recipeId: null, tags: [] })
+                }
               >
                 <div
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-lg w-full relative modal-fade"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto relative modal-fade"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
                     className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl ripple"
-                    onClick={() => setTagModal({ open: false, tag: null })}
+                    onClick={() =>
+                      setTagModal({ open: false, recipeId: null, tags: [] })
+                    }
                   >
                     &times;
                   </button>
-                  <h2 className="text-lg font-semibold mb-3">
-                    Recipes with tag:{" "}
-                    <span className="text-purple-600 dark:text-purple-300">
-                      {tagModal.tag}
-                    </span>
+                  <h2 className="text-lg font-semibold mb-1">
+                    Recipes matching tags from:{" "}
                   </h2>
-                  <div className="space-y-2 max-h-80 overflow-y-auto">
-                    {recipes.filter(
-                      (r) => r.tags && r.tags.includes(tagModal.tag),
-                    ).length === 0 ? (
-                      <div className="text-gray-400">
-                        No other recipes found with this tag.
-                      </div>
-                    ) : (
-                      recipes
-                        .filter((r) => r.tags && r.tags.includes(tagModal.tag))
-                        .map((r) => (
-                          <div
-                            key={r.id}
-                            className="p-2 rounded hover:bg-purple-50 dark:hover:bg-purple-900 cursor-pointer flex items-center gap-3"
-                            onClick={() => {
-                              setTagModal({ open: false, tag: null });
-                              openRecipeDetails(r);
-                            }}
-                          >
-                            {r.image ? (
-                              <img
-                                src={r.image}
-                                alt={r.name}
-                                className="w-14 h-14 object-cover rounded shadow"
-                              />
-                            ) : (
-                              <div className="w-14 h-14 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded">
-                                <i className="fas fa-image text-2xl text-gray-400 dark:text-gray-500"></i>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    {recipes.find((r) => r.id === tagModal.recipeId)?.name}
+                  </p>
+
+                  {/* Show all tags from the clicked recipe */}
+                  <div className="flex flex-wrap gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+                    {tagModal.tags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-full text-xs font-medium"
+                      >
+                        <i className="fas fa-tag"></i> {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="space-y-4">
+                    {tagModal.tags.map((tag, tagIndex) => {
+                      const matchingRecipes = recipes.filter(
+                        (r) => r.tags && r.tags.includes(tag),
+                      );
+                      if (matchingRecipes.length === 0) return null;
+
+                      return (
+                        <div key={tagIndex}>
+                          <h3 className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-2 flex items-center gap-1">
+                            <i className="fas fa-tag"></i> {tag} (
+                            {matchingRecipes.length})
+                          </h3>
+                          <div className="space-y-2">
+                            {matchingRecipes.map((r) => (
+                              <div
+                                key={r.id}
+                                className="p-2 rounded hover:bg-purple-50 dark:hover:bg-purple-900 cursor-pointer flex items-center gap-3 transition-colors"
+                                onClick={() => {
+                                  setTagModal({
+                                    open: false,
+                                    recipeId: null,
+                                    tags: [],
+                                  });
+                                  openRecipeDetails(r);
+                                }}
+                              >
+                                {r.image ? (
+                                  <img
+                                    src={r.image}
+                                    alt={r.name}
+                                    className="w-12 h-12 object-cover rounded shadow flex-shrink-0"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0">
+                                    <i className="fas fa-image text-lg text-gray-400 dark:text-gray-500"></i>
+                                  </div>
+                                )}
+                                <div className="flex flex-col flex-1 min-w-0">
+                                  <div className="font-medium text-sm truncate text-gray-900 dark:text-white">
+                                    {r.name}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                                    {r.description}
+                                  </div>
+                                  {/* Show all tags for this recipe */}
+                                  {r.tags && r.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {r.tags.map((t, idx) => (
+                                        <span
+                                          key={idx}
+                                          className={`inline-flex items-center gap-0.5 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                                            t === tag
+                                              ? "ring-1 ring-purple-500"
+                                              : ""
+                                          }`}
+                                        >
+                                          {t}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            )}
-                            <div className="flex flex-col flex-1 min-w-0">
-                              <div className="font-medium truncate">
-                                {r.name}
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
-                                {r.description}
-                              </div>
-                            </div>
+                            ))}
                           </div>
-                        ))
-                    )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -10183,6 +11011,27 @@
           "Soy-Free",
         ];
 
+        // derive sub-category options based on selected course
+        const subCategoryOptions = useMemo(() => {
+          if (!formData.course) return [];
+          const opts = recipes
+            .filter((r) => r && r.course === formData.course && r.subCategory)
+            .map((r) => r.subCategory.trim())
+            .filter(Boolean);
+          return [...new Set(opts)].sort();
+        }, [recipes, formData.course]);
+
+        // if the course changes and current subCategory is no longer valid, clear it
+        useEffect(() => {
+          if (
+            formData.subCategory &&
+            subCategoryOptions.length > 0 &&
+            !subCategoryOptions.includes(formData.subCategory)
+          ) {
+            setFormData((f) => ({ ...f, subCategory: "" }));
+          }
+        }, [formData.course, subCategoryOptions]);
+
         const ErrorMessage = ({ name }) =>
           formErrors[name] ? (
             <p className="text-red-500 text-xs mt-1">{formErrors[name]}</p>
@@ -10320,9 +11169,20 @@
                           value={formData.subCategory}
                           onChange={handleChange}
                           required
+                          list="subcat-list"
+                          disabled={!formData.course}
                           className={`modal-input ${formErrors.subCategory ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
-                          placeholder="e.g., Pasta, Grilled, Baked"
+                          placeholder={
+                            formData.course
+                              ? "Type or select..."
+                              : "Select a course first"
+                          }
                         />
+                        <datalist id="subcat-list">
+                          {subCategoryOptions.map((sc) => (
+                            <option key={sc} value={sc} />
+                          ))}
+                        </datalist>
                         <ErrorMessage name="subCategory" />
                       </div>
                       <div>
@@ -10807,7 +11667,7 @@
                           htmlFor="rating"
                           className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
                         >
-                          Rating (0-5)
+                          Rating (0-5 stars)
                         </label>
                         <input
                           id="rating"
@@ -10815,10 +11675,11 @@
                           type="number"
                           min="0"
                           max="5"
-                          step="0.5"
+                          step="1"
                           value={formData.rating}
                           onChange={handleChange}
                           className={`modal-input ${formErrors.rating ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
+                          placeholder="Enter whole number (0-5)"
                         />
                         <ErrorMessage name="rating" />
                       </div>
@@ -11060,7 +11921,7 @@
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 sm:p-5 w-full max-w-sm modal-scale-enter">
               <div className="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-600 pb-3">
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  Add "{escapeHTML(recipe.name)}" to Meal Plan
+                  Add "{recipe.name}" to Meal Plan
                 </h3>
                 <button
                   onClick={onClose}
@@ -11641,8 +12502,8 @@
 
         return (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <div className="border-2 border-[#22C55E36] bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="p-4 border-b border-[#22C55E36] bg-[#22C55E36] flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                   <i className="fas fa-folder mr-2 text-green-500"></i>
                   Recipe Collections
@@ -11655,7 +12516,7 @@
                 </button>
               </div>
 
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-4 border-b border-[#22C55E36]">
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -11669,7 +12530,7 @@
                   />
                   <button
                     onClick={handleCreateCollection}
-                    className="btn-modal bg-green-500 hover:bg-green-600 text-white"
+                    className="btn-modal bg-[#22C55E36] hover:bg-green-600 text-white"
                   >
                     <i className="fas fa-plus mr-1"></i> Create
                   </button>
@@ -11979,6 +12840,7 @@
         collections,
         setCollections,
         onRecipeUpdate,
+        onOpenSide,
       }) => {
         const baseServings = recipe?.servings > 0 ? recipe.servings : 1;
         const [currentServings, setCurrentServings] = useState(baseServings);
@@ -11996,6 +12858,24 @@
         const [showPhotoGallery, setShowPhotoGallery] = useState(false);
         const [currentRecipe, setCurrentRecipe] = useState(recipe);
         const actionsMenuRef = useRef(null);
+        // compute list of side dishes for suggestions
+        const sideRecipes = useMemo(() => {
+          return recipes.filter(
+            (r) => r && (r.course === "Sides" || r.course === "Salads"),
+          );
+        }, [recipes]);
+        const handleSideSelect = useCallback(
+          (e) => {
+            const id = e.target.value;
+            if (!id) return;
+            const side = recipes.find((r) => r.id === id);
+            if (side && typeof onOpenSide === "function") {
+              onOpenSide(side);
+              e.target.value = ""; // reset dropdown
+            }
+          },
+          [recipes, onOpenSide],
+        );
 
         // Sync currentRecipe when recipe prop changes
         useEffect(() => {
@@ -12293,22 +13173,20 @@
               <div className="flex justify-between items-start mb-4 border-b border-gray-200 dark:border-gray-600 pb-3 gap-4">
                 <div className="flex-1">
                   <h2 className="text-2xl md:text-3xl font-bold mb-1 text-gray-900 dark:text-gray-100">
-                    {escapeHTML(recipe.name)}
+                    {recipe.name}
                   </h2>
                   {recipe.description && (
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 italic">
-                      {escapeHTML(recipe.description)}
+                      {recipe.description}
                     </p>
                   )}
                   <div className="flex flex-wrap gap-x-2 gap-y-1 items-center text-xs sm:text-sm">
                     <span className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 px-2 py-0.5 rounded-full">
-                      <i className="fas fa-utensils op-70"></i>{" "}
-                      {escapeHTML(recipe.type)}
+                      <i className="fas fa-utensils op-70"></i> {recipe.type}
                     </span>
                     {recipe.cuisine && (
                       <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 rounded-full">
-                        <i className="fas fa-globe op-70"></i>{" "}
-                        {escapeHTML(recipe.cuisine)}
+                        <i className="fas fa-globe op-70"></i> {recipe.cuisine}
                       </span>
                     )}
                     {recipe.dietaryTypes?.map((t) => (
@@ -12316,7 +13194,7 @@
                         key={t}
                         className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full"
                       >
-                        <i className="fas fa-leaf op-70"></i> {escapeHTML(t)}
+                        <i className="fas fa-leaf op-70"></i> {t}
                       </span>
                     ))}
                     {recipe.tags?.map((tag) => (
@@ -12324,8 +13202,7 @@
                         key={tag}
                         className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full"
                       >
-                        <i className="fas fa-tag opacity-70"></i>{" "}
-                        {escapeHTML(tag)}
+                        <i className="fas fa-tag opacity-70"></i> {tag}
                       </span>
                     ))}
                   </div>
@@ -12358,13 +13235,14 @@
                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-1 space-y-4">
+              <div className="flex flex-col md:flex-row gap-6">
+                {" "}
+                <div className="md:w-80 space-y-4 flex-shrink-0">
                   {recipe.image && (
                     <img
                       src={recipe.image}
                       alt={recipe.name}
-                      className="w-full aspect-video object-cover rounded-lg shadow-md border border-gray-200 dark:border-gray-700"
+                      className="w-full aspect-square object-cover rounded-lg shadow-md border border-gray-200 dark:border-gray-700"
                     />
                   )}
                   {recipe.video && (
@@ -12558,9 +13436,35 @@
                         </button>
                       </div>
                     )}
+                    {/* Suggested sides for meal courses */}
+                    {["Dinner", "Lunch", "Breakfast", "Salads"].includes(
+                      currentRecipe.course,
+                    ) && (
+                      <div className="mt-4">
+                        <label
+                          htmlFor="suggested-side"
+                          className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+                        >
+                          Suggested Sides
+                        </label>
+                        <select
+                          id="suggested-side"
+                          onChange={handleSideSelect}
+                          className="modal-input"
+                          defaultValue=""
+                        >
+                          <option value="">-- pick a side --</option>
+                          {sideRecipes.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="md:col-span-2">
+                <div className="flex-1 min-w-0">
                   <div className="mb-6">
                     <h3 className="text-xl font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-gray-100">
                       <i className="fas fa-list text-green-500"></i>Ingredients{" "}
@@ -12590,7 +13494,7 @@
                                   {unit || ""}
                                 </strong>
                               )}
-                              {escapeHTML(description)}
+                              {description}
                             </span>
                           </li>
                         );
@@ -12617,7 +13521,7 @@
                             <span className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0 shadow">
                               {index + 1}
                             </span>
-                            <p className="text-sm flex-1">{escapeHTML(dir)}</p>
+                            <p className="text-sm flex-1">{dir}</p>
                             {timeInSeconds && (
                               <button
                                 onClick={() =>
@@ -12651,7 +13555,7 @@
                         {recipe.tipsAndTricks.map((tip, index) => (
                           <li key={index} className="text-sm">
                             <i className="fas fa-caret-right text-yellow-500 mr-2"></i>
-                            {escapeHTML(tip)}
+                            {tip}
                           </li>
                         ))}
                       </ul>
@@ -12921,597 +13825,6 @@
         );
       };
 
-      const MealPlanModal = ({
-        mealPlan,
-        recipes,
-        updateMealPlan,
-        removeMealFromPlan,
-        addMultipleRecipesToShoppingList,
-        onClose,
-      }) => {
-        const days = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ];
-        const mealTimes = [
-          {
-            id: "breakfast",
-            label: "🌅 Breakfast",
-            icon: "fa-coffee",
-            fullLabel: "Breakfast",
-          },
-          {
-            id: "morningSnack",
-            label: "🍎 Morning Snack",
-            icon: "fa-apple-alt",
-            fullLabel: "Morning Snack",
-          },
-          {
-            id: "lunch",
-            label: "🥗 Lunch",
-            icon: "fa-utensils",
-            fullLabel: "Lunch",
-          },
-          {
-            id: "afternoonSnack",
-            label: "🍪 Afternoon Snack",
-            icon: "fa-cookie-bite",
-            fullLabel: "Afternoon Snack",
-          },
-          {
-            id: "dinner",
-            label: "🍽️ Dinner",
-            icon: "fa-drumstick-bite",
-            fullLabel: "Dinner",
-          },
-        ];
-        const [showRecipeSelector, setShowRecipeSelector] = useState(null);
-        const [selectorSearch, setSelectorSearch] = useState("");
-        const [hoverRecipe, setHoverRecipe] = useState(null);
-
-        // Convert date to YYYY-MM-DD string format for use as key
-        const getDateKey = (date) => {
-          if (!date) return null;
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, "0");
-          const day = String(date.getDate()).padStart(2, "0");
-          return `${year}-${month}-${day}`;
-        };
-
-        const getDayString = (date) => {
-          if (!date) return null;
-          const dayNames = [
-            "Sunday",
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-          ];
-          return dayNames[date.getDay()];
-        };
-
-        // Get dates for current week (Sunday to Saturday)
-        const getWeekDates = useCallback(() => {
-          const weekDates = [];
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          for (let i = 0; i < 7; i++) {
-            const date = new Date(today);
-            date.setDate(date.getDate() + i);
-            weekDates.push(date);
-          }
-          return weekDates;
-        }, []);
-
-        // Migrate old mealPlan structure (day names) to new structure (date keys)
-        const filteredRecipesForSelector = useMemo(() => {
-          const query = selectorSearch.toLowerCase().trim();
-          if (!query)
-            return recipes.sort((a, b) => a.name.localeCompare(b.name));
-          return recipes
-            .filter(
-              (r) =>
-                r?.name?.toLowerCase().includes(query) ||
-                r?.type?.toLowerCase().includes(query) ||
-                r?.cuisine?.toLowerCase().includes(query),
-            )
-            .sort((a, b) => a.name.localeCompare(b.name));
-        }, [recipes, selectorSearch]);
-
-        // Check if all meals for a date are filled
-        const isDayComplete = useCallback(
-          (dateKey) => {
-            if (!mealPlan?.[dateKey]) return false;
-            return mealTimes.every((mealTime) => {
-              const recipeIds = mealPlan[dateKey][mealTime.id] || [];
-              return Array.isArray(recipeIds) && recipeIds.length > 0;
-            });
-          },
-          [mealPlan, mealTimes],
-        );
-
-        // Check if a specific meal slot is filled
-        const isMealFilled = useCallback(
-          (dateKey, mealTimeId) => {
-            const recipeIds = mealPlan?.[dateKey]?.[mealTimeId] || [];
-            return Array.isArray(recipeIds) && recipeIds.length > 0;
-          },
-          [mealPlan],
-        );
-
-        const handleSelectRecipeClick = useCallback((dateKey, mealTimeId) => {
-          setShowRecipeSelector({ dateKey, mealTime: mealTimeId });
-          setSelectorSearch("");
-        }, []);
-
-        const handleRecipeSelect = useCallback(
-          (recipeId) => {
-            if (showRecipeSelector) {
-              updateMealPlan(
-                showRecipeSelector.dateKey,
-                showRecipeSelector.mealTime,
-                recipeId,
-              );
-            }
-            setShowRecipeSelector(null);
-          },
-          [showRecipeSelector, updateMealPlan],
-        );
-
-        const handleRemoveMeal = useCallback(
-          (e, dateKey, mealTimeId, recipeIdToRemove) => {
-            e.stopPropagation();
-            removeMealFromPlan(dateKey, mealTimeId, recipeIdToRemove);
-          },
-          [removeMealFromPlan],
-        );
-        const handleOverlayClick = useCallback(
-          (e) => {
-            if (e.target === e.currentTarget) onClose();
-          },
-          [onClose],
-        );
-        const handleSelectorOverlayClick = useCallback((e) => {
-          if (e.target === e.currentTarget) setShowRecipeSelector(null);
-        }, []);
-
-        const getRecipeIdsForDays = useCallback(
-          (dateKeys) => {
-            const recipeIds = new Set();
-            dateKeys.forEach((dateKey) => {
-              if (mealPlan && mealPlan[dateKey]) {
-                Object.values(mealPlan[dateKey]).forEach((recipeIdsInSlot) => {
-                  if (Array.isArray(recipeIdsInSlot)) {
-                    recipeIdsInSlot.forEach((recipeId) => {
-                      if (recipeId) {
-                        recipeIds.add(recipeId);
-                      }
-                    });
-                  }
-                });
-              }
-            });
-            return Array.from(recipeIds);
-          },
-          [mealPlan],
-        );
-
-        const handleAddDayToList = useCallback(
-          (dateKey) => {
-            const recipeIds = getRecipeIdsForDays([dateKey]);
-            if (recipeIds.length > 0) {
-              addMultipleRecipesToShoppingList(recipeIds);
-            }
-          },
-          [getRecipeIdsForDays, addMultipleRecipesToShoppingList],
-        );
-
-        const handleAddWeekToList = useCallback(() => {
-          const weekDates = getWeekDates();
-          const dateKeys = weekDates.map((date) => getDateKey(date));
-          const recipeIds = getRecipeIdsForDays(dateKeys);
-          if (recipeIds.length > 0) {
-            addMultipleRecipesToShoppingList(recipeIds);
-          }
-        }, [
-          getRecipeIdsForDays,
-          addMultipleRecipesToShoppingList,
-          getWeekDates,
-        ]);
-
-        return (
-          <>
-            <div
-              className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-2 sm:p-4"
-              onClick={handleOverlayClick}
-            >
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-7xl h-[90vh] flex flex-col modal-scale-enter">
-                <div className="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-600 pb-3 flex-shrink-0 gap-4 flex-wrap">
-                  <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                    <i className="fas fa-calendar-alt text-green-500"></i>
-                    <span>Weekly Meal Plan</span>
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleAddWeekToList}
-                      className="btn-modal btn-green text-xs sm:text-sm"
-                      title="Add all ingredients for the week to the shopping list"
-                    >
-                      <i className="fas fa-cart-plus mr-1"></i>Add to List
-                    </button>
-                    <button
-                      onClick={onClose}
-                      className="text-gray-500 dark:text-gray-400 hover:text-red-500 text-3xl leading-none"
-                      aria-label="Close"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                </div>
-                <div className="flex-1 overflow-y-auto pb-4 pr-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {getWeekDates().map((date) => {
-                      const dateKey = getDateKey(date);
-                      const dayName = getDayString(date);
-                      const dateNum = date.getDate();
-                      const month = date.toLocaleDateString("en-US", {
-                        month: "short",
-                      });
-                      const isComplete = isDayComplete(dateKey);
-                      const dayMealCount = mealTimes.filter((mt) =>
-                        isMealFilled(dateKey, mt.id),
-                      ).length;
-                      return (
-                        <div
-                          key={dateKey}
-                          className={`rounded-lg p-4 transition-all duration-200 border-2 ${
-                            isComplete
-                              ? "bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 shadow-md"
-                              : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-green-400 dark:hover:border-green-600"
-                          }`}
-                        >
-                          <div className="flex justify-between items-start mb-3">
-                            <div>
-                              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                                {dayName}
-                              </h3>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {month} {dateNum}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {dayMealCount} / {mealTimes.length} meals
-                              </p>
-                            </div>
-                            {isComplete && (
-                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-500 text-white">
-                                <i className="fas fa-check text-sm"></i>
-                              </span>
-                            )}
-                          </div>
-                          <div className="space-y-2">
-                            {mealTimes.map(({ id, label, fullLabel, icon }) => {
-                              const recipeIdsInSlot =
-                                mealPlan?.[dateKey]?.[id] || [];
-                              const filled = recipeIdsInSlot.length > 0;
-                              return (
-                                <div key={id}>
-                                  <div
-                                    onClick={() =>
-                                      handleSelectRecipeClick(dateKey, id)
-                                    }
-                                    className={`p-2 rounded cursor-pointer transition-all text-xs flex items-center gap-2 border ${
-                                      filled
-                                        ? "bg-green-100 dark:bg-green-900/50 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200"
-                                        : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    }`}
-                                  >
-                                    <i className={`fas ${icon}`}></i>
-                                    <div className="flex-1 truncate">
-                                      {filled ? "+" : label}
-                                    </div>
-                                    {filled && (
-                                      <span className="bg-green-600 text-white px-1.5 py-0.5 rounded text-xs">
-                                        {recipeIdsInSlot.length}
-                                      </span>
-                                    )}
-                                  </div>
-                                  {filled && (
-                                    <div className="space-y-1 mt-1">
-                                      {recipeIdsInSlot.map((recipeId) => {
-                                        const recipe = recipes.find(
-                                          (r) => r?.id === recipeId,
-                                        );
-                                        return (
-                                          <div
-                                            key={recipeId}
-                                            onClick={() => {
-                                              setHoverRecipe(recipe);
-                                            }}
-                                            className="bg-green-50 dark:bg-green-900/30 p-1.5 rounded text-xs flex items-center justify-between border border-green-200 dark:border-green-700 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/50"
-                                          >
-                                            <span className="truncate flex-1">
-                                              {escapeHTML(
-                                                recipe?.name || "Recipe",
-                                              )}
-                                            </span>
-                                            <button
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRemoveMeal(
-                                                  e,
-                                                  dateKey,
-                                                  id,
-                                                  recipeId,
-                                                );
-                                              }}
-                                              className="text-red-500 hover:text-red-700 ml-1"
-                                              title="Remove recipe"
-                                            >
-                                              <i className="fas fa-times text-xs"></i>
-                                            </button>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-            {showRecipeSelector && (
-              <div
-                className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60] p-4"
-                onClick={handleSelectorOverlayClick}
-              >
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 sm:p-5 w-full max-w-md max-h-[70vh] flex flex-col modal-scale-enter">
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      Select for{" "}
-                      <span className="text-green-500">
-                        {showRecipeSelector?.dateKey &&
-                          new Date(
-                            showRecipeSelector.dateKey + "T00:00:00",
-                          ).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                          })}{" "}
-                        {
-                          mealTimes.find(
-                            (mt) => mt.id === showRecipeSelector?.mealTime,
-                          )?.label
-                        }
-                      </span>
-                    </h3>
-                    <button
-                      onClick={() => setShowRecipeSelector(null)}
-                      className="text-gray-500 dark:text-gray-400 hover:text-red-500 text-2xl leading-none"
-                      aria-label="Close"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                  <div className="relative mb-3">
-                    <input
-                      type="search"
-                      placeholder="Search recipes..."
-                      value={selectorSearch}
-                      onChange={(e) => setSelectorSearch(e.target.value)}
-                      className="w-full p-2 pl-8 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-green-500 text-sm text-gray-900 dark:text-gray-100"
-                      aria-label="Search recipes"
-                    />
-                    <i className="fas fa-search absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-xs"></i>
-                  </div>
-                  <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
-                    {filteredRecipesForSelector.length > 0 ? (
-                      filteredRecipesForSelector.map((recipe) => (
-                        <div
-                          key={recipe.id}
-                          onClick={() => handleRecipeSelect(recipe.id)}
-                          role="button"
-                          className="bg-gray-50 dark:bg-gray-700 rounded p-2 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900 hover:shadow-sm transition-all duration-150 flex items-center gap-2 border border-transparent hover:border-green-200 dark:hover:border-green-700"
-                        >
-                          {recipe.image ? (
-                            <img
-                              src={recipe.image}
-                              alt=""
-                              className="w-10 h-10 rounded object-cover flex-shrink-0 border border-gray-200 dark:border-gray-600"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-400 text-sm flex-shrink-0 border border-gray-300 dark:border-gray-600">
-                              <i className="fas fa-image"></i>
-                            </div>
-                          )}
-                          <div className="flex-grow overflow-hidden">
-                            <h4
-                              className="text-sm font-medium leading-tight truncate text-gray-800 dark:text-gray-200"
-                              title={recipe.name}
-                            >
-                              {escapeHTML(recipe.name)}
-                            </h4>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {escapeHTML(recipe.type)}
-                            </p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-6">
-                        <i className="fas fa-ghost text-2xl mb-2 op-50"></i>
-                        <p>No recipes found.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        );
-      };
-
-      const QuickAddMealPlanModal = ({
-        recipe,
-        updateMealPlan,
-        addToast,
-        onClose,
-      }) => {
-        const getInitialDateKey = () => {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const year = today.getFullYear();
-          const month = String(today.getMonth() + 1).padStart(2, "0");
-          const day = String(today.getDate()).padStart(2, "0");
-          return `${year}-${month}-${day}`;
-        };
-
-        const getUpcomingDates = () => {
-          const dates = [];
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          for (let i = 0; i < 14; i++) {
-            const date = new Date(today);
-            date.setDate(date.getDate() + i);
-            const yr = date.getFullYear();
-            const mth = String(date.getMonth() + 1).padStart(2, "0");
-            const dy = String(date.getDate()).padStart(2, "0");
-            const dateKey = `${yr}-${mth}-${dy}`;
-            const dayName = date.toLocaleDateString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-            });
-            dates.push({ key: dateKey, label: dayName });
-          }
-          return dates;
-        };
-
-        const [selectedDay, setSelectedDay] = useState(getInitialDateKey());
-        const [selectedMealTime, setSelectedMealTime] = useState("lunch");
-
-        const upcomingDates = getUpcomingDates();
-
-        const mealTimes = [
-          { id: "breakfast", label: "Breakfast", icon: "fa-coffee" },
-          { id: "morningSnack", label: "Morning Snack", icon: "fa-apple-alt" },
-          { id: "lunch", label: "Lunch", icon: "fa-utensils" },
-          {
-            id: "afternoonSnack",
-            label: "Afternoon Snack",
-            icon: "fa-cookie-bite",
-          },
-          { id: "dinner", label: "Dinner", icon: "fa-drumstick-bite" },
-        ];
-
-        const handleAddRecipe = useCallback(() => {
-          if (recipe && selectedDay && selectedMealTime) {
-            updateMealPlan(selectedDay, selectedMealTime, recipe.id);
-            addToast(`${recipe.name} added to ${selectedMealTime}!`, "success");
-            onClose();
-          }
-        }, [
-          recipe,
-          selectedDay,
-          selectedMealTime,
-          updateMealPlan,
-          addToast,
-          onClose,
-        ]);
-
-        return (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            onClick={onClose}
-          >
-            <div
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {recipe?.name}
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                Select which date and meal time to add this recipe
-              </p>
-
-              {/* Date Selection */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                  Select Date
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {upcomingDates.map((date) => (
-                    <button
-                      key={date.key}
-                      onClick={() => setSelectedDay(date.key)}
-                      className={`py-2 px-3 rounded-lg font-medium transition text-sm ${
-                        selectedDay === date.key
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600"
-                      }`}
-                    >
-                      {date.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Meal Time Selection */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                  Select Meal Time
-                </label>
-                <div className="space-y-2">
-                  {mealTimes.map((mealTime) => (
-                    <button
-                      key={mealTime.id}
-                      onClick={() => setSelectedMealTime(mealTime.id)}
-                      className={`w-full py-3 px-4 rounded-lg font-medium transition flex items-center gap-2 ${
-                        selectedMealTime === mealTime.id
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600"
-                      }`}
-                    >
-                      <i className={`fas ${mealTime.icon}`}></i>
-                      {mealTime.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={onClose}
-                  className="flex-1 py-2 px-4 bg-gray-300 dark:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium hover:bg-gray-400 dark:hover:bg-gray-500 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddRecipe}
-                  className="flex-1 py-2 px-4 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition"
-                >
-                  Add Recipe
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      };
-
       const ShoppingListModal = ({
         shoppingList,
         setShoppingList,
@@ -13528,6 +13841,7 @@
         const [editingItemId, setEditingItemId] = useState(null);
         const [editingQuantity, setEditingQuantity] = useState("");
         const [editingUnit, setEditingUnit] = useState("");
+        const [selectedIngredient, setSelectedIngredient] = useState(null);
 
         // Helper to normalize units for comparison (moved outside useMemo for reuse)
         const normalizeUnit = useCallback((unit) => {
@@ -13953,141 +14267,175 @@
             className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
             onClick={handleOverlayClick}
           >
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] flex flex-col modal-scale-enter">
-              <div className="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-600 pb-3">
-                <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                  <i className="fas fa-shopping-cart text-green-500"></i>{" "}
-                  Shopping List ({totalUncheckedItems} items)
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="text-gray-500 dark:text-gray-400 hover:text-red-500 text-3xl leading-none"
-                  aria-label="Close"
-                >
-                  &times;
-                </button>
+            <div className="shopping-list-border border-[#22c55e36] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col modal-scale-enter overflow-hidden">
+              {/* Premium Header */}
+              <div className="bg-[#22C55E36] px-6 sm:px-8 py-6 text-white">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h2 className="text-3xl sm:text-xl font-bold flex items-center gap-3 mb-1">
+                      <i className="fas fa-shopping-bag text-[#22c55e]"></i>
+                      Shopping List
+                    </h2>
+                    <p className="text-white text-sm">
+                      {totalUncheckedItems} items to purchase •{" "}
+                      {shoppingList.filter((i) => i.checked).length} purchased
+                    </p>
+                  </div>
+                  <button
+                    onClick={onClose}
+                    className="text-gray-500 hover:text-red-500 text-3xl leading-none"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {/* Progress Bar */}
+                {shoppingList.length > 0 && (
+                  <div className="w-full bg-[#22c55e36] rounded-full h-1 overflow-hidden">
+                    <div
+                      className="bg-white h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${(shoppingList.filter((i) => i.checked).length / shoppingList.length) * 100}%`,
+                      }}
+                    ></div>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between items-center mb-4 gap-4 flex-wrap">
-                <label className="flex items-center gap-1.5 cursor-pointer text-sm order-2 sm:order-1 text-gray-700 dark:text-gray-300">
+
+              {/* Controls Bar */}
+              <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 sm:px-8 py-4 flex flex-wrap gap-3 items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
                   <input
                     type="checkbox"
                     checked={showChecked}
                     onChange={() => setShowChecked((p) => !p)}
-                    className="w-4 h-4 mt-0.5 rounded text-green-500 focus:ring-offset-0 focus:ring-green-500 border-gray-300 dark:border-gray-600"
-                  />{" "}
-                  Show purchased
+                    className="w-5 h-5 rounded text-[#22c55e] focus:ring-2 focus:ring-[#22c55e] border-gray-300 dark:border-gray-600"
+                  />
+                  <span>Show purchased items</span>
                 </label>
-                <div className="flex gap-2 order-3 sm:order-2">
-                  <div className="flex items-center text-sm">
-                    <label
-                      htmlFor="unitSystem"
-                      className="mr-2 text-gray-700 dark:text-gray-300"
-                    >
-                      Units:
-                    </label>
-                    <select
-                      id="unitSystem"
-                      className="filter-select text-xs"
-                      value={displayUnitSystem}
-                      onChange={(e) => setDisplayUnitSystem(e.target.value)}
-                    >
-                      <option value="imperial">Imperial</option>
-                      <option value="metric">Metric</option>
-                    </select>
-                  </div>
+
+                <div className="flex gap-2 items-center">
+                  <select
+                    className="px-3 py-2 text-sm font-medium bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#22c55e]"
+                    value={displayUnitSystem}
+                    onChange={(e) => setDisplayUnitSystem(e.target.value)}
+                  >
+                    <option value="imperial">Imperial</option>
+                    <option value="metric">Metric</option>
+                  </select>
+
                   <button
                     onClick={copyToClipboard}
-                    className="btn-modal btn-gray text-xs"
+                    className="px-4 py-2 text-sm font-medium bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 transition-colors flex items-center gap-2"
                     title="Copy list to clipboard"
                     disabled={shoppingList.length === 0}
                   >
-                    <i className="fas fa-copy mr-1"></i> Copy
+                    <i className="fas fa-copy"></i>
+                    <span className="hidden sm:inline">Copy</span>
+                  </button>
+
+                  <button
+                    onClick={handleClearList}
+                    className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                    disabled={shoppingList.length === 0}
+                  >
+                    <i className="fas fa-trash"></i>
+                    <span className="hidden sm:inline">Clear</span>
                   </button>
                 </div>
-                <button
-                  onClick={handleClearList}
-                  className="btn-modal btn-red text-xs order-1 sm:order-3 ml-auto sm:ml-0"
-                  disabled={shoppingList.length === 0}
-                >
-                  <i className="fas fa-trash mr-1"></i>Clear List
-                </button>
               </div>
-              <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+
+              {/* Main Content */}
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8">
                 {displayRecipeGroups.length === 0 ? (
-                  <div className="text-center text-gray-500 dark:text-gray-400 py-8 px-4">
-                    <i className="fas fa-clipboard-list text-4xl mb-3 opacity-50"></i>
-                    <p className="font-semibold">Shopping list is empty</p>
-                    <p className="text-sm">
+                  <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                    <div className="text-6xl mb-4 text-gray-300 dark:text-gray-600">
+                      <i className="fas fa-inbox"></i>
+                    </div>
+                    <p className="text-xl font-semibold text-gray-500 dark:text-gray-400 mb-2">
+                      {showChecked ? "Shopping list is empty" : "All set!"}
+                    </p>
+                    <p className="text-gray-400 dark:text-gray-500">
                       {showChecked
-                        ? "Add ingredients from recipes!"
-                        : "All items purchased."}
+                        ? "Add ingredients from recipes to get started"
+                        : "All items have been purchased"}
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-semibold mb-3 text-green-600 dark:text-green-400 border-b border-green-200 dark:border-green-700 pb-2 flex items-center gap-2">
-                      <i className="fas fa-list text-lg"></i>
-                      Ingredients by Recipe
-                    </h3>
-                    <div className="space-y-3">
-                      {displayRecipeGroups.map((group) => (
-                        <div
-                          key={group.id}
-                          className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600"
-                        >
-                          <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
-                            <i className="fas fa-utensils text-green-500 text-xs"></i>
-                            {escapeHTML(group.name)}
-                          </h4>
-                          <ul className="space-y-1.5 pl-0">
-                            {group.items.map((item) => {
-                              const { value, unit: convertedUnit } =
-                                convertUnits(
-                                  item.quantity,
-                                  item.unit,
-                                  displayUnitSystem,
-                                );
-                              const displayQuantity =
-                                value !== null ? formatQuantity(value) : "";
-                              const displayUnit = convertedUnit || "";
-                              const categoryInfo = getIngredientCategory(
-                                item.description,
-                              );
-                              const isEditing = editingItemId === item.id;
+                  <div className="space-y-6">
+                    {displayRecipeGroups.map((group, groupIndex) => (
+                      <div
+                        key={group.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${groupIndex * 50}ms` }}
+                      >
+                        {/* Recipe Header */}
+                        <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-[#22c55e36]">
+                          <div className="w-10 h-10 rounded-lg bg-[#22c55e] flex items-center justify-center text-white font-bold text-lg shadow-md">
+                            <i className="fas fa-utensils text-sm"></i>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                              {group.name}
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {group.items.length}{" "}
+                              {group.items.length === 1 ? "item" : "items"}
+                            </p>
+                          </div>
+                        </div>
 
-                              return (
-                                <li
-                                  key={item.id}
-                                  className={`flex items-center gap-2 p-2 rounded transition-colors duration-200 ${
-                                    item.checked
-                                      ? "opacity-50 bg-gray-100 dark:bg-gray-600"
-                                      : "hover:bg-gray-100 dark:hover:bg-gray-600"
-                                  }`}
-                                >
+                        {/* Items Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ml-2">
+                          {group.items.map((item) => {
+                            const { value, unit: convertedUnit } = convertUnits(
+                              item.quantity,
+                              item.unit,
+                              displayUnitSystem,
+                            );
+                            const displayQuantity =
+                              value !== null ? formatQuantity(value) : "";
+                            const displayUnit = convertedUnit || "";
+                            const categoryInfo = getIngredientCategory(
+                              item.description,
+                            );
+                            const isEditing = editingItemId === item.id;
+
+                            return (
+                              <div
+                                key={item.id}
+                                className={`group p-4 rounded-xl border-2 transition-all duration-200 ${
+                                  item.checked
+                                    ? "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-[#22c55e] hover:shadow-md"
+                                }`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  {/* Checkbox */}
                                   <input
                                     type="checkbox"
                                     checked={item.checked}
                                     onChange={() => handleToggleItem(item.id)}
-                                    className="w-4 h-4 rounded text-green-500 focus:ring-offset-0 focus:ring-green-500 border-gray-300 dark:border-gray-500 flex-shrink-0 cursor-pointer"
-                                    aria-label={`Mark ${item.originalText} as ${
-                                      item.checked
-                                        ? "not purchased"
-                                        : "purchased"
-                                    }`}
+                                    className="w-6 h-6 rounded-lg text-[#22c55e] focus:ring-2 focus:ring-[#22c55e] border-2 border-gray-300 dark:border-gray-600 cursor-pointer mt-0.5 flex-shrink-0"
+                                    aria-label={`Mark ${item.originalText} as ${item.checked ? "not purchased" : "purchased"}`}
                                   />
+
+                                  {/* Icon */}
                                   <div
-                                    className={`inline-flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0 text-white text-base shadow-lg ${categoryInfo.shadowColor}`}
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
                                     style={{
-                                      background: categoryInfo.gradient,
+                                      color: categoryInfo.color,
                                     }}
                                   >
                                     <i
-                                      className={`fas ${categoryInfo.icon}`}
+                                      className={`fas ${categoryInfo.icon} text-sm`}
                                     ></i>
                                   </div>
-                                  <div className="flex-1 flex items-center gap-2 min-w-0">
+
+                                  {/* Content */}
+                                  <div className="flex-1 min-w-0">
                                     {isEditing ? (
-                                      <div className="flex gap-1 items-center flex-1">
+                                      <div className="flex gap-1 items-end flex-wrap">
                                         <input
                                           type="text"
                                           value={editingQuantity}
@@ -14101,7 +14449,7 @@
                                               handleCancelEdit();
                                             }
                                           }}
-                                          className="w-16 px-1.5 py-0.5 text-sm border-2 border-green-500 rounded focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-600"
+                                          className="w-16 px-2 py-1 text-sm border-2 border-[#22c55e] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                           placeholder="qty"
                                           autoFocus
                                         />
@@ -14118,30 +14466,21 @@
                                               handleCancelEdit();
                                             }
                                           }}
-                                          className="w-20 px-1.5 py-0.5 text-sm border-2 border-green-500 rounded focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-600"
+                                          className="w-20 px-2 py-1 text-sm border-2 border-[#22c55e] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22c55e] bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                           placeholder="unit"
                                         />
-                                        <span
-                                          className={`block leading-tight text-sm flex-1 ${
-                                            item.checked
-                                              ? "line-through text-gray-500 dark:text-gray-400"
-                                              : "text-gray-800 dark:text-gray-100"
-                                          }`}
-                                        >
-                                          {escapeHTML(item.description)}
-                                        </span>
                                         <button
                                           onClick={() =>
                                             handleSaveQuantity(item.id)
                                           }
-                                          className="text-xs bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-600"
+                                          className="text-sm bg-[#22c55e] text-white px-3 py-1 rounded-lg hover:bg-[#16a34a] transition-colors"
                                           title="Save"
                                         >
                                           <i className="fas fa-check"></i>
                                         </button>
                                         <button
                                           onClick={handleCancelEdit}
-                                          className="text-xs bg-red-500 text-white px-2 py-0.5 rounded hover:bg-red-600"
+                                          className="text-sm bg-gray-400 text-white px-3 py-1 rounded-lg hover:bg-gray-500 transition-colors"
                                           title="Cancel"
                                         >
                                           <i className="fas fa-times"></i>
@@ -14149,9 +14488,25 @@
                                       </div>
                                     ) : (
                                       <>
+                                        {/* Description */}
+                                        <p
+                                          className={`text-sm font-semibold truncate cursor-pointer hover:text-[#22c55e] transition-colors ${
+                                            item.checked
+                                              ? "line-through text-gray-500 dark:text-gray-500"
+                                              : "text-gray-800 dark:text-gray-100"
+                                          }`}
+                                          onClick={() =>
+                                            setSelectedIngredient(item)
+                                          }
+                                          title="Click to view details"
+                                        >
+                                          {item.description}
+                                        </p>
+
+                                        {/* Quantity */}
                                         {displayQuantity || item.quantity ? (
-                                          <div
-                                            className="text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer min-w-fit px-2 py-1 rounded hover:bg-green-100 dark:hover:bg-green-900 transition-colors flex-shrink-0"
+                                          <p
+                                            className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer hover:text-[#22c55e] font-medium transition-colors mt-1"
                                             onClick={() =>
                                               handleStartEditQuantity(
                                                 item.id,
@@ -14163,59 +14518,119 @@
                                                   : item.unit,
                                               )
                                             }
-                                            title="Click to edit quantity"
+                                            title="Click to edit"
                                           >
                                             {displayQuantity && (
                                               <>
-                                                <span className="font-semibold">
+                                                <span className="font-bold">
                                                   {displayQuantity}
-                                                </span>
-                                                {displayUnit && (
-                                                  <span className="ml-1">
-                                                    {displayUnit}
-                                                  </span>
-                                                )}
+                                                </span>{" "}
+                                                {displayUnit}
                                               </>
                                             )}
                                             {!displayQuantity &&
                                               item.quantity && (
                                                 <>
-                                                  <span className="font-semibold">
+                                                  <span className="font-bold">
                                                     {formatQuantity(
                                                       item.quantity,
                                                     )}
-                                                  </span>
-                                                  {item.unit && (
-                                                    <span className="ml-1">
-                                                      {item.unit}
-                                                    </span>
-                                                  )}
+                                                  </span>{" "}
+                                                  {item.unit}
                                                 </>
                                               )}
-                                          </div>
+                                          </p>
                                         ) : null}
-                                        <span
-                                          className={`block leading-tight text-sm ${
-                                            item.checked
-                                              ? "line-through text-gray-500 dark:text-gray-400"
-                                              : "text-gray-800 dark:text-gray-100"
-                                          }`}
-                                        >
-                                          {escapeHTML(item.description)}
-                                        </span>
                                       </>
                                     )}
                                   </div>
-                                </li>
-                              );
-                            })}
-                          </ul>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
+
+              {/* Ingredient Detail Modal */}
+              {selectedIngredient && (
+                <div
+                  className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60] p-4"
+                  onClick={() => setSelectedIngredient(null)}
+                >
+                  <div
+                    className="animated-border-card bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md p-6"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Ingredient with Quantity */}
+                    <div className="mb-6">
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {selectedIngredient.quantity} {selectedIngredient.unit}{" "}
+                        {selectedIngredient.description}
+                      </p>
+                    </div>
+
+                    {/* Status */}
+                    <div className="mb-6">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            selectedIngredient.checked
+                              ? "bg-[#22c55e]"
+                              : "bg-yellow-500"
+                          }`}
+                        />
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          {selectedIngredient.checked
+                            ? "Purchased"
+                            : "Not Purchased"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          const updated = {
+                            ...selectedIngredient,
+                            checked: !selectedIngredient.checked,
+                          };
+                          const updatedItems = shoppingList.map((item) =>
+                            item.description === selectedIngredient.description
+                              ? updated
+                              : item,
+                          );
+                          setShoppingList(updatedItems);
+                          localStorage.setItem(
+                            "cookwise_shopping_list",
+                            JSON.stringify(updatedItems),
+                          );
+                          setSelectedIngredient(updated);
+                        }}
+                        className={`flex-1 py-2 rounded-lg font-semibold transition ${
+                          selectedIngredient.checked
+                            ? "bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-400 dark:hover:bg-gray-600"
+                            : "bg-[#22C55E36] text-white hover:bg-[#16a34a]"
+                        }`}
+                      >
+                        {selectedIngredient.checked
+                          ? "Mark Unpurchased"
+                          : "Mark Purchased"}
+                      </button>
+                      <button
+                        onClick={() => setSelectedIngredient(null)}
+                        className="flex-1 py-2 rounded-lg font-semibold bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -14517,9 +14932,7 @@
                                                 className="bg-indigo-50 dark:bg-indigo-900/30 p-1.5 rounded text-xs flex items-center justify-between border border-indigo-200 dark:border-indigo-700 cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
                                               >
                                                 <span className="truncate flex-1">
-                                                  {escapeHTML(
-                                                    recipe?.name || "Recipe",
-                                                  )}
+                                                  {recipe?.name || "Recipe"}
                                                 </span>
                                                 <button
                                                   onClick={(e) => {
@@ -14687,7 +15100,7 @@
                             className="w-full text-left p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-gray-200 dark:border-gray-600 transition-colors"
                           >
                             <div className="font-semibold text-sm text-gray-900 dark:text-white truncate">
-                              {escapeHTML(recipe.name)}
+                              {recipe.name}
                             </div>
                             <div className="text-xs text-gray-600 dark:text-gray-400">
                               {recipe.type} •{" "}
@@ -15151,6 +15564,58 @@
         }
       };
 
+      const addMultiplePhotosToRecipe = async (
+        recipeId,
+        photosData,
+        addToast,
+      ) => {
+        try {
+          // Get the current recipe
+          const recipeStore = await getStore(STORE_NAMES.RECIPES, "readwrite");
+          const recipe = await new Promise((resolve, reject) => {
+            const request = recipeStore.get(recipeId);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+
+          if (!recipe) {
+            throw new Error("Recipe not found");
+          }
+
+          // Initialize photos array if it doesn't exist
+          if (!recipe.photos) {
+            recipe.photos = [];
+          }
+
+          // Add all photos
+          for (const photoData of photosData) {
+            const photo = {
+              id:
+                Date.now().toString(36) +
+                Math.random().toString(36).substr(2, 5),
+              url: photoData.url,
+              caption: photoData.caption || "",
+              date: new Date().toISOString(),
+              thumbnail: photoData.thumbnail || photoData.url,
+            };
+            recipe.photos.push(photo);
+          }
+
+          // Save the updated recipe using updateItem function
+          await updateItem(STORE_NAMES.RECIPES, recipe.id, recipe);
+
+          addToast(
+            `Added ${photosData.length} photo${photosData.length > 1 ? "s" : ""}!`,
+            "success",
+          );
+          return recipe;
+        } catch (error) {
+          console.error("Error adding photos to recipe:", error);
+          addToast("Failed to add photos to recipe.", "error");
+          throw error;
+        }
+      };
+
       const removePhotoFromRecipe = async (recipeId, photoId, addToast) => {
         try {
           // Get the current recipe
@@ -15434,29 +15899,56 @@
         }, [recipe]);
 
         const handleFileSelect = async (e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
+          const files = Array.from(e.target.files || []);
+          if (files.length === 0) return;
 
-          if (!file.type.startsWith("image/")) {
-            addToast("Please select a valid image file", "error");
-            return;
+          // Validate all files first
+          for (const file of files) {
+            if (!file.type.startsWith("image/")) {
+              addToast("Please select only valid image files", "error");
+              return;
+            }
           }
 
+          // Process all files - read all files first
+          const photoPromises = files.map((file) => {
+            return new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                const dataUrl = event.target?.result;
+                resolve({
+                  url: dataUrl,
+                  caption: "",
+                  file: file,
+                  preview: dataUrl,
+                });
+              };
+              reader.readAsDataURL(file);
+            });
+          });
+
           try {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              const dataUrl = event.target?.result;
-              setNewPhoto({
-                url: dataUrl,
-                caption: newPhoto.caption,
-                file: file,
-                preview: dataUrl,
-              });
-            };
-            reader.readAsDataURL(file);
+            const photos = await Promise.all(photoPromises);
+
+            // Add all photos in a single transaction
+            const updatedRecipe = await addMultiplePhotosToRecipe(
+              recipe.id,
+              photos,
+              addToast,
+            );
+
+            // Update parent component with final recipe
+            if (typeof onRecipeUpdate === "function") {
+              onRecipeUpdate(updatedRecipe);
+            }
+            setPhotos(getRecipePhotos(updatedRecipe));
+
+            setNewPhoto({ url: "", caption: "", file: null, preview: null });
+            setInputMode("url");
+            if (fileInputRef.current) fileInputRef.current.value = "";
           } catch (error) {
-            console.error("Error reading file:", error);
-            addToast("Error reading file", "error");
+            console.error("Error adding photos:", error);
+            addToast("Failed to add photos to recipe.", "error");
           }
         };
 
@@ -15749,16 +16241,17 @@
                           ref={fileInputRef}
                           type="file"
                           accept="image/*"
+                          multiple
                           onChange={handleFileSelect}
                           className="hidden"
-                          aria-label="Select image file"
+                          aria-label="Select image files"
                         />
                         <button
                           onClick={() => fileInputRef.current?.click()}
                           className="w-full py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition text-gray-700 dark:text-gray-300"
                         >
                           <i className="fas fa-cloud-upload-alt text-2xl mb-2 block"></i>
-                          Click to select an image
+                          Click to select images (multiple allowed)
                         </button>
                         {newPhoto.preview && (
                           <div className="mt-2">

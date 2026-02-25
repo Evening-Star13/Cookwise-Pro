@@ -3295,61 +3295,327 @@
         const [measureToUnit, setMeasureToUnit] = useState("tbsp");
         const [tempValue, setTempValue] = useState("");
         const [tempUnit, setTempUnit] = useState("F");
+        const [openDropdown, setOpenDropdown] = useState(null);
+        const [expandedCategory, setExpandedCategory] = useState({
+          liquidFrom: null,
+          liquidTo: null,
+          measureFrom: null,
+          measureTo: null,
+        });
+        const [conversionHistory, setConversionHistory] = useState(() => {
+          const saved = localStorage.getItem("conversionHistory");
+          return saved ? JSON.parse(saved) : [];
+        });
+        const [favorites, setFavorites] = useState([]);
+        const [showHistory, setShowHistory] = useState(false);
+        const [showFavorites, setShowFavorites] = useState(false);
+        const [copiedResult, setCopiedResult] = useState(false);
+
+        // Save conversion history to localStorage whenever it changes
+        useEffect(() => {
+          localStorage.setItem(
+            "conversionHistory",
+            JSON.stringify(conversionHistory),
+          );
+        }, [conversionHistory]);
+
+        // Helper function to remove a conversion from history
+        const addToHistory = useCallback((label, value) => {
+          setConversionHistory((prev) => {
+            // Check if this exact conversion already exists in recent history
+            if (prev.length > 0 && prev[0].label === label) {
+              return prev; // Skip duplicate
+            }
+            const newHistory = [{ id: Date.now(), label, value }, ...prev];
+            return newHistory.slice(0, 10); // Keep only last 10
+          });
+        }, []);
+
+        // Helper function to remove a specific conversion from history
+        const removeFromHistory = useCallback((id) => {
+          setConversionHistory((prev) => prev.filter((item) => item.id !== id));
+        }, []);
+
+        // Helper function to clear all conversions from history
+        const clearAllHistory = useCallback(() => {
+          setConversionHistory([]);
+        }, []);
+
+        // Helper function to toggle favorites
+        const toggleFavorite = useCallback((label) => {
+          setFavorites((prev) =>
+            prev.some((f) => f.label === label)
+              ? prev.filter((f) => f.label !== label)
+              : [...prev, { label, timestamp: Date.now() }],
+          );
+        }, []);
+
+        // Helper function to copy to clipboard
+        const copyToClipboard = useCallback((text) => {
+          navigator.clipboard.writeText(text).then(() => {
+            setCopiedResult(true);
+            setTimeout(() => setCopiedResult(false), 2000);
+          });
+        }, []);
 
         // Liquid conversion factors (base unit: ml)
         const liquidUnits = {
-          gallon: { name: "Gallons", toBase: 3785.41, fromBase: 1 / 3785.41 },
-          quart: { name: "Quarts", toBase: 946.353, fromBase: 1 / 946.353 },
-          pint: { name: "Pints", toBase: 473.176, fromBase: 1 / 473.176 },
-          cup: { name: "Cups", toBase: 236.588, fromBase: 1 / 236.588 },
-          floz: {
-            name: "Fluid Ounces",
-            toBase: 29.5735,
-            fromBase: 1 / 29.5735,
-          },
-          ml: { name: "Milliliters", toBase: 1, fromBase: 1 },
-          L: { name: "Liters", toBase: 1000, fromBase: 1 / 1000 },
-        };
-
-        // Measurement conversion factors (base unit: grams for weight, ml for volume)
-        const measureUnits = {
-          cup: {
-            name: "Cups",
+          // Cups in ascending order
+          quarter_cup: {
+            name: "1/4 Cup",
             type: "volume",
-            toBase: 236.588,
-            fromBase: 1 / 236.588,
+            toBase: 62.5,
+            fromBase: 1 / 62.5,
+          },
+          third_cup: {
+            name: "1/3 Cup",
+            type: "volume",
+            toBase: 83.33,
+            fromBase: 1 / 83.33,
+          },
+          half_cup: {
+            name: "1/2 Cup",
+            type: "volume",
+            toBase: 125,
+            fromBase: 1 / 125,
+          },
+          two_third_cup: {
+            name: "2/3 Cup",
+            type: "volume",
+            toBase: 166.67,
+            fromBase: 1 / 166.67,
+          },
+          three_quarter_cup: {
+            name: "3/4 Cup",
+            type: "volume",
+            toBase: 187.5,
+            fromBase: 1 / 187.5,
+          },
+          cup: { name: "Cups", type: "volume", toBase: 250, fromBase: 1 / 250 },
+          // Tablespoons in ascending order
+          half_tbsp: {
+            name: "1/2 Tablespoon",
+            type: "volume",
+            toBase: 7.5,
+            fromBase: 1 / 7.5,
+          },
+          three_quarter_tbsp: {
+            name: "3/4 Tablespoon",
+            type: "volume",
+            toBase: 11.25,
+            fromBase: 1 / 11.25,
           },
           tbsp: {
             name: "Tablespoons",
             type: "volume",
-            toBase: 14.787,
-            fromBase: 1 / 14.787,
+            toBase: 15,
+            fromBase: 1 / 15,
+          },
+          // Teaspoons in ascending order
+          quarter_tsp: {
+            name: "1/4 Teaspoon",
+            type: "volume",
+            toBase: 1.25,
+            fromBase: 1 / 1.25,
+          },
+          third_tsp: {
+            name: "1/3 Teaspoon",
+            type: "volume",
+            toBase: 1.67,
+            fromBase: 1 / 1.67,
+          },
+          half_tsp: {
+            name: "1/2 Teaspoon",
+            type: "volume",
+            toBase: 2.5,
+            fromBase: 1 / 2.5,
+          },
+          two_third_tsp: {
+            name: "2/3 Teaspoon",
+            type: "volume",
+            toBase: 3.33,
+            fromBase: 1 / 3.33,
+          },
+          three_quarter_tsp: {
+            name: "3/4 Teaspoon",
+            type: "volume",
+            toBase: 3.75,
+            fromBase: 1 / 3.75,
           },
           tsp: {
             name: "Teaspoons",
             type: "volume",
-            toBase: 4.929,
-            fromBase: 1 / 4.929,
+            toBase: 5,
+            fromBase: 1 / 5,
           },
+          // Other units
           floz: {
             name: "Fluid Ounces",
             type: "volume",
-            toBase: 29.5735,
-            fromBase: 1 / 29.5735,
+            toBase: 30,
+            fromBase: 1 / 30,
           },
           ml: { name: "Milliliters", type: "volume", toBase: 1, fromBase: 1 },
+          half_L: {
+            name: "1/2 Liter",
+            type: "volume",
+            toBase: 500,
+            fromBase: 1 / 500,
+          },
+          L: {
+            name: "Liters",
+            type: "volume",
+            toBase: 1000,
+            fromBase: 1 / 1000,
+          },
+          half_pint: {
+            name: "1/2 Pint",
+            type: "volume",
+            toBase: 237,
+            fromBase: 1 / 237,
+          },
+          pint: {
+            name: "Pints",
+            type: "volume",
+            toBase: 474,
+            fromBase: 1 / 474,
+          },
+          half_quart: {
+            name: "1/2 Quart",
+            type: "volume",
+            toBase: 473,
+            fromBase: 1 / 473,
+          },
+          quart: {
+            name: "Quarts",
+            type: "volume",
+            toBase: 946,
+            fromBase: 1 / 946,
+          },
+          gallon: {
+            name: "Gallons",
+            type: "volume",
+            toBase: 3784,
+            fromBase: 1 / 3784,
+          },
+        };
+
+        // Measurement conversion factors (base unit: ml for volume, grams for weight)
+        const measureUnits = {
+          // Cups in ascending order
+          quarter_cup: {
+            name: "1/4 Cup",
+            type: "volume",
+            toBase: 62.5,
+            fromBase: 1 / 62.5,
+          },
+          third_cup: {
+            name: "1/3 Cup",
+            type: "volume",
+            toBase: 83.33,
+            fromBase: 1 / 83.33,
+          },
+          half_cup: {
+            name: "1/2 Cup",
+            type: "volume",
+            toBase: 125,
+            fromBase: 1 / 125,
+          },
+          two_third_cup: {
+            name: "2/3 Cup",
+            type: "volume",
+            toBase: 166.67,
+            fromBase: 1 / 166.67,
+          },
+          three_quarter_cup: {
+            name: "3/4 Cup",
+            type: "volume",
+            toBase: 187.5,
+            fromBase: 1 / 187.5,
+          },
+          cup: {
+            name: "Cups",
+            type: "volume",
+            toBase: 250,
+            fromBase: 1 / 250,
+          },
+          // Tablespoons in ascending order
+          half_tbsp: {
+            name: "1/2 Tablespoon",
+            type: "volume",
+            toBase: 7.5,
+            fromBase: 1 / 7.5,
+          },
+          three_quarter_tbsp: {
+            name: "3/4 Tablespoon",
+            type: "volume",
+            toBase: 11.25,
+            fromBase: 1 / 11.25,
+          },
+          tbsp: {
+            name: "Tablespoons",
+            type: "volume",
+            toBase: 15,
+            fromBase: 1 / 15,
+          },
+          // Teaspoons in ascending order
+          quarter_tsp: {
+            name: "1/4 Teaspoon",
+            type: "volume",
+            toBase: 1.25,
+            fromBase: 1 / 1.25,
+          },
+          third_tsp: {
+            name: "1/3 Teaspoon",
+            type: "volume",
+            toBase: 1.67,
+            fromBase: 1 / 1.67,
+          },
+          half_tsp: {
+            name: "1/2 Teaspoon",
+            type: "volume",
+            toBase: 2.5,
+            fromBase: 1 / 2.5,
+          },
+          two_third_tsp: {
+            name: "2/3 Teaspoon",
+            type: "volume",
+            toBase: 3.33,
+            fromBase: 1 / 3.33,
+          },
+          three_quarter_tsp: {
+            name: "3/4 Teaspoon",
+            type: "volume",
+            toBase: 3.75,
+            fromBase: 1 / 3.75,
+          },
+          tsp: {
+            name: "Teaspoons",
+            type: "volume",
+            toBase: 5,
+            fromBase: 1 / 5,
+          },
+          // Other volume units
+          floz: {
+            name: "Fluid Ounces",
+            type: "volume",
+            toBase: 30,
+            fromBase: 1 / 30,
+          },
+          ml: { name: "Milliliters", type: "volume", toBase: 1, fromBase: 1 },
+          // Weight units
+          g: { name: "Grams", type: "weight", toBase: 1, fromBase: 1 },
           oz: {
             name: "Ounces (weight)",
             type: "weight",
-            toBase: 28.3495,
-            fromBase: 1 / 28.3495,
+            toBase: 28.3,
+            fromBase: 1 / 28.3,
           },
-          g: { name: "Grams", type: "weight", toBase: 1, fromBase: 1 },
           lb: {
             name: "Pounds",
             type: "weight",
-            toBase: 453.592,
-            fromBase: 1 / 453.592,
+            toBase: 453.6,
+            fromBase: 1 / 453.6,
           },
           kg: {
             name: "Kilograms",
@@ -3357,6 +3623,112 @@
             toBase: 1000,
             fromBase: 1 / 1000,
           },
+        };
+
+        // Custom nested dropdown component
+        const NestedDropdown = ({
+          value,
+          onChange,
+          units,
+          dropdownId,
+          label,
+        }) => {
+          const categories = {
+            Cups: Object.entries(units).filter(([key]) => key.includes("cup")),
+            Tablespoons: Object.entries(units).filter(([key]) =>
+              key.includes("tbsp"),
+            ),
+            Teaspoons: Object.entries(units).filter(([key]) =>
+              key.includes("tsp"),
+            ),
+            Other: Object.entries(units).filter(
+              ([key]) =>
+                !key.includes("cup") &&
+                !key.includes("tbsp") &&
+                !key.includes("tsp"),
+            ),
+          };
+
+          const selectedLabel = units[value]?.name || "Select...";
+          const isOpen = openDropdown === dropdownId;
+
+          return (
+            <div className="relative z-40">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenDropdown(isOpen ? null : dropdownId);
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm font-medium text-left flex justify-between items-center gap-2"
+              >
+                <span className="truncate flex-1">{selectedLabel}</span>
+                {units[value]?.type && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${units[value].type === "volume" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"}`}
+                  >
+                    {units[value].type === "volume" ? "Vol" : "Wgt"}
+                  </span>
+                )}
+                <i
+                  className={`fas fa-chevron-down transition-transform ${isOpen ? "rotate-180" : ""}`}
+                ></i>
+              </button>
+              {isOpen && (
+                <div
+                  className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow-lg"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {Object.entries(categories).map(
+                    ([categoryName, items]) =>
+                      items.length > 0 && (
+                        <div key={categoryName}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedCategory((prev) => ({
+                                ...prev,
+                                [dropdownId]:
+                                  prev[dropdownId] === categoryName
+                                    ? null
+                                    : categoryName,
+                              }));
+                            }}
+                            className="w-full px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex justify-between items-center border-b border-gray-100 dark:border-gray-600"
+                          >
+                            <span>{categoryName}</span>
+                            <i
+                              className={`fas fa-chevron-right transition-transform text-xs ${expandedCategory[dropdownId] === categoryName ? "rotate-90" : ""}`}
+                            ></i>
+                          </button>
+                          {expandedCategory[dropdownId] === categoryName && (
+                            <div>
+                              {items.map(([key, unit]) => (
+                                <button
+                                  key={key}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onChange(key);
+                                    setOpenDropdown(null);
+                                    setExpandedCategory((prev) => ({
+                                      ...prev,
+                                      [dropdownId]: null,
+                                    }));
+                                  }}
+                                  className="w-full px-6 sm:px-8 py-2 text-left text-xs sm:text-sm text-gray-900 dark:text-white hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400"
+                                >
+                                  {unit.name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ),
+                  )}
+                </div>
+              )}
+            </div>
+          );
         };
 
         const convertLiquid = useCallback(() => {
@@ -3390,6 +3762,8 @@
               : result.toFixed(3);
         }, [measureValue, measureFromUnit, measureToUnit]);
 
+        // History is now only tracked when the Convert button is clicked, not on value changes
+
         const convertTemp = useCallback(() => {
           const value = parseFloat(tempValue);
           if (isNaN(value)) return "---";
@@ -3408,18 +3782,37 @@
 
         // Common conversions reference data
         const commonConversions = [
-          { label: "1 cup", values: "8 fl oz | 240 ml | 16 tbsp" },
-          { label: "1/2 cup", values: "4 fl oz | 118 ml | 8 tbsp" },
-          { label: "1/4 cup", values: "2 fl oz | 59 ml | 4 tbsp" },
-          { label: "1 tbsp", values: "3 tsp | 15 ml | 0.5 fl oz" },
-          { label: "1 tsp", values: "5 ml | 0.17 fl oz" },
-          { label: "1 fl oz", values: "30 ml | 2 tbsp" },
-          { label: "1 pint", values: "2 cups | 16 fl oz | 473 ml" },
+          { label: "1 cup (liquid)", values: "8 fl oz | 237 ml" },
+          { label: "3/4 cup (liquid)", values: "6 fl oz | 178 ml" },
+          { label: "2/3 cup (liquid)", values: "5 fl oz | 158 ml" },
+          { label: "1/2 cup (liquid)", values: "4 fl oz | 118 ml" },
+          { label: "1/3 cup (liquid)", values: "2.6 fl oz | 79 ml" },
+          { label: "1/4 cup (liquid)", values: "2 fl oz | 59 ml" },
+          { label: "3 teaspoons", values: "1 tablespoon" },
+          { label: "2 tablespoons", values: "1/8 cup | 1 fl oz | 30 ml" },
+          { label: "4 tablespoons", values: "1/4 cup | 2 fl oz | 60 ml" },
+          { label: "5 1/3 tablespoons", values: "1/3 cup | 2.6 fl oz | 79 ml" },
+          { label: "8 tablespoons", values: "1/2 cup | 4 oz | 118 ml" },
+          { label: "12 tablespoons", values: "3/4 cup | 6 oz | 178 ml" },
+          { label: "16 tablespoons", values: "1 cup | 8 oz | 237 ml" },
+          { label: "1 tablespoon", values: "3 teaspoons | 15 ml" },
+          { label: "1 teaspoon", values: "5 ml" },
+          { label: "1 pint", values: "2 cups | 16 fl oz | 474 ml" },
+          { label: "1/2 pint", values: "1 cup | 8 fl oz | 237 ml" },
           { label: "1 quart", values: "4 cups | 32 fl oz | 946 ml" },
-          { label: "1 gallon", values: "16 cups | 128 fl oz | 3.78 L" },
-          { label: "1 oz (weight)", values: "28 g | 0.06 lb" },
-          { label: "1 lb", values: "454 g | 16 oz" },
+          { label: "1/2 quart", values: "2 cups | 16 fl oz | 473 ml" },
+          { label: "1 gallon", values: "16 cups | 128 fl oz | 3.784 liters" },
+          { label: "1 liter", values: "4.23 cups" },
+          { label: "1/2 liter", values: "2.1 cups | 500 ml" },
+          { label: "1/2 ounce", values: "14.3 grams" },
+          { label: "1 ounce", values: "28.3 grams" },
+          { label: "1 pound", values: "16 ounces | 453.6 grams" },
+          { label: "2 pounds", values: "32 ounces | 907 grams" },
           { label: "1 kg", values: "2.2 lb | 1000 g" },
+          {
+            label: "1 stick butter",
+            values: "8 tablespoons | 1/2 cup | 113 grams",
+          },
         ];
 
         const temperatureReference = [
@@ -3535,53 +3928,102 @@
                             placeholder="Enter value"
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              From
-                            </label>
-                            <select
-                              value={liquidFromUnit}
-                              onChange={(e) =>
-                                setLiquidFromUnit(e.target.value)
-                              }
-                              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm font-medium"
-                            >
-                              {Object.entries(liquidUnits).map(
-                                ([key, unit]) => (
-                                  <option key={key} value={key}>
-                                    {unit.name}
-                                  </option>
-                                ),
-                              )}
-                            </select>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                From
+                              </label>
+                              <NestedDropdown
+                                value={liquidFromUnit}
+                                onChange={setLiquidFromUnit}
+                                units={liquidUnits}
+                                dropdownId="liquidFrom"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                To
+                              </label>
+                              <NestedDropdown
+                                value={liquidToUnit}
+                                onChange={setLiquidToUnit}
+                                units={liquidUnits}
+                                dropdownId="liquidTo"
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              To
-                            </label>
-                            <select
-                              value={liquidToUnit}
-                              onChange={(e) => setLiquidToUnit(e.target.value)}
-                              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm font-medium"
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                const temp = liquidFromUnit;
+                                setLiquidFromUnit(liquidToUnit);
+                                setLiquidToUnit(temp);
+                              }}
+                              className="flex-1 py-2 px-3 text-xs sm:text-sm bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors font-medium flex items-center justify-center gap-2"
+                              title="Swap units"
                             >
-                              {Object.entries(liquidUnits).map(
-                                ([key, unit]) => (
-                                  <option key={key} value={key}>
-                                    {unit.name}
-                                  </option>
-                                ),
-                              )}
-                            </select>
+                              <i className="fas fa-arrow-right-arrow-left"></i>
+                              <span>Swap</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (liquidValue) {
+                                  const result = convertLiquid();
+                                  if (result !== "---" && result !== "N/A") {
+                                    addToHistory(
+                                      `${liquidValue} ${liquidUnits[liquidFromUnit].name} = ${result} ${liquidUnits[liquidToUnit].name}`,
+                                      result,
+                                    );
+                                  }
+                                }
+                              }}
+                              className="flex-1 py-2 px-3 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                            >
+                              Convert
+                            </button>
                           </div>
                         </div>
                       </div>
-                      <div className="mt-4 sm:mt-6 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-4 sm:p-5 border-2 border-blue-100 dark:border-blue-900">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Result:
-                          </span>
-                          <span className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 break-all">
+                      <div className="mt-4 sm:mt-6 bg-gradient-to-r from-blue-50 via-blue-50 to-cyan-50 dark:from-blue-900/30 dark:via-blue-900/20 dark:to-cyan-900/30 rounded-xl p-4 sm:p-5 border-2 border-blue-200 dark:border-blue-700 shadow-lg hover:shadow-xl transition-shadow">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Result:
+                            </span>
+                            <div className="flex gap-2">
+                              {liquidValue && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      copyToClipboard(
+                                        `${convertLiquid()} ${liquidUnits[liquidToUnit].name}`,
+                                      )
+                                    }
+                                    className="px-2 py-1 text-xs bg-blue-200 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded hover:bg-blue-300 dark:hover:bg-blue-900/60 transition-colors"
+                                    title="Copy result"
+                                  >
+                                    <i
+                                      className={`fas ${copiedResult ? "fa-check" : "fa-copy"}`}
+                                    ></i>
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      const resultText = `${convertLiquid()} ${liquidUnits[liquidToUnit].name}`;
+                                      toggleFavorite(
+                                        `${liquidValue} ${liquidUnits[liquidFromUnit].name} = ${resultText}`,
+                                      );
+                                    }}
+                                    className={`px-2 py-1 text-xs rounded transition-colors ${favorites.some((f) => f.label.includes(liquidValue && liquidUnits[liquidFromUnit].name)) ? "bg-yellow-200 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300" : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"}`}
+                                    title="Add to favorites"
+                                  >
+                                    <i className="fas fa-star"></i>
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-2xl sm:text-4xl font-bold text-blue-700 dark:text-blue-300 break-all drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
                             {liquidValue
                               ? `${convertLiquid()} ${liquidUnits[liquidToUnit].name}`
                               : "---"}
@@ -3590,31 +4032,82 @@
                       </div>
                     </div>
 
-                    {/* Common Liquid Conversions */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-lg border border-purple-100 dark:border-purple-900">
-                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
-                        <i className="fas fa-list text-purple-500"></i>
-                        <span className="hidden xs:inline">
-                          Common Liquid Conversions
-                        </span>
-                        <span className="xs:hidden">Common Conversions</span>
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
-                        {commonConversions.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3 border border-orange-100 dark:border-orange-900"
-                          >
-                            <div className="font-bold text-gray-700 dark:text-gray-400 text-xs sm:text-sm">
-                              {item.label}
-                            </div>
-                            <div className="text-xs text-gray-700 dark:text-gray-200 mt-0.5">
-                              {item.values}
-                            </div>
-                          </div>
-                        ))}
+                    {/* Quick Access - Favorites */}
+                    {favorites.length > 0 && (
+                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-lg border border-yellow-100 dark:border-yellow-900">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+                          <i className="fas fa-star text-yellow-500"></i>
+                          Favorite Conversions
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {favorites.map((fav, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                const parts = fav.label.split(" = ");
+                                const fromParts = parts[0].trim().split(" ");
+                                const fromValue = fromParts[0];
+                                // Quick apply logic could be added here
+                              }}
+                              className="text-left p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 border border-yellow-100 dark:border-yellow-900/30 transition-colors"
+                            >
+                              <div className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                {fav.label}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {/* Conversion History */}
+                    {conversionHistory.length > 0 && (
+                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-lg border border-green-100 dark:border-green-900">
+                        <button
+                          onClick={() => setShowHistory(!showHistory)}
+                          className="w-full flex items-center justify-between text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                        >
+                          <span className="flex items-center gap-2">
+                            <i className="fas fa-history text-green-500"></i>
+                            Recent Conversions
+                          </span>
+                          <i
+                            className={`fas fa-chevron-down transition-transform ${showHistory ? "rotate-180" : ""}`}
+                          ></i>
+                        </button>
+                        {showHistory && (
+                          <>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                              {conversionHistory.slice(0, 8).map((hist) => (
+                                <div
+                                  key={hist.id}
+                                  className="flex items-start justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-100 dark:border-green-900/30 transition-colors text-xs sm:text-sm"
+                                >
+                                  <div className="font-semibold text-gray-900 dark:text-white flex-1 truncate">
+                                    {hist.label}
+                                  </div>
+                                  <button
+                                    onClick={() => removeFromHistory(hist.id)}
+                                    className="ml-2 px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors flex-shrink-0"
+                                    title="Delete this conversion"
+                                  >
+                                    <i className="fas fa-times"></i>
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                            <button
+                              onClick={clearAllHistory}
+                              className="w-full py-2 px-3 text-xs sm:text-sm bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-medium"
+                              title="Clear all conversion history"
+                            >
+                              <i className="fas fa-trash mr-2"></i>
+                              Clear All
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -3642,53 +4135,102 @@
                             placeholder="Enter value"
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              From
-                            </label>
-                            <select
-                              value={measureFromUnit}
-                              onChange={(e) =>
-                                setMeasureFromUnit(e.target.value)
-                              }
-                              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm font-medium"
-                            >
-                              {Object.entries(measureUnits).map(
-                                ([key, unit]) => (
-                                  <option key={key} value={key}>
-                                    {unit.name}
-                                  </option>
-                                ),
-                              )}
-                            </select>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                From
+                              </label>
+                              <NestedDropdown
+                                value={measureFromUnit}
+                                onChange={setMeasureFromUnit}
+                                units={measureUnits}
+                                dropdownId="measureFrom"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                To
+                              </label>
+                              <NestedDropdown
+                                value={measureToUnit}
+                                onChange={setMeasureToUnit}
+                                units={measureUnits}
+                                dropdownId="measureTo"
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              To
-                            </label>
-                            <select
-                              value={measureToUnit}
-                              onChange={(e) => setMeasureToUnit(e.target.value)}
-                              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm font-medium"
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                const temp = measureFromUnit;
+                                setMeasureFromUnit(measureToUnit);
+                                setMeasureToUnit(temp);
+                              }}
+                              className="flex-1 py-2 px-3 text-xs sm:text-sm bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors font-medium flex items-center justify-center gap-2"
+                              title="Swap units"
                             >
-                              {Object.entries(measureUnits).map(
-                                ([key, unit]) => (
-                                  <option key={key} value={key}>
-                                    {unit.name}
-                                  </option>
-                                ),
-                              )}
-                            </select>
+                              <i className="fas fa-arrow-right-arrow-left"></i>
+                              <span>Swap</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (measureValue) {
+                                  const result = convertMeasure();
+                                  if (result !== "---" && result !== "N/A") {
+                                    addToHistory(
+                                      `${measureValue} ${measureUnits[measureFromUnit].name} = ${result} ${measureUnits[measureToUnit].name}`,
+                                      result,
+                                    );
+                                  }
+                                }
+                              }}
+                              className="flex-1 py-2 px-3 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                            >
+                              Convert
+                            </button>
                           </div>
                         </div>
                       </div>
-                      <div className="mt-4 sm:mt-6 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-4 sm:p-5 border-2 border-blue-300 dark:border-blue-700">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Result:
-                          </span>
-                          <span className="text-xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 break-all">
+                      <div className="mt-4 sm:mt-6 bg-gradient-to-r from-blue-50 via-blue-50 to-cyan-50 dark:from-blue-900/30 dark:via-blue-900/20 dark:to-cyan-900/30 rounded-xl p-4 sm:p-5 border-2 border-blue-200 dark:border-blue-700 shadow-lg hover:shadow-xl transition-shadow">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Result:
+                            </span>
+                            <div className="flex gap-2">
+                              {measureValue && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      copyToClipboard(
+                                        `${convertMeasure()} ${measureUnits[measureToUnit].name}`,
+                                      )
+                                    }
+                                    className="px-2 py-1 text-xs bg-blue-200 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded hover:bg-blue-300 dark:hover:bg-blue-900/60 transition-colors"
+                                    title="Copy result"
+                                  >
+                                    <i
+                                      className={`fas ${copiedResult ? "fa-check" : "fa-copy"}`}
+                                    ></i>
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      const resultText = `${convertMeasure()} ${measureUnits[measureToUnit].name}`;
+                                      toggleFavorite(
+                                        `${measureValue} ${measureUnits[measureFromUnit].name} = ${resultText}`,
+                                      );
+                                    }}
+                                    className={`px-2 py-1 text-xs rounded transition-colors ${favorites.some((f) => f.label.includes(measureValue && measureUnits[measureFromUnit].name)) ? "bg-yellow-200 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300" : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"}`}
+                                    title="Add to favorites"
+                                  >
+                                    <i className="fas fa-star"></i>
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-2xl sm:text-4xl font-bold text-blue-700 dark:text-blue-300 break-all drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
                             {measureValue
                               ? `${convertMeasure()} ${measureUnits[measureToUnit].name}`
                               : "---"}
@@ -3705,62 +4247,62 @@
                     </div>
 
                     {/* Weight & Volume Reference */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 shadow-lg border border-purple-100 dark:border-purple-900">
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-lg border border-purple-100 dark:border-purple-900">
+                        <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2 text-sm sm:text-base">
                           <i className="fas fa-flask text-purple-500"></i>
                           Volume Equivalents
                         </h4>
-                        <div className="space-y-2 text-xs sm:text-sm">
-                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                             <span className="text-gray-600 dark:text-gray-400">
                               1 cup
                             </span>
                             <span className="font-semibold text-gray-900 dark:text-white">
-                              236.6 ml
+                              250 ml
                             </span>
                           </div>
-                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                          <div className="flex justify-between py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                             <span className="text-gray-600 dark:text-gray-400">
                               1 tbsp
                             </span>
                             <span className="font-semibold text-gray-900 dark:text-white">
-                              14.8 ml
+                              15 ml
                             </span>
                           </div>
-                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                          <div className="flex justify-between py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                             <span className="text-gray-600 dark:text-gray-400">
                               1 tsp
                             </span>
                             <span className="font-semibold text-gray-900 dark:text-white">
-                              4.9 ml
+                              5 ml
                             </span>
                           </div>
-                          <div className="flex justify-between py-2">
+                          <div className="flex justify-between py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                             <span className="text-gray-600 dark:text-gray-400">
                               1 fl oz
                             </span>
                             <span className="font-semibold text-gray-900 dark:text-white">
-                              29.6 ml
+                              30 ml
                             </span>
                           </div>
                         </div>
                       </div>
-                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 shadow-lg border border-orange-100 dark:border-orange-900">
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                      <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-lg border border-orange-100 dark:border-orange-900">
+                        <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2 text-sm sm:text-base">
                           <i className="fas fa-weight text-orange-500"></i>
                           Weight Equivalents
                         </h4>
-                        <div className="space-y-2 text-xs sm:text-sm">
-                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                             <span className="text-gray-600 dark:text-gray-400">
                               1 oz
                             </span>
                             <span className="font-semibold text-gray-900 dark:text-white">
-                              28.35 g
+                              28.3 g
                             </span>
                           </div>
-                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                          <div className="flex justify-between py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                             <span className="text-gray-600 dark:text-gray-400">
                               1 lb
                             </span>
@@ -3768,7 +4310,7 @@
                               453.6 g
                             </span>
                           </div>
-                          <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                          <div className="flex justify-between py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                             <span className="text-gray-600 dark:text-gray-400">
                               1 kg
                             </span>
@@ -3776,7 +4318,7 @@
                               2.2 lb
                             </span>
                           </div>
-                          <div className="flex justify-between py-2">
+                          <div className="flex justify-between py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                             <span className="text-gray-600 dark:text-gray-400">
                               100 g
                             </span>
@@ -8861,27 +9403,6 @@
                   onClick={() =>
                     document.dispatchEvent(
                       new CustomEvent("applyQuickFilter", {
-                        detail: { favorites: true },
-                      }),
-                    )
-                  }
-                  className="relative px-4 py-2 text-white dark:text-white rounded-lg transition-colors text-sm font-medium flex items-center bg-green-600 justify-center gap-2 shadow-lg hover:shadow-xl overflow-hidden group"
-                  style={{
-                    background: "rgba(22, 255, 1, 0.5)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(22, 163, 74, 0.2)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(22, 255, 1, 0.5)";
-                  }}
-                >
-                  <i className="fas fa-star text-lg"></i>Favorites
-                </button>
-                <button
-                  onClick={() =>
-                    document.dispatchEvent(
-                      new CustomEvent("applyQuickFilter", {
                         detail: { subCategory: "Smoothies" },
                       }),
                     )
@@ -8919,6 +9440,27 @@
                   }}
                 >
                   <i className="fas fa-champagne-glasses text-lg"></i>Appetizers
+                </button>
+                <button
+                  onClick={() =>
+                    document.dispatchEvent(
+                      new CustomEvent("applyQuickFilter", {
+                        detail: { type: "Soups/Stews" },
+                      }),
+                    )
+                  }
+                  className="relative px-4 py-2 text-white dark:text-white rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-xl overflow-hidden group"
+                  style={{
+                    background: "rgba(22, 255, 1, 0.5)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(22, 163, 74, 0.2)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(22, 255, 1, 0.5)";
+                  }}
+                >
+                  <i className="fas fa-bowl-hot text-lg"></i>Soups/Stews
                 </button>
                 <button
                   onClick={() =>
@@ -9671,7 +10213,7 @@
             )}
             {/* QUICK FILTERS */}
             <div className="mb-4 sm:mb-6 flex flex-wrap gap-2 sm:gap-3 lg:gap-5 items-center bg-gray-50 dark:bg-gray-800 p-2 sm:p-3 rounded-lg shadow-sm">
-              <span className="text-xs sm:text-sm font-medium mr-0 sm:mr-1 hidden lg:inline text-gray-700 dark:text-gray-300">
+              <span className="text-xs sm:text-sm font-medium mr-0 sm:mr-1 hidden lg:inline text-gray-700 dark:text-gray-300 whitespace-nowrap">
                 Filter:
               </span>
               {/* Sort Dropdown */}
@@ -9738,33 +10280,18 @@
               </select>
 
               {/* Can Make Now Checkbox */}
-              <label className="flex items-center gap-2 px-2 py-1 sm:py-2 text-xs sm:text-sm cursor-pointer hover:bg-white dark:hover:bg-green-700 rounded transition">
+              <label className="flex items-center gap-2 px-2.5 py-1.5 sm:py-2 text-xs sm:text-sm cursor-pointer bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-300 dark:border-gray-600 transition whitespace-nowrap">
                 <input
                   type="checkbox"
                   name="canMakeNow"
                   checked={filters.canMakeNow}
                   onChange={handleFilterChange}
-                  className="w-4 h-4 cursor-pointer"
+                  className="w-4 h-4 cursor-pointer accent-green-500"
                   title="Show only recipes you can make with current pantry items"
                 />
                 <span className="text-gray-700 dark:text-gray-300 font-medium">
                   Can Make Now
                 </span>
-              </label>
-
-              <label
-                className="flex items-center gap-1 px-2 py-1 cursor-pointer text-xs sm:text-sm whitespace-nowrap ml-1 sm:ml-2 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-green-700 rounded transition"
-                title="Favorites Only"
-              >
-                <input
-                  type="checkbox"
-                  name="favorites"
-                  checked={filters.favorites}
-                  onChange={handleFilterChange}
-                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded text-green-500 focus:ring-offset-0 focus:ring-green-500 border-gray-300 dark:border-gray-600"
-                />
-                <i className="fas fa-star text-yellow-400"></i>{" "}
-                <span className="hidden sm:inline">Favs</span>
               </label>
 
               {/* Advanced Filters Toggle */}
@@ -9899,6 +10426,21 @@
                     <option value="1">⭐ (1 star)</option>
                     <option value="0">No rating</option>
                   </select>
+                  {/* Favorites Filter - moved from quick filters */}
+                  <label
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 sm:py-2 cursor-pointer text-xs sm:text-sm whitespace-nowrap text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-300 dark:border-gray-600 transition"
+                    title="Favorites Only"
+                  >
+                    <input
+                      type="checkbox"
+                      name="favorites"
+                      checked={filters.favorites}
+                      onChange={handleFilterChange}
+                      className="w-4 h-4 cursor-pointer accent-green-500"
+                    />
+                    <i className="fas fa-star text-yellow-400"></i>
+                    <span className="hidden sm:inline">Favs</span>
+                  </label>
                 </div>
               </div>
             </div>

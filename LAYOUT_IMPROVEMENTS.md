@@ -143,7 +143,7 @@ This document outlines potential layout enhancements and UI/UX improvements for 
 ### 1️⃣3️⃣ Collections UI
 
 - [ ] Dedicated collections dashboard/view
-- [x] Collection cards with recipe count
+- [ ] Collection cards with recipe count
 - [ ] Quick access to collection photos
 - [ ] Collection organization (drag-to-reorder)
 - [ ] Collection statistics

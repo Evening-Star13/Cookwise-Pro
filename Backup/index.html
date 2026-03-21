@@ -10,12 +10,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
-      xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.0/babel.min.js"></script>
@@ -123,8 +118,9 @@
         border-radius: 50%;
         width: 2.5rem;
         height: 2.5rem;
-        animation: spin 0.7s linear infinite;
+        animation: fancySpin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
         margin: 2rem auto;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
       }
       @keyframes spin {
         0% {
@@ -132,6 +128,27 @@
         }
         100% {
           transform: rotate(360deg);
+        }
+      }
+      @keyframes fancySpin {
+        0% {
+          transform: rotate(0deg) scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: rotate(180deg) scale(1.1);
+        }
+        100% {
+          transform: rotate(360deg) scale(1);
+          opacity: 1;
+        }
+      }
+      .spinner {
+        animation: fancySpin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite !important;
+      }
+      @media (max-width: 768px) {
+        #loading-screen {
+          background-color: #000000 !important;
         }
       }
       ::-webkit-scrollbar {
@@ -679,6 +696,93 @@
       .shopping-list-border {
         border: 1px solid #22c55e;
       }
+
+      /* Light Mode Color Theme */
+      html:not(.dark) body,
+      html:not(.dark) .bg-gray-100 { background-color: #ECEFFE !important; }
+      html:not(.dark) .bg-gray-50 { background-color: #F4F5FF !important; }
+      html:not(.dark) .bg-white { background-color: #FFFFFF !important; }
+      html:not(.dark) .border-gray-200 { border-color: #D8DCFC !important; }
+      html:not(.dark) .border-gray-100 { border-color: #E4E6FF !important; }
+
+      /* Light Mode: Tailwind green → indigo */
+      html:not(.dark) .bg-green-500 { background-color: #6366F1 !important; }
+      html:not(.dark) .bg-green-600 { background-color: #4F46E5 !important; }
+      html:not(.dark) .bg-green-700 { background-color: #4338CA !important; }
+      html:not(.dark) .bg-green-400 { background-color: #818CF8 !important; }
+      html:not(.dark) .bg-green-300 { background-color: #A5B4FC !important; }
+      html:not(.dark) .bg-green-100 { background-color: #E0E7FF !important; }
+      html:not(.dark) .bg-green-50 { background-color: #EEF2FF !important; }
+      html:not(.dark) .text-green-800 { color: #3730A3 !important; }
+      html:not(.dark) .text-green-700 { color: #4338CA !important; }
+      html:not(.dark) .text-green-600 { color: #4F46E5 !important; }
+      html:not(.dark) .text-green-500 { color: #6366F1 !important; }
+      html:not(.dark) .text-green-400 { color: #818CF8 !important; }
+      html:not(.dark) .text-green-300 { color: #A5B4FC !important; }
+      html:not(.dark) .border-green-600 { border-color: #4F46E5 !important; }
+      html:not(.dark) .border-green-500 { border-color: #6366F1 !important; }
+      html:not(.dark) .border-green-400 { border-color: #818CF8 !important; }
+      html:not(.dark) .border-green-300 { border-color: #A5B4FC !important; }
+      html:not(.dark) .border-green-200 { border-color: #C7D2FE !important; }
+      html:not(.dark) .hover\:bg-green-700:hover { background-color: #4338CA !important; }
+      html:not(.dark) .hover\:bg-green-600:hover { background-color: #4F46E5 !important; }
+      html:not(.dark) .hover\:bg-green-500:hover { background-color: #6366F1 !important; }
+      html:not(.dark) .hover\:bg-green-100:hover { background-color: #E0E7FF !important; }
+      html:not(.dark) .hover\:text-green-600:hover { color: #4F46E5 !important; }
+      html:not(.dark) .hover\:text-green-500:hover { color: #6366F1 !important; }
+      html:not(.dark) .hover\:border-green-500:hover { border-color: #6366F1 !important; }
+      html:not(.dark) .focus\:ring-green-500 { --tw-ring-color: #6366F1 !important; }
+      html:not(.dark) .focus\:ring-green-400 { --tw-ring-color: #818CF8 !important; }
+      html:not(.dark) .ring-green-500 { --tw-ring-color: #6366F1 !important; }
+      html:not(.dark) .from-green-600 { --tw-gradient-from: #4F46E5 !important; }
+      html:not(.dark) .from-green-500 { --tw-gradient-from: #6366F1 !important; }
+      html:not(.dark) .from-green-400 { --tw-gradient-from: #818CF8 !important; }
+      html:not(.dark) .from-green-50 { --tw-gradient-from: #EEF2FF !important; }
+      html:not(.dark) .to-green-600 { --tw-gradient-to: #4F46E5 !important; }
+      html:not(.dark) .to-green-500 { --tw-gradient-to: #6366F1 !important; }
+      html:not(.dark) .via-green-500 { --tw-gradient-via: #6366F1 !important; }
+      html:not(.dark) .via-blue-50 { --tw-gradient-via: #F0F0FF !important; }
+
+      /* Light Mode: Tailwind emerald → indigo */
+      html:not(.dark) .to-emerald-600 { --tw-gradient-to: #4F46E5 !important; }
+      html:not(.dark) .to-emerald-500 { --tw-gradient-to: #6366F1 !important; }
+      html:not(.dark) .to-emerald-100 { --tw-gradient-to: #E0E7FF !important; }
+      html:not(.dark) .hover\:to-emerald-700:hover { --tw-gradient-to: #4338CA !important; }
+      html:not(.dark) .from-emerald-500 { --tw-gradient-from: #6366F1 !important; }
+
+      /* Light Mode: Arbitrary hex green values → indigo */
+      html:not(.dark) .text-\[\#22c55e\] { color: #6366F1 !important; }
+      html:not(.dark) .bg-\[\#22C55E\] { background-color: #6366F1 !important; }
+      html:not(.dark) .hover\:bg-\[\#16a34a\]:hover { background-color: #4F46E5 !important; }
+      html:not(.dark) .border-\[\#22c55e50\] { border-color: rgba(99,102,241,0.31) !important; }
+      html:not(.dark) .group:hover .group-hover\:text-\[\#22c55e\] { color: #6366F1 !important; }
+
+      /* Light Mode: Custom CSS class green overrides */
+      html:not(.dark) .spinner { border-top-color: #6366F1 !important; }
+      html:not(.dark) .conversion-modal-scroll::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.38) !important; }
+      html:not(.dark) .conversion-modal-scroll::-webkit-scrollbar-thumb:hover { background: #6366F1 !important; }
+      html:not(.dark) .filter-select:focus { border-color: #6366F1 !important; box-shadow: 0 0 0 1px #6366F1 !important; }
+      html:not(.dark) .btn-green { background-color: #6366F1 !important; }
+      html:not(.dark) .btn-green:hover:not(:disabled) { background-color: #4F46E5 !important; }
+      html:not(.dark) .tag-item { background-color: #6366F1 !important; }
+      html:not(.dark) .tag-input-container:focus-within { border-color: #6366F1 !important; box-shadow: 0 0 0 2px rgba(99,102,241,0.3) !important; }
+      html:not(.dark) .animated-border-card { border-color: #6366F1 !important; }
+      html:not(.dark) .shopping-list-border { border-color: #6366F1 !important; }
+      html:not(.dark) .recipe-card:hover { box-shadow: 0 16px 48px 0 rgba(99,102,241,0.18), 0 6px 24px 0 rgba(0,0,0,0.16) !important; }
+      html:not(.dark) .ripple:after { background: rgba(99,102,241,0.18) !important; }
+
+      /* Light Mode: Inline style green overrides (Quick Filter buttons) */
+      html:not(.dark) button[style*="16, 185, 129"] { background: #6366F1 !important; background-color: #6366F1 !important; }
+      html:not(.dark) button[style*="5, 150, 105"] { background: #4F46E5 !important; background-color: #4F46E5 !important; }
+      html:not(.dark) button.shadow-lg.overflow-hidden { background: #6366F1 !important; background-color: #6366F1 !important; }
+      html:not(.dark) button.shadow-lg.overflow-hidden:hover { background: #4F46E5 !important; background-color: #4F46E5 !important; }
+
+      /* Light Mode: Arbitrary hex value classes */
+      html:not(.dark) .bg-\[\#22c55e\] { background-color: #6366F1 !important; }
+      html:not(.dark) .bg-\[\#22C55E\] { background-color: #6366F1 !important; }
+      html:not(.dark) .bg-\[\#22c55e36\] { background-color: rgba(99,102,241,0.21) !important; }
+      html:not(.dark) .border-\[\#22c55e36\] { border-color: rgba(99,102,241,0.21) !important; }
+      html:not(.dark) .hover\:bg-\[\#16a34a\]:hover { background-color: #4F46E5 !important; }
     </style>
   </head>
   <body
@@ -7034,6 +7138,8 @@
           usePersistentStorage(STORE_NAMES.COLLECTIONS, [], addToast);
 
         const [isDarkMode, setIsDarkMode] = useState(() => {
+          const saved = localStorage.getItem("cookwise-theme");
+          if (saved !== null) return saved === "dark";
           return (
             typeof window.matchMedia === "function" &&
             window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -7110,12 +7216,7 @@
           } else {
             root.classList.remove("dark");
           }
-
-          const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-          const handleChange = (e) => setIsDarkMode(e.matches);
-          mediaQuery.addEventListener("change", handleChange);
-
-          return () => mediaQuery.removeEventListener("change", handleChange);
+          localStorage.setItem("cookwise-theme", isDarkMode ? "dark" : "light");
         }, [isDarkMode]);
 
         // Global keyboard shortcuts
@@ -7440,7 +7541,7 @@
           addToast,
         ]);
 
-        const bulkExportPDF = useCallback(async () => {
+        const bulkExportMarkdown = useCallback(async () => {
           if (selectedRecipeIds.size === 0) {
             addToast("No recipes selected", "info");
             return;
@@ -7450,30 +7551,10 @@
           );
 
           try {
-            for (const recipe of selectedRecipes) {
-              generateRecipePDF(recipe);
-            }
-            addToast(
-              `Exporting ${selectedRecipeIds.size} recipe${selectedRecipeIds.size !== 1 ? "s" : ""} as PDF`,
-              "success",
-            );
-          } catch (error) {
-            console.error("Error bulk exporting PDF:", error);
-            addToast("Failed to export recipes.", "error");
-          }
-        }, [selectedRecipeIds, recipes, generateRecipePDF, addToast]);
+            const dateStr = new Date().toISOString().split("T")[0];
+            const zip = new JSZip();
 
-        const bulkExportMarkdown = useCallback(() => {
-          if (selectedRecipeIds.size === 0) {
-            addToast("No recipes selected", "info");
-            return;
-          }
-          const selectedRecipes = recipes.filter((r) =>
-            selectedRecipeIds.has(r.id),
-          );
-
-          try {
-            let combinedMarkdown = `# Recipe Collection\n\n**Exported:** ${new Date().toLocaleDateString()}\n**Total Recipes:** ${selectedRecipes.length}\n\n---\n\n`;
+            addToast("Preparing recipes...", "info");
 
             for (const recipe of selectedRecipes) {
               const totalTime =
@@ -7481,100 +7562,118 @@
                 (recipe.cookTime || 0) +
                 (recipe.additionalTime || 0);
 
-              combinedMarkdown += `## ${recipe.name}\n\n`;
+              let markdown = `# ${recipe.name}\n\n`;
 
               if (recipe.description) {
-                combinedMarkdown += `*${recipe.description}*\n\n`;
+                markdown += `*${recipe.description}*\n\n`;
               }
 
               if (recipe.image) {
-                combinedMarkdown += `![${recipe.name}](${recipe.image})\n\n`;
+                markdown += `![${recipe.name}](${recipe.image})\n\n`;
               }
 
-              combinedMarkdown += `### Details\n\n`;
-              combinedMarkdown += `- **Servings:** ${recipe.servings || "N/A"}\n`;
-              if (recipe.type)
-                combinedMarkdown += `- **Type:** ${recipe.type}\n`;
+              // Details section
+              markdown += `## Details\n\n`;
+              markdown += `**Servings:** ${recipe.servings || "N/A"}  •  **Yield:** ${recipe.yield || "N/A"}\n\n`;
               if (recipe.cuisine)
-                combinedMarkdown += `- **Cuisine:** ${recipe.cuisine}\n`;
-              if (recipe.yield)
-                combinedMarkdown += `- **Yield:** ${recipe.yield}\n`;
+                markdown += `**Cuisine:** ${recipe.cuisine}\n\n`;
               if (recipe.rating)
-                combinedMarkdown += `- **Rating:** ${recipe.rating}/5\n`;
-              if (recipe.notes)
-                combinedMarkdown += `- **Notes:** ${recipe.notes}\n`;
-              combinedMarkdown += `\n`;
+                markdown += `**Rating:** ${recipe.rating}/5\n\n`;
+              if (recipe.notes) markdown += `**Notes:** ${recipe.notes}\n\n`;
+              if (recipe.type) markdown += `**Type:** ${recipe.type}\n\n`;
 
-              combinedMarkdown += `### Times\n\n`;
+              // Times section
+              markdown += `## Times\n\n`;
+              const timeParts = [];
               if (recipe.prepTime)
-                combinedMarkdown += `- **Prep:** ${formatMinutesToHoursMinutes(recipe.prepTime)}\n`;
+                timeParts.push(
+                  `**Prep:** ${formatMinutesToHoursMinutes(recipe.prepTime)}`,
+                );
               if (recipe.cookTime)
-                combinedMarkdown += `- **Cook:** ${formatMinutesToHoursMinutes(recipe.cookTime)}\n`;
+                timeParts.push(
+                  `**Cook:** ${formatMinutesToHoursMinutes(recipe.cookTime)}`,
+                );
               if (recipe.additionalTime)
-                combinedMarkdown += `- **Additional:** ${formatMinutesToHoursMinutes(recipe.additionalTime)}\n`;
-              combinedMarkdown += `- **Total:** ${formatMinutesToHoursMinutes(totalTime)}\n\n`;
+                timeParts.push(
+                  `**Additional:** ${formatMinutesToHoursMinutes(recipe.additionalTime)}`,
+                );
+              timeParts.push(
+                `**Total:** ${formatMinutesToHoursMinutes(totalTime)}`,
+              );
+              markdown += `${timeParts.join("  •  ")}\n\n`;
 
-              if (recipe.dietaryTypes && recipe.dietaryTypes.length > 0) {
-                combinedMarkdown += `### Dietary Types\n\n`;
-                recipe.dietaryTypes.forEach((type) => {
-                  combinedMarkdown += `- ${type}\n`;
-                });
-                combinedMarkdown += `\n`;
+              // Combined Dietary Types and Tags
+              const hasDietary =
+                recipe.dietaryTypes && recipe.dietaryTypes.length > 0;
+              const hasTags = recipe.tags && recipe.tags.length > 0;
+              if (hasDietary || hasTags) {
+                const labels = [];
+                if (hasDietary)
+                  labels.push(`**Dietary:** ${recipe.dietaryTypes.join(", ")}`);
+                if (hasTags) labels.push(`**Tags:** ${recipe.tags.join(", ")}`);
+                markdown += `${labels.join("  •  ")}\n\n`;
               }
 
-              if (recipe.tags && recipe.tags.length > 0) {
-                combinedMarkdown += `### Tags\n\n`;
-                recipe.tags.forEach((tag) => {
-                  combinedMarkdown += `- ${tag}\n`;
-                });
-                combinedMarkdown += `\n`;
-              }
+              // Nutrition section
+              markdown += `## Nutrition (per serving)\n\n`;
+              const nutritionParts = [];
+              nutritionParts.push(`**Calories:** ${recipe.calories || "N/A"}`);
+              nutritionParts.push(
+                `**Protein:** ${recipe.protein ? recipe.protein + "g" : "N/A"}`,
+              );
+              nutritionParts.push(
+                `**Carbs:** ${recipe.carbs ? recipe.carbs + "g" : "N/A"}`,
+              );
+              nutritionParts.push(
+                `**Fat:** ${recipe.fat ? recipe.fat + "g" : "N/A"}`,
+              );
+              markdown += `${nutritionParts.join("  •  ")}\n\n`;
 
-              combinedMarkdown += `### Nutrition (per serving)\n\n`;
-              combinedMarkdown += `- **Calories:** ${recipe.calories || "N/A"}\n`;
-              combinedMarkdown += `- **Protein:** ${recipe.protein ? recipe.protein + "g" : "N/A"}\n`;
-              combinedMarkdown += `- **Carbs:** ${recipe.carbs ? recipe.carbs + "g" : "N/A"}\n`;
-              combinedMarkdown += `- **Fat:** ${recipe.fat ? recipe.fat + "g" : "N/A"}\n\n`;
-
+              // Ingredients section
               if (recipe.ingredients && recipe.ingredients.length > 0) {
-                combinedMarkdown += `### Ingredients\n\n`;
+                markdown += `## Ingredients\n\n`;
                 recipe.ingredients.forEach((ing) => {
-                  combinedMarkdown += `- ${ing}\n`;
+                  markdown += `- ${ing}\n`;
                 });
-                combinedMarkdown += `\n`;
+                markdown += `\n`;
               }
 
+              // Directions section
               if (recipe.directions && recipe.directions.length > 0) {
-                combinedMarkdown += `### Directions\n\n`;
+                markdown += `## Directions\n\n`;
                 recipe.directions.forEach((dir, i) => {
-                  combinedMarkdown += `${i + 1}. ${dir}\n\n`;
+                  markdown += `${i + 1}. ${dir}\n\n`;
                 });
               }
 
+              // Tips and Tricks section
               if (recipe.tipsAndTricks && recipe.tipsAndTricks.length > 0) {
-                combinedMarkdown += `### Tips, Tricks & Cooks Notes\n\n`;
+                markdown += `## Tips, Tricks & Cooks Notes\n\n`;
                 recipe.tipsAndTricks.forEach((tip) => {
-                  combinedMarkdown += `- ${tip}\n`;
+                  markdown += `- ${tip}\n`;
                 });
-                combinedMarkdown += `\n`;
+                markdown += `\n`;
               }
 
-              combinedMarkdown += `---\n\n`;
+              // Add file to ZIP
+              const fileName = `${recipe.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${dateStr}.md`;
+              zip.file(fileName, markdown);
             }
 
-            const blob = new Blob([combinedMarkdown], {
-              type: "text/markdown",
-            });
+            // Generate and download ZIP
+            addToast("Creating ZIP file...", "info");
+            const blob = await zip.generateAsync({ type: "blob" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `recipes-collection-${new Date().toISOString().split("T")[0]}.md`;
+            a.download = `recipes-${dateStr}.zip`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+
             addToast(
-              `Exported ${selectedRecipeIds.size} recipe${selectedRecipeIds.size !== 1 ? "s" : ""} as Markdown`,
+              `Exported ${selectedRecipes.length} recipe${selectedRecipes.length !== 1 ? "s" : ""} as ZIP`,
               "success",
             );
           } catch (error) {
@@ -8275,217 +8374,6 @@
           }
         }, [recipes, addToast]);
 
-        const generateRecipePDF = useCallback(
-          async (recipe) => {
-            if (!recipe || typeof recipe !== "object") {
-              addToast("Invalid recipe data.", "error");
-              return;
-            }
-            if (typeof html2pdf === "undefined") {
-              addToast("PDF library not loaded. Please refresh.", "error");
-              console.error("html2pdf is not defined");
-              return;
-            }
-
-            addToast("Generating PDF...", "info");
-
-            const content = document.createElement("div");
-            content.style.cssText = `font-family: sans-serif; padding: 20px; line-height: 1.6; color: #e5e7eb; font-size: 10pt; background-color: #111827; margin: 0; width: 100%; box-sizing: border-box; min-height: 100vh; orphans: 3; widows: 3;`;
-
-            const recipeName = escapeHTML(recipe.name || "Untitled");
-            const recipeDescriptionHtml = recipe.description
-              ? `<p style="font-size: 10pt; color: #9ca3af; margin-bottom: 20px; text-align: center; font-style: italic;">${escapeHTML(
-                  recipe.description,
-                )}</p>`
-              : "";
-
-            // Include rating and notes when present
-            const ratingHtml =
-              recipe.rating || recipe.rating === 0
-                ? `<div style="text-align:center; margin-bottom:8px; font-size:11pt; color:#d1d5db;"><strong>Rating:</strong> ${escapeHTML(String(recipe.rating))}/5</div>`
-                : "";
-            const notesHtml = recipe.notes
-              ? `<div style="margin-bottom:20px; padding:12px; background:#1f2937; border-radius:6px; color:#e5e7eb; border:1px solid #374151; white-space:pre-wrap;"><strong>Notes:</strong><br/>${escapeHTML(String(recipe.notes))}</div>`
-              : "";
-            const typeHtml = recipe.type
-              ? `<p style="font-size: 9pt; color: #9ca3af;">Type: ${escapeHTML(
-                  recipe.type,
-                )}</p>`
-              : "";
-            const cuisineHtml = recipe.cuisine
-              ? `<p style="font-size: 9pt; color: #9ca3af;">Cuisine: ${escapeHTML(
-                  recipe.cuisine,
-                )}</p>`
-              : "";
-            const dietaryTypesHtml =
-              Array.isArray(recipe.dietaryTypes) &&
-              recipe.dietaryTypes.length > 0
-                ? `<p style="font-size: 9pt; color: #9ca3af;">Dietary: ${recipe.dietaryTypes
-                    .map(escapeHTML)
-                    .join(", ")}</p>`
-                : "";
-            const tagsHtml =
-              Array.isArray(recipe.tags) && recipe.tags.length > 0
-                ? `<p style="font-size: 9pt; color: #9ca3af;">Tags: ${recipe.tags
-                    .map(escapeHTML)
-                    .join(", ")}</p>`
-                : "";
-
-            let imageHtml = `<div style="text-align: center; margin-bottom: 25px; padding: 20px; border: 1px dashed #ccc; color: #888; border-radius: 8px;">No Image</div>`;
-            if (recipe.image) {
-              imageHtml = `<img src="${recipe.image}" style="max-width: 250px; max-height: 250px; display: block; margin: 0 auto 25px; border-radius: 8px; border: 1px solid #eee;" alt="${recipeName}"/>`;
-            }
-
-            const prepTimeFormatted = formatMinutesToHoursMinutes(
-              recipe.prepTime,
-            );
-            const cookTimeFormatted = formatMinutesToHoursMinutes(
-              recipe.cookTime,
-            );
-            const additionalTimeFormatted = formatMinutesToHoursMinutes(
-              recipe.additionalTime,
-            );
-            const totalTimeFormatted = formatMinutesToHoursMinutes(
-              (recipe.prepTime || 0) +
-                (recipe.cookTime || 0) +
-                (recipe.additionalTime || 0),
-            );
-
-            const yieldHtml = recipe.yield
-              ? `<p style="margin: 6px 0; color: #e5e7eb;">Yield: ${escapeHTML(
-                  recipe.yield,
-                )}</p>`
-              : "";
-
-            const ingredientsHtml =
-              Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0
-                ? recipe.ingredients
-                    .map(
-                      (ing) =>
-                        `<li style="margin-bottom: 5px; color: #e5e7eb; page-break-inside: avoid;">${escapeHTML(
-                          ing || "",
-                        )}</li>`,
-                    )
-                    .join("")
-                : "<li>No ingredients listed.</li>";
-            const directionsHtml =
-              Array.isArray(recipe.directions) && recipe.directions.length > 0
-                ? recipe.directions
-                    .map(
-                      (dir, i) =>
-                        `<li style="margin-bottom: 12px; padding-left: 5px; border-left: 2px solid #6ee7b7; color: #e5e7eb; page-break-inside: avoid;"><strong>Step ${
-                          i + 1
-                        }:</strong> ${escapeHTML(dir || "")}</li>`,
-                    )
-                    .join("")
-                : '<li style="color: #9ca3af;">No directions listed.</li>';
-            const tipsAndTricksHtml =
-              Array.isArray(recipe.tipsAndTricks) &&
-              recipe.tipsAndTricks.length > 0
-                ? recipe.tipsAndTricks
-                    .map(
-                      (tip) =>
-                        `<li style="margin-bottom: 8px; padding-left: 5px; border-left: 2px solid #fcd34d; color: #e5e7eb; page-break-inside: avoid;"><strong>Tip:</strong> ${escapeHTML(
-                          tip || "",
-                        )}</li>`,
-                    )
-                    .join("")
-                : '<li style="color: #9ca3af;">No tips and tricks listed.</li>';
-
-            content.innerHTML = `
-                    <div style="text-align: center; margin-bottom: 10px; page-break-inside: avoid;">
-                      <h1 style="color: #6ee7b7; margin: 0 0 8px 0; font-size: 20pt; font-weight: bold;">${recipeName}</h1>
-                      <p style="margin: 0; font-size: 11pt; color: #9ca3af;">Servings: ${
-                        recipe.servings || "N/A"
-                      }</p>
-                      ${typeHtml} ${cuisineHtml} ${dietaryTypesHtml} ${tagsHtml}
-                    </div>
-                    ${recipeDescriptionHtml} ${ratingHtml} ${notesHtml} ${imageHtml}
-                    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; margin-bottom: 30px; border-top: 1px solid #374151; border-bottom: 1px solid #374151; padding: 20px 0; page-break-inside: avoid;">
-                      <div style="flex: 1; min-width: 150px;">
-                        <h3 style="color: #6ee7b7; margin: 0 0 12px 0; font-size: 13pt; border-bottom: 1px solid #374151; padding-bottom: 6px;">Details</h3>
-                        ${
-                          prepTimeFormatted
-                            ? `<p style="margin: 6px 0; color: #e5e7eb;">Prep: ${prepTimeFormatted}</p>`
-                            : ""
-                        }
-                        ${
-                          cookTimeFormatted
-                            ? `<p style="margin: 6px 0; color: #e5e7eb;">Cook: ${cookTimeFormatted}</p>`
-                            : ""
-                        }
-                        ${
-                          additionalTimeFormatted
-                            ? `<p style="margin: 6px 0; color: #e5e7eb;">Additional: ${additionalTimeFormatted}</p>`
-                            : ""
-                        }
-                        <p style="margin: 10px 0 0 0; font-weight: bold; color: #f0f9ff;">Total: ${totalTimeFormatted}</p>
-                        ${yieldHtml}
-                      </div>
-                      <div style="flex: 1; min-width: 150px;">
-                        <h3 style="color: #6ee7b7; margin: 0 0 12px 0; font-size: 13pt; border-bottom: 1px solid #374151; padding-bottom: 6px;">Nutrition (per serving)</h3>
-                        <p style="margin: 6px 0; color: #e5e7eb;">Calories: ${
-                          recipe.calories || "N/A"
-                        }</p>
-                        <p style="margin: 6px 0; color: #e5e7eb;">Protein: ${
-                          recipe.protein ? recipe.protein + "g" : "N/A"
-                        }</p>
-                        <p style="margin: 6px 0; color: #e5e7eb;">Carbs: ${
-                          recipe.carbs ? recipe.carbs + "g" : "N/A"
-                        }</p>
-                        <p style="margin: 6px 0; color: #e5e7eb;">Fat: ${
-                          recipe.fat ? recipe.fat + "g" : "N/A"
-                        }</p>
-                      </div>
-                    </div>
-                    <div style="margin-bottom: 30px; page-break-inside: avoid;">
-                      <h3 style="color: #6ee7b7; margin: 0 0 12px 0; font-size: 13pt; border-bottom: 1px solid #374151; padding-bottom: 6px;">Ingredients</h3>
-                      <ul style="list-style: disc; padding-left: 25px; margin: 0; orphans: 3; widows: 3;">${ingredientsHtml}</ul>
-                    </div>
-                    <div style="margin-bottom: 30px; page-break-inside: avoid;">
-                      <h3 style="color: #6ee7b7; margin: 0 0 12px 0; font-size: 13pt; border-bottom: 1px solid #374151; padding-bottom: 6px;">Directions</h3>
-                      <ol style="list-style: none; padding-left: 0; margin: 0; orphans: 3; widows: 3;">${directionsHtml}</ol>
-                    </div>
-                    <div style="page-break-inside: avoid;">
-                      <h3 style="color: #fcd34d; margin: 0 0 12px 0; font-size: 13pt; border-bottom: 1px solid #374151; padding-bottom: 6px;">Tips, Tricks & Cooks Notes</h3>
-                      <ul style="list-style: none; padding-left: 0; margin: 0;">${tipsAndTricksHtml}</ul>
-                    </div>
-                  `;
-
-            const opt = {
-              margin: 0,
-              filename: `${recipe.name
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, "-")}-recipe.pdf`,
-              image: { type: "jpeg", quality: 0.95 },
-              html2canvas: {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                allowTaint: true,
-              },
-              jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-              pagebreak: { mode: ["css", "legacy"] },
-            };
-
-            try {
-              const worker = html2pdf().set(opt).from(content);
-              await worker.save();
-              addToast("PDF downloaded!", "success");
-            } catch (error) {
-              console.error("PDF Generation Error:", error);
-              addToast(
-                `PDF generation failed: ${error.message || "Unknown error"}`,
-                "error",
-              );
-              if (error.stack) {
-                console.error(error.stack);
-              }
-            }
-          },
-          [addToast],
-        );
-
         return (
           <div className="min-h-screen flex flex-col relative">
             {showRecipeSuggestions && (
@@ -8520,6 +8408,8 @@
               setShowTutorial={setShowTutorial}
               setShowConversionModal={setShowConversionModal}
               onLogout={onLogout}
+              isDarkMode={isDarkMode}
+              setIsDarkMode={setIsDarkMode}
             />
             {/* Quick Access Shortcuts Bar */}
             <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 border-b border-gray-200 dark:border-gray-600 sticky top-[60px] z-20 shadow-md transition-all duration-300">
@@ -8641,7 +8531,6 @@
                     toggleBulkSelection={toggleBulkSelection}
                     toggleSelectAll={toggleSelectAll}
                     bulkDeleteRecipes={bulkDeleteRecipes}
-                    bulkExportPDF={bulkExportPDF}
                     bulkExportMarkdown={bulkExportMarkdown}
                     bulkAddToCollection={bulkAddToCollection}
                     bulkAddToMealPlan={bulkAddToMealPlan}
@@ -8681,7 +8570,6 @@
                       onClose={() => setShowRecipeDetails(null)}
                       onOpenSide={setShowSideRecipeDetails}
                       addToShoppingList={addToShoppingList}
-                      generateRecipePDF={generateRecipePDF}
                       deleteRecipe={deleteRecipe}
                       editRecipe={(recipe) => {
                         setEditingRecipe(recipe);
@@ -8717,7 +8605,6 @@
                       recipe={showSideRecipeDetails}
                       onClose={() => setShowSideRecipeDetails(null)}
                       addToShoppingList={addToShoppingList}
-                      generateRecipePDF={generateRecipePDF}
                       deleteRecipe={deleteRecipe}
                       editRecipe={(recipe) => {
                         setEditingRecipe(recipe);
@@ -8997,6 +8884,8 @@
         setShowTutorial,
         setShowConversionModal,
         onLogout,
+        isDarkMode,
+        setIsDarkMode,
       }) => {
         const [searchQuery, setSearchQuery] = useState("");
         const debounceTimeoutRef = useRef(null);
@@ -9360,6 +9249,15 @@
               </div>
 
               <div className="flex items-center gap-1.5 sm:gap-2 order-2 sm:order-3 relative">
+                <button
+                  onClick={() => setIsDarkMode((d) => !d)}
+                  className="btn-header"
+                  title={
+                    isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
+                  }
+                >
+                  <i className={`fas ${isDarkMode ? "fa-sun" : "fa-moon"}`}></i>
+                </button>
                 <button
                   onClick={openAddRecipeModal}
                   className="btn-header bg-green-500 text-white hover:bg-green-600 dark:hover:bg-green-600"
@@ -10633,7 +10531,6 @@
         toggleBulkSelection,
         toggleSelectAll,
         bulkDeleteRecipes,
-        bulkExportPDF,
         bulkExportMarkdown,
         bulkAddToCollection,
         bulkAddToMealPlan,
@@ -11384,17 +11281,6 @@
                       <i className="fas fa-trash mr-1" title="Delete"></i>
                     </button>
                     <button
-                      onClick={() => bulkExportPDF()}
-                      className="btn-modal bg-pink-500 hover:bg-pink-600 text-white text-sm px-3 py-1.5 flex-1 sm:flex-initial"
-                      disabled={selectedRecipeIds.size === 0}
-                      title="Export selected recipes as PDF"
-                    >
-                      <i
-                        className="fas fa-file-pdf mr-1"
-                        title="Export PDF"
-                      ></i>
-                    </button>
-                    <button
                       onClick={() => bulkExportMarkdown()}
                       className="btn-modal bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1.5 flex-1 sm:flex-initial"
                       disabled={selectedRecipeIds.size === 0}
@@ -11404,13 +11290,14 @@
                         className="fas fa-file-alt mr-1"
                         title="Export Markdown"
                       ></i>
+                      <span className="hidden sm:inline">Export</span>
                     </button>
                     <div className="relative">
                       <button
                         onClick={() =>
                           setShowBulkActionsMenu(!showBulkActionsMenu)
                         }
-                        className="btn-modal bg-indigo-500 hover:bg-indigo-600 text-white text-sm px-3 py-1.5"
+                        className="btn-modal bg-indigo-500 hover:bg-indigo-600 text-white text-sm pl-3 pr-2 py-2.5"
                         disabled={selectedRecipeIds.size === 0}
                         title="More bulk actions"
                       >
@@ -11724,6 +11611,21 @@
                             <span className="hidden md:inline">Cook</span>
                           </button>
                           {/* plan button removed per request */}
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+                              updateMealPlan(dateKey, "dinner", recipe.id);
+                            }}
+                            className="flex-1 min-w-[45px] py-2 px-2.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
+                            title="Add to today's dinner"
+                          >
+                            <i className="fas fa-calendar-plus"></i>
+                            <span className="hidden md:inline">Plan</span>
+                          </button>
 
                           <button
                             onClick={(e) => {
@@ -14280,7 +14182,6 @@
         recipe,
         onClose,
         addToShoppingList,
-        generateRecipePDF,
         deleteRecipe,
         editRecipe,
         toggleFavorite,
@@ -14542,54 +14443,73 @@
               markdownContent += `![${recipeToExport.name}](${recipeToExport.image})\n\n`;
             }
 
+            // Details section
             markdownContent += `## Details\n\n`;
-            markdownContent += `- **Servings:** ${recipeToExport.servings || "N/A"}\n`;
-            if (recipeToExport.type)
-              markdownContent += `- **Type:** ${recipeToExport.type}\n`;
+            markdownContent += `**Servings:** ${recipeToExport.servings || "N/A"}  •  **Yield:** ${recipeToExport.yield || "N/A"}\n\n`;
             if (recipeToExport.cuisine)
-              markdownContent += `- **Cuisine:** ${recipeToExport.cuisine}\n`;
-            if (recipeToExport.yield)
-              markdownContent += `- **Yield:** ${recipeToExport.yield}\n`;
+              markdownContent += `**Cuisine:** ${recipeToExport.cuisine}\n\n`;
             if (recipeToExport.rating)
-              markdownContent += `- **Rating:** ${recipeToExport.rating}/5\n`;
+              markdownContent += `**Rating:** ${recipeToExport.rating}/5\n\n`;
             if (recipeToExport.notes)
-              markdownContent += `- **Notes:** ${recipeToExport.notes}\n`;
-            markdownContent += `\n`;
+              markdownContent += `**Notes:** ${recipeToExport.notes}\n\n`;
+            if (recipeToExport.type)
+              markdownContent += `**Type:** ${recipeToExport.type}\n\n`;
 
+            // Times section
             markdownContent += `## Times\n\n`;
+            const timeParts = [];
             if (recipeToExport.prepTime)
-              markdownContent += `- **Prep:** ${formatMinutesToHoursMinutes(recipeToExport.prepTime)}\n`;
+              timeParts.push(
+                `**Prep:** ${formatMinutesToHoursMinutes(recipeToExport.prepTime)}`,
+              );
             if (recipeToExport.cookTime)
-              markdownContent += `- **Cook:** ${formatMinutesToHoursMinutes(recipeToExport.cookTime)}\n`;
+              timeParts.push(
+                `**Cook:** ${formatMinutesToHoursMinutes(recipeToExport.cookTime)}`,
+              );
             if (recipeToExport.additionalTime)
-              markdownContent += `- **Additional:** ${formatMinutesToHoursMinutes(recipeToExport.additionalTime)}\n`;
-            markdownContent += `- **Total:** ${formatMinutesToHoursMinutes(totalTime)}\n\n`;
+              timeParts.push(
+                `**Additional:** ${formatMinutesToHoursMinutes(recipeToExport.additionalTime)}`,
+              );
+            timeParts.push(
+              `**Total:** ${formatMinutesToHoursMinutes(totalTime)}`,
+            );
+            markdownContent += `${timeParts.join("  •  ")}\n\n`;
 
-            if (
+            // Combined Dietary Types and Tags
+            const hasDietary =
               recipeToExport.dietaryTypes &&
-              recipeToExport.dietaryTypes.length > 0
-            ) {
-              markdownContent += `## Dietary Types\n\n`;
-              recipeToExport.dietaryTypes.forEach((type) => {
-                markdownContent += `- ${type}\n`;
-              });
-              markdownContent += `\n`;
+              recipeToExport.dietaryTypes.length > 0;
+            const hasTags =
+              recipeToExport.tags && recipeToExport.tags.length > 0;
+            if (hasDietary || hasTags) {
+              const labels = [];
+              if (hasDietary)
+                labels.push(
+                  `**Dietary:** ${recipeToExport.dietaryTypes.join(", ")}`,
+                );
+              if (hasTags)
+                labels.push(`**Tags:** ${recipeToExport.tags.join(", ")}`);
+              markdownContent += `${labels.join("  •  ")}\n\n`;
             }
 
-            if (recipeToExport.tags && recipeToExport.tags.length > 0) {
-              markdownContent += `## Tags\n\n`;
-              recipeToExport.tags.forEach((tag) => {
-                markdownContent += `- ${tag}\n`;
-              });
-              markdownContent += `\n`;
-            }
-
+            // Nutrition section
             markdownContent += `## Nutrition (per serving)\n\n`;
-            markdownContent += `- **Calories:** ${recipeToExport.calories || "N/A"}\n`;
-            markdownContent += `- **Protein:** ${recipeToExport.protein ? recipeToExport.protein + "g" : "N/A"}\n`;
-            markdownContent += `- **Carbs:** ${recipeToExport.carbs ? recipeToExport.carbs + "g" : "N/A"}\n`;
-            markdownContent += `- **Fat:** ${recipeToExport.fat ? recipeToExport.fat + "g" : "N/A"}\n\n`;
+            const nutritionParts = [];
+            nutritionParts.push(
+              `**Calories:** ${recipeToExport.calories || "N/A"}`,
+            );
+            nutritionParts.push(
+              `**Protein:** ${recipeToExport.protein ? recipeToExport.protein + "g" : "N/A"}`,
+            );
+            nutritionParts.push(
+              `**Carbs:** ${recipeToExport.carbs ? recipeToExport.carbs + "g" : "N/A"}`,
+            );
+            nutritionParts.push(
+              `**Fat:** ${recipeToExport.fat ? recipeToExport.fat + "g" : "N/A"}`,
+            );
+            markdownContent += `${nutritionParts.join("  •  ")}\n\n`;
 
+            // Ingredients section
             if (
               recipeToExport.ingredients &&
               recipeToExport.ingredients.length > 0
@@ -14601,6 +14521,7 @@
               markdownContent += `\n`;
             }
 
+            // Directions section
             if (
               recipeToExport.directions &&
               recipeToExport.directions.length > 0
@@ -14611,6 +14532,7 @@
               });
             }
 
+            // Tips and Tricks section
             if (
               recipeToExport.tipsAndTricks &&
               recipeToExport.tipsAndTricks.length > 0
@@ -15257,16 +15179,6 @@
                         </button>
                         <button
                           onClick={() => {
-                            generateRecipePDF(recipe);
-                            setShowActionsMenu(false);
-                          }}
-                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-3"
-                        >
-                          <i className="fas fa-file-pdf w-4 text-pink-500"></i>
-                          <span>Export as PDF</span>
-                        </button>
-                        <button
-                          onClick={() => {
                             handleExportRecipeAsMarkdown();
                             setShowActionsMenu(false);
                           }}
@@ -15430,6 +15342,7 @@
         setPantry,
       }) => {
         const [showChecked, setShowChecked] = useState(true);
+        const [groupByCategory, setGroupByCategory] = useState(false);
         const [editingItemId, setEditingItemId] = useState(null);
         const [editingQuantity, setEditingQuantity] = useState("");
         const [editingUnit, setEditingUnit] = useState("");
@@ -15700,6 +15613,38 @@
             .sort((a, b) => a.name.localeCompare(b.name));
         }, [groupedByRecipe, showChecked]);
 
+        const displayCategoryGroups = useMemo(() => {
+          const itemsToGroup = showChecked
+            ? shoppingList
+            : shoppingList.filter((item) => !item.checked);
+          const groups = {};
+          itemsToGroup.forEach((item) => {
+            if (!item || typeof item !== "object") return;
+            const text = item.originalText || item.description || "";
+            if (!text) return;
+            const cat = getIngredientCategory(text);
+            const catKey = cat.category || "other";
+            const catName = catKey.charAt(0).toUpperCase() + catKey.slice(1);
+            if (!groups[catKey]) {
+              groups[catKey] = {
+                id: catKey,
+                name: catName,
+                icon: cat.icon,
+                color: cat.color,
+                items: [],
+              };
+            }
+            groups[catKey].items.push({
+              ...item,
+              originalText: item.originalText || item.description || "",
+              description: item.description || item.originalText || "",
+            });
+          });
+          return Object.values(groups).sort((a, b) =>
+            a.name.localeCompare(b.name),
+          );
+        }, [shoppingList, showChecked]);
+
         const getFormattedListText = useCallback(() => {
           let listText = "Shopping List\n==============\n\n";
           const itemsToInclude = showChecked
@@ -15929,6 +15874,16 @@
                   <span>Show purchased items</span>
                 </label>
 
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={groupByCategory}
+                    onChange={() => setGroupByCategory((p) => !p)}
+                    className="w-5 h-5 rounded text-[#22c55e] focus:ring-2 focus:ring-[#1b222b] border-gray-300 dark:border-gray-600"
+                  />
+                  <span>Group by category</span>
+                </label>
+
                 <div className="flex gap-2 items-center">
                   <select
                     className="px-3 py-2 text-sm font-medium bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#22c55e]"
@@ -15962,7 +15917,8 @@
 
               {/* Main Content */}
               <div className="flex-1 overflow-y-auto p-6 sm:p-8">
-                {displayRecipeGroups.length === 0 ? (
+                {(groupByCategory ? displayCategoryGroups : displayRecipeGroups)
+                  .length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center py-12">
                     <div className="text-6xl mb-4 text-gray-300 dark:text-gray-600">
                       <i className="fas fa-inbox"></i>
@@ -15978,16 +15934,28 @@
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {displayRecipeGroups.map((group, groupIndex) => (
+                    {(groupByCategory
+                      ? displayCategoryGroups
+                      : displayRecipeGroups
+                    ).map((group, groupIndex) => (
                       <div
                         key={group.id}
                         className="animate-fade-in"
                         style={{ animationDelay: `${groupIndex * 50}ms` }}
                       >
-                        {/* Recipe Header */}
+                        {/* Group Header */}
                         <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-[#22c55e36]">
-                          <div className="w-10 h-10 rounded-lg bg-[#22c55e] flex items-center justify-center text-white font-bold text-lg shadow-md">
-                            <i className="fas fa-utensils text-sm"></i>
+                          <div
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md ${!groupByCategory ? "bg-[#22c55e]" : ""}`}
+                            style={
+                              groupByCategory
+                                ? { backgroundColor: group.color }
+                                : {}
+                            }
+                          >
+                            <i
+                              className={`fas ${groupByCategory ? group.icon : "fa-utensils"} text-sm`}
+                            ></i>
                           </div>
                           <div className="flex-1">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white">
@@ -17444,6 +17412,8 @@
         });
         const [isAdding, setIsAdding] = useState(false);
         const [inputMode, setInputMode] = useState("url"); // "url", "file", or "camera"
+        const [editingPhotoId, setEditingPhotoId] = useState(null);
+        const [editingCaption, setEditingCaption] = useState("");
         const fileInputRef = useRef(null);
         const videoRef = useRef(null);
         const canvasRef = useRef(null);
@@ -17474,7 +17444,7 @@
                 const dataUrl = event.target?.result;
                 resolve({
                   url: dataUrl,
-                  caption: "",
+                  caption: newPhoto.caption,
                   file: file,
                   preview: dataUrl,
                 });
@@ -17610,6 +17580,53 @@
           }
         };
 
+        const updatePhotoCaption = async () => {
+          if (!editingPhotoId) return;
+
+          try {
+            // Get the current recipe
+            const recipeStore = await getStore(
+              STORE_NAMES.RECIPES,
+              "readwrite",
+            );
+            const currentRecipe = await new Promise((resolve, reject) => {
+              const request = recipeStore.get(recipe.id);
+              request.onsuccess = () => resolve(request.result);
+              request.onerror = () => reject(request.error);
+            });
+
+            if (currentRecipe && currentRecipe.photos) {
+              // Find and update the photo
+              const photoToUpdate = currentRecipe.photos.find(
+                (p) => p.id === editingPhotoId,
+              );
+              if (photoToUpdate) {
+                photoToUpdate.caption = editingCaption;
+
+                // Save the updated recipe
+                await updateItem(
+                  STORE_NAMES.RECIPES,
+                  currentRecipe.id,
+                  currentRecipe,
+                );
+
+                setPhotos(getRecipePhotos(currentRecipe));
+                setEditingPhotoId(null);
+                setEditingCaption("");
+                addToast("Photo caption updated!", "success");
+
+                // Notify parent component of recipe update
+                if (typeof onRecipeUpdate === "function") {
+                  onRecipeUpdate(currentRecipe);
+                }
+              }
+            }
+          } catch (error) {
+            console.error("Error updating photo caption:", error);
+            addToast("Failed to update photo caption.", "error");
+          }
+        };
+
         const resetForm = () => {
           setIsAdding(false);
           setNewPhoto({ url: "", caption: "", file: null, preview: null });
@@ -17674,6 +17691,16 @@
                           </p>
                         </div>
                         <button
+                          onClick={() => {
+                            setEditingPhotoId(photo.id);
+                            setEditingCaption(photo.caption || "");
+                          }}
+                          className="absolute top-2 left-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Edit caption"
+                        >
+                          <i className="fas fa-edit text-xs"></i>
+                        </button>
+                        <button
                           onClick={() => handleRemovePhoto(photo.id)}
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                           title="Remove photo"
@@ -17685,6 +17712,40 @@
                   </div>
                 )}
               </div>
+
+              {editingPhotoId && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-4">
+                  <div className="space-y-3 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      Edit Photo Caption
+                    </h3>
+                    <input
+                      type="text"
+                      value={editingCaption}
+                      onChange={(e) => setEditingCaption(e.target.value)}
+                      placeholder="Add or edit caption..."
+                      className="modal-input w-full"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={updatePhotoCaption}
+                        className="flex-1 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingPhotoId(null);
+                          setEditingCaption("");
+                        }}
+                        className="flex-1 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                 {!isAdding ? (

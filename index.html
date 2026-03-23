@@ -697,6 +697,35 @@
       .shopping-list-border {
         border: 1px solid #22c55e;
       }
+
+      /* Tag Color Picker - Mobile Fix */
+      .tag-color-picker {
+        max-width: calc(100vw - 20px);
+        max-height: 50vh;
+        overflow-y: auto;
+      }
+
+      @media (max-width: 768px) {
+        .tag-color-picker {
+          position: fixed !important;
+          left: 50% !important;
+          top: 50% !important;
+          transform: translate(-50%, -50%) !important;
+          width: 220px;
+          max-height: 60vh;
+          overflow-y: auto;
+        }
+
+        .tag-color-picker-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 49;
+        }
+      }
     </style>
   </head>
   <body
@@ -7101,6 +7130,11 @@
         // Bulk Operations State
         const [isBulkModeActive, setIsBulkModeActive] = useState(false);
         const [selectedRecipeIds, setSelectedRecipeIds] = useState(new Set());
+        const [showBulkTagModal, setShowBulkTagModal] = useState(false);
+        const [showBulkNotesModal, setShowBulkNotesModal] = useState(false);
+        const [batchTagInput, setBatchTagInput] = useState("");
+        const [batchNotesInput, setBatchNotesInput] = useState("");
+        const [batchTagMode, setBatchTagMode] = useState("add");
 
         const [displayUnitSystem, setDisplayUnitSystem] = useState("imperial");
 
@@ -8211,6 +8245,119 @@
           [setMealPlan, addToast],
         );
 
+        const bulkApplyTags = useCallback(async () => {
+          if (selectedRecipeIds.size === 0) {
+            addToast("No recipes selected", "info");
+            return;
+          }
+          if (!batchTagInput.trim()) {
+            addToast("Please enter at least one tag", "info");
+            return;
+          }
+
+          try {
+            const newTags = batchTagInput
+              .split(",")
+              .map((t) => t.trim())
+              .filter((t) => t);
+
+            const updatedRecipes = recipes.map((recipe) => {
+              if (!selectedRecipeIds.has(recipe.id)) return recipe;
+
+              let updatedTags = Array.isArray(recipe.tags)
+                ? [...recipe.tags]
+                : [];
+
+              if (batchTagMode === "add") {
+                newTags.forEach((tag) => {
+                  if (!updatedTags.includes(tag)) {
+                    updatedTags.push(tag);
+                  }
+                });
+              } else {
+                updatedTags = newTags;
+              }
+
+              if (updatedTags.length === 0) {
+                updatedTags = [];
+              }
+
+              return { ...recipe, tags: updatedTags };
+            });
+
+            for (const recipe of updatedRecipes) {
+              if (selectedRecipeIds.has(recipe.id)) {
+                await updateItem(STORE_NAMES.RECIPES, recipe.id, recipe);
+              }
+            }
+
+            setRecipes(updatedRecipes);
+            setShowBulkTagModal(false);
+            setBatchTagInput("");
+            setBatchTagMode("add");
+            setSelectedRecipeIds(new Set());
+            setIsBulkModeActive(false);
+            addToast(
+              `Applied tags to ${selectedRecipeIds.size} recipe${selectedRecipeIds.size !== 1 ? "s" : ""}!`,
+              "success",
+            );
+          } catch (error) {
+            console.error("Error applying tags:", error);
+            addToast("Failed to apply tags.", "error");
+          }
+        }, [
+          selectedRecipeIds,
+          recipes,
+          batchTagInput,
+          batchTagMode,
+          setRecipes,
+          addToast,
+        ]);
+
+        const bulkApplyNotes = useCallback(async () => {
+          if (selectedRecipeIds.size === 0) {
+            addToast("No recipes selected", "info");
+            return;
+          }
+          if (!batchNotesInput.trim()) {
+            addToast("Please enter notes", "info");
+            return;
+          }
+
+          try {
+            const updatedRecipes = recipes.map((recipe) => {
+              if (!selectedRecipeIds.has(recipe.id)) return recipe;
+
+              const existingNotes = recipe.notes || "";
+              const newNotes =
+                existingNotes && existingNotes.trim()
+                  ? `${existingNotes}\n${batchNotesInput}`
+                  : batchNotesInput;
+
+              return { ...recipe, notes: newNotes };
+            });
+
+            for (const recipe of updatedRecipes) {
+              if (selectedRecipeIds.has(recipe.id)) {
+                await updateItem(STORE_NAMES.RECIPES, recipe.id, recipe);
+              }
+            }
+
+            setRecipes(updatedRecipes);
+            setShowBulkNotesModal(false);
+            setBatchNotesInput("");
+            setSelectedRecipeIds(new Set());
+            setIsBulkModeActive(false);
+            addToast(
+              `Added notes to ${selectedRecipeIds.size} recipe${selectedRecipeIds.size !== 1 ? "s" : ""}!`,
+              "success",
+            );
+          } catch (error) {
+            console.error("Error applying notes:", error);
+            addToast("Failed to apply notes.", "error");
+          }
+        }, [selectedRecipeIds, recipes, batchNotesInput, setRecipes, addToast]);
+
         const addRecipe = useCallback(
           async (recipeData) => {
             const newRecipe = {
@@ -8994,6 +9141,10 @@
                     bulkExportPDF={bulkExportPDF}
                     bulkAddToCollection={bulkAddToCollection}
                     bulkAddToMealPlan={bulkAddToMealPlan}
+                    bulkApplyTags={bulkApplyTags}
+                    bulkApplyNotes={bulkApplyNotes}
+                    setShowBulkTagModal={setShowBulkTagModal}
+                    setShowBulkNotesModal={setShowBulkNotesModal}
                     setIsBulkModeActive={setIsBulkModeActive}
                     setViewingCollectionMealPlan={setViewingCollectionMealPlan}
                     setViewingCollectionDashboard={
@@ -9316,6 +9467,149 @@
             )}
             {showConversionModal && (
               <ConversionModal onClose={() => setShowConversionModal(false)} />
+            )}
+
+            {/* BATCH TAGS MODAL */}
+            {showBulkTagModal && (
+              <div
+                className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+                onClick={() => setShowBulkTagModal(false)}
+              >
+                <div
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i className="fas fa-tag text-green-500"></i>
+                    Apply Tags
+                  </h3>
+
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    Applying tags to {selectedRecipeIds.size} recipe
+                    {selectedRecipeIds.size !== 1 ? "s" : ""}
+                  </p>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Mode
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setBatchTagMode("add")}
+                        className={`flex-1 px-3 py-2 rounded text-sm font-medium transition ${
+                          batchTagMode === "add"
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        Add Tags
+                      </button>
+                      <button
+                        onClick={() => setBatchTagMode("replace")}
+                        className={`flex-1 px-3 py-2 rounded text-sm font-medium transition ${
+                          batchTagMode === "replace"
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        Replace Tags
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Tags (comma-separated)
+                    </label>
+                    <textarea
+                      value={batchTagInput}
+                      onChange={(e) => setBatchTagInput(e.target.value)}
+                      placeholder="e.g., vegetarian, quick, weeknight"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      rows="3"
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowBulkTagModal(false);
+                        setBatchTagInput("");
+                        setBatchTagMode("add");
+                      }}
+                      className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={bulkApplyTags}
+                      disabled={
+                        !batchTagInput.trim() || selectedRecipeIds.size === 0
+                      }
+                      className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-400 transition font-medium"
+                    >
+                      Apply to {selectedRecipeIds.size}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* BATCH NOTES MODAL */}
+            {showBulkNotesModal && (
+              <div
+                className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+                onClick={() => setShowBulkNotesModal(false)}
+              >
+                <div
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i className="fas fa-sticky-note text-green-500"></i>
+                    Add Notes
+                  </h3>
+
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    Adding notes to {selectedRecipeIds.size} recipe
+                    {selectedRecipeIds.size !== 1 ? "s" : ""}
+                  </p>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Notes
+                    </label>
+                    <textarea
+                      value={batchNotesInput}
+                      onChange={(e) => setBatchNotesInput(e.target.value)}
+                      placeholder="e.g., Great for meal prep, can freeze, adjust spice level"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      rows="3"
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowBulkNotesModal(false);
+                        setBatchNotesInput("");
+                      }}
+                      className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={bulkApplyNotes}
+                      disabled={
+                        !batchNotesInput.trim() || selectedRecipeIds.size === 0
+                      }
+                      className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-400 transition font-medium"
+                    >
+                      Apply to {selectedRecipeIds.size}
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
 
             <TimerTray
@@ -10988,6 +11282,10 @@
         bulkExportPDF,
         bulkAddToCollection,
         bulkAddToMealPlan,
+        bulkApplyTags,
+        bulkApplyNotes,
+        setShowBulkTagModal,
+        setShowBulkNotesModal,
         setIsBulkModeActive,
         setViewingCollectionMealPlan,
         setViewingCollectionDashboard,
@@ -11792,6 +12090,26 @@
                               <i className="fas fa-calendar-plus w-4"></i>
                               <span>Add to Meal Plan</span>
                             </button>
+                            <button
+                              onClick={() => {
+                                setShowBulkActionsMenu(false);
+                                setShowBulkTagModal(true);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-2 border-t border-gray-200 dark:border-gray-700"
+                            >
+                              <i className="fas fa-tag w-4"></i>
+                              <span>Apply Tags</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowBulkActionsMenu(false);
+                                setShowBulkNotesModal(true);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-2"
+                            >
+                              <i className="fas fa-sticky-note w-4"></i>
+                              <span>Add Notes</span>
+                            </button>
                           </div>
                         </div>
                       )}
@@ -12544,10 +12862,12 @@
                 </button>
                 {colorPickerTag === tag && (
                   <div
+                    className="tag-color-picker"
                     style={{
                       position: "absolute",
                       top: "100%",
-                      right: 0,
+                      left: "50%",
+                      transform: "translateX(-50%)",
                       zIndex: 50,
                       background: "#1f2937",
                       borderRadius: "8px",
@@ -12649,6 +12969,12 @@
               className="flex-grow border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-transparent"
               aria-label="Tag input"
             />
+            {colorPickerTag && (
+              <div
+                className="tag-color-picker-overlay"
+                onClick={() => setColorPickerTag(null)}
+              />
+            )}
           </div>
         );
       };

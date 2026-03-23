@@ -39,3 +39,30 @@
 - **IndexedDB for images** — store recipe photos locally in IndexedDB instead of base64 in localStorage to avoid storage limits
 - **Search indexing** — full-text search across ingredients, notes, and instructions (not just recipe names)
 - **Keyboard navigation** — full keyboard accessibility for all modals and card interactions beyond the existing shortcuts
+
+## New Suggestions
+
+### Features
+
+- **Smart recipe suggestions** — recommend recipes based on pantry items you have, dietary restrictions, or cuisine preferences
+- **Cooking timers with notifications** — multiple simultaneous timers for recipe steps with alerts
+- **Ingredient substitution suggestions** — when viewing a recipe, suggest alternatives for each ingredient
+- **Recipe difficulty ratings** — let users mark if a recipe was "Easy / Medium / Hard" after cooking it, useful for filtering
+- **Allergen highlighting** — auto-detect and highlight common allergens (nuts, dairy, gluten, etc.) prominently
+- **Equipment tagging** — mark what tools/equipment recipes need (blender, mixer, slow cooker) to filter by what you have
+- **Batch recipe editing** — apply tags, collections, or notes to multiple recipes at once
+- **Recipe analytics** — track most-cooked recipes, favorite cuisines, cooking frequency over time
+
+### Organization
+
+- **Weekly meal plan templates** — save a full week's plan and reuse/duplicate it with one click
+- **Recipe bookmarks/favorites** — quick access to recipes you cook frequently
+- **Quick recipe access** — "Recent recipes" tab for the ones you viewed/cooked last
+- **Recipe comparison** — side-by-side view of similar recipes to pick the best version
+
+### UX
+
+- **Ingredient notes** — add custom notes to ingredients ("use organic," "substitute with X," "buy this brand")
+- **Yield/servings persistence** — remember your last used serving size when re-opening a recipe
+- **Prep vs cook time breakdown** — separate display of active cooking time vs passive/prep time
+- **Unit converter inline** — quick metric/imperial conversion without leaving the recipe

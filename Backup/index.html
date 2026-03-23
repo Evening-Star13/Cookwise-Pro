@@ -11,6 +11,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.0/babel.min.js"></script>
@@ -696,93 +697,6 @@
       .shopping-list-border {
         border: 1px solid #22c55e;
       }
-
-      /* Light Mode Color Theme */
-      html:not(.dark) body,
-      html:not(.dark) .bg-gray-100 { background-color: #ECEFFE !important; }
-      html:not(.dark) .bg-gray-50 { background-color: #F4F5FF !important; }
-      html:not(.dark) .bg-white { background-color: #FFFFFF !important; }
-      html:not(.dark) .border-gray-200 { border-color: #D8DCFC !important; }
-      html:not(.dark) .border-gray-100 { border-color: #E4E6FF !important; }
-
-      /* Light Mode: Tailwind green → indigo */
-      html:not(.dark) .bg-green-500 { background-color: #6366F1 !important; }
-      html:not(.dark) .bg-green-600 { background-color: #4F46E5 !important; }
-      html:not(.dark) .bg-green-700 { background-color: #4338CA !important; }
-      html:not(.dark) .bg-green-400 { background-color: #818CF8 !important; }
-      html:not(.dark) .bg-green-300 { background-color: #A5B4FC !important; }
-      html:not(.dark) .bg-green-100 { background-color: #E0E7FF !important; }
-      html:not(.dark) .bg-green-50 { background-color: #EEF2FF !important; }
-      html:not(.dark) .text-green-800 { color: #3730A3 !important; }
-      html:not(.dark) .text-green-700 { color: #4338CA !important; }
-      html:not(.dark) .text-green-600 { color: #4F46E5 !important; }
-      html:not(.dark) .text-green-500 { color: #6366F1 !important; }
-      html:not(.dark) .text-green-400 { color: #818CF8 !important; }
-      html:not(.dark) .text-green-300 { color: #A5B4FC !important; }
-      html:not(.dark) .border-green-600 { border-color: #4F46E5 !important; }
-      html:not(.dark) .border-green-500 { border-color: #6366F1 !important; }
-      html:not(.dark) .border-green-400 { border-color: #818CF8 !important; }
-      html:not(.dark) .border-green-300 { border-color: #A5B4FC !important; }
-      html:not(.dark) .border-green-200 { border-color: #C7D2FE !important; }
-      html:not(.dark) .hover\:bg-green-700:hover { background-color: #4338CA !important; }
-      html:not(.dark) .hover\:bg-green-600:hover { background-color: #4F46E5 !important; }
-      html:not(.dark) .hover\:bg-green-500:hover { background-color: #6366F1 !important; }
-      html:not(.dark) .hover\:bg-green-100:hover { background-color: #E0E7FF !important; }
-      html:not(.dark) .hover\:text-green-600:hover { color: #4F46E5 !important; }
-      html:not(.dark) .hover\:text-green-500:hover { color: #6366F1 !important; }
-      html:not(.dark) .hover\:border-green-500:hover { border-color: #6366F1 !important; }
-      html:not(.dark) .focus\:ring-green-500 { --tw-ring-color: #6366F1 !important; }
-      html:not(.dark) .focus\:ring-green-400 { --tw-ring-color: #818CF8 !important; }
-      html:not(.dark) .ring-green-500 { --tw-ring-color: #6366F1 !important; }
-      html:not(.dark) .from-green-600 { --tw-gradient-from: #4F46E5 !important; }
-      html:not(.dark) .from-green-500 { --tw-gradient-from: #6366F1 !important; }
-      html:not(.dark) .from-green-400 { --tw-gradient-from: #818CF8 !important; }
-      html:not(.dark) .from-green-50 { --tw-gradient-from: #EEF2FF !important; }
-      html:not(.dark) .to-green-600 { --tw-gradient-to: #4F46E5 !important; }
-      html:not(.dark) .to-green-500 { --tw-gradient-to: #6366F1 !important; }
-      html:not(.dark) .via-green-500 { --tw-gradient-via: #6366F1 !important; }
-      html:not(.dark) .via-blue-50 { --tw-gradient-via: #F0F0FF !important; }
-
-      /* Light Mode: Tailwind emerald → indigo */
-      html:not(.dark) .to-emerald-600 { --tw-gradient-to: #4F46E5 !important; }
-      html:not(.dark) .to-emerald-500 { --tw-gradient-to: #6366F1 !important; }
-      html:not(.dark) .to-emerald-100 { --tw-gradient-to: #E0E7FF !important; }
-      html:not(.dark) .hover\:to-emerald-700:hover { --tw-gradient-to: #4338CA !important; }
-      html:not(.dark) .from-emerald-500 { --tw-gradient-from: #6366F1 !important; }
-
-      /* Light Mode: Arbitrary hex green values → indigo */
-      html:not(.dark) .text-\[\#22c55e\] { color: #6366F1 !important; }
-      html:not(.dark) .bg-\[\#22C55E\] { background-color: #6366F1 !important; }
-      html:not(.dark) .hover\:bg-\[\#16a34a\]:hover { background-color: #4F46E5 !important; }
-      html:not(.dark) .border-\[\#22c55e50\] { border-color: rgba(99,102,241,0.31) !important; }
-      html:not(.dark) .group:hover .group-hover\:text-\[\#22c55e\] { color: #6366F1 !important; }
-
-      /* Light Mode: Custom CSS class green overrides */
-      html:not(.dark) .spinner { border-top-color: #6366F1 !important; }
-      html:not(.dark) .conversion-modal-scroll::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.38) !important; }
-      html:not(.dark) .conversion-modal-scroll::-webkit-scrollbar-thumb:hover { background: #6366F1 !important; }
-      html:not(.dark) .filter-select:focus { border-color: #6366F1 !important; box-shadow: 0 0 0 1px #6366F1 !important; }
-      html:not(.dark) .btn-green { background-color: #6366F1 !important; }
-      html:not(.dark) .btn-green:hover:not(:disabled) { background-color: #4F46E5 !important; }
-      html:not(.dark) .tag-item { background-color: #6366F1 !important; }
-      html:not(.dark) .tag-input-container:focus-within { border-color: #6366F1 !important; box-shadow: 0 0 0 2px rgba(99,102,241,0.3) !important; }
-      html:not(.dark) .animated-border-card { border-color: #6366F1 !important; }
-      html:not(.dark) .shopping-list-border { border-color: #6366F1 !important; }
-      html:not(.dark) .recipe-card:hover { box-shadow: 0 16px 48px 0 rgba(99,102,241,0.18), 0 6px 24px 0 rgba(0,0,0,0.16) !important; }
-      html:not(.dark) .ripple:after { background: rgba(99,102,241,0.18) !important; }
-
-      /* Light Mode: Inline style green overrides (Quick Filter buttons) */
-      html:not(.dark) button[style*="16, 185, 129"] { background: #6366F1 !important; background-color: #6366F1 !important; }
-      html:not(.dark) button[style*="5, 150, 105"] { background: #4F46E5 !important; background-color: #4F46E5 !important; }
-      html:not(.dark) button.shadow-lg.overflow-hidden { background: #6366F1 !important; background-color: #6366F1 !important; }
-      html:not(.dark) button.shadow-lg.overflow-hidden:hover { background: #4F46E5 !important; background-color: #4F46E5 !important; }
-
-      /* Light Mode: Arbitrary hex value classes */
-      html:not(.dark) .bg-\[\#22c55e\] { background-color: #6366F1 !important; }
-      html:not(.dark) .bg-\[\#22C55E\] { background-color: #6366F1 !important; }
-      html:not(.dark) .bg-\[\#22c55e36\] { background-color: rgba(99,102,241,0.21) !important; }
-      html:not(.dark) .border-\[\#22c55e36\] { border-color: rgba(99,102,241,0.21) !important; }
-      html:not(.dark) .hover\:bg-\[\#16a34a\]:hover { background-color: #4F46E5 !important; }
     </style>
   </head>
   <body
@@ -2768,8 +2682,8 @@
                           </span>
                         </div>
 
-                        {/* Photos Grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                        {/* Masonry Photos Gallery */}
+                        <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-3 space-y-3">
                           {Array.isArray(recipe.photos) &&
                             recipe.photos.map((photo, idx) => {
                               const photoUrl = photo.url || photo;
@@ -2779,19 +2693,19 @@
                               return (
                                 <div
                                   key={idx}
-                                  className="group relative rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-100 dark:bg-gray-700"
+                                  className="group relative rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-100 dark:bg-gray-700 break-inside-avoid"
                                   onClick={() => handleImageClick(recipe)}
                                   title={photoCaption}
                                 >
-                                  <div className="aspect-square overflow-hidden bg-gray-200 dark:bg-gray-600">
+                                  <div className="overflow-hidden bg-gray-200 dark:bg-gray-600">
                                     {photoUrl ? (
                                       <img
                                         src={photoUrl}
                                         alt={photoCaption}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                        className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-300"
                                       />
                                     ) : (
-                                      <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                                      <div className="w-full h-40 flex items-center justify-center text-gray-400 dark:text-gray-500">
                                         <i className="fas fa-image text-2xl opacity-50"></i>
                                       </div>
                                     )}
@@ -7137,14 +7051,7 @@
         const [collections, setCollections, isLoadingCollections] =
           usePersistentStorage(STORE_NAMES.COLLECTIONS, [], addToast);
 
-        const [isDarkMode, setIsDarkMode] = useState(() => {
-          const saved = localStorage.getItem("cookwise-theme");
-          if (saved !== null) return saved === "dark";
-          return (
-            typeof window.matchMedia === "function" &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches
-          );
-        });
+        const [isDarkMode, setIsDarkMode] = useState(true);
         const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
         const [showPantryModal, setShowPantryModal] = useState(false);
         const [showRecipeDetails, setShowRecipeDetails] = useState(null);
@@ -7210,14 +7117,8 @@
           isLoadingRecipes || isLoadingMealPlan || isLoadingShoppingList;
 
         useEffect(() => {
-          const root = window.document.documentElement;
-          if (isDarkMode) {
-            root.classList.add("dark");
-          } else {
-            root.classList.remove("dark");
-          }
-          localStorage.setItem("cookwise-theme", isDarkMode ? "dark" : "light");
-        }, [isDarkMode]);
+          window.document.documentElement.classList.add("dark");
+        }, []);
 
         // Global keyboard shortcuts
         useEffect(() => {
@@ -7682,6 +7583,546 @@
           }
         }, [selectedRecipeIds, recipes, addToast, formatMinutesToHoursMinutes]);
 
+        const exportRecipeToPDF = useCallback(
+          async (recipeToExport) => {
+            try {
+              if (!window.jspdf) {
+                addToast(
+                  "PDF library not loaded. Please refresh the page.",
+                  "error",
+                );
+                return;
+              }
+              const { jsPDF } = window.jspdf;
+              const pdf = new jsPDF({
+                orientation: "portrait",
+                unit: "mm",
+                format: "a4",
+              });
+              const pageHeight = pdf.internal.pageSize.getHeight();
+              const pageWidth = pdf.internal.pageSize.getWidth();
+              const margin = 15;
+              const contentWidth = pageWidth - 2 * margin;
+              let yPosition = margin;
+
+              // Title
+              pdf.setFontSize(24);
+              pdf.setFont(undefined, "bold");
+              const titleLines = pdf.splitTextToSize(
+                recipeToExport.name,
+                contentWidth,
+              );
+              titleLines.forEach((line) => {
+                if (yPosition > pageHeight - margin) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.text(line, margin, yPosition);
+                yPosition += 8;
+              });
+              yPosition += 5;
+
+              // Image
+              if (recipeToExport.image) {
+                try {
+                  const imgWidth = contentWidth;
+                  const imgHeight = (contentWidth * 3) / 4;
+                  if (yPosition + imgHeight > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  pdf.addImage(
+                    recipeToExport.image,
+                    "JPEG",
+                    margin,
+                    yPosition,
+                    imgWidth,
+                    imgHeight,
+                  );
+                  yPosition += imgHeight + 8;
+                } catch (err) {
+                  console.log("Could not add image to PDF");
+                  yPosition += 5;
+                }
+              }
+
+              // Description
+              if (recipeToExport.description) {
+                pdf.setFontSize(11);
+                pdf.setFont(undefined, "normal");
+                const descLines = pdf.splitTextToSize(
+                  recipeToExport.description,
+                  contentWidth,
+                );
+                descLines.forEach((line) => {
+                  if (yPosition > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  pdf.text(line, margin, yPosition);
+                  yPosition += 5;
+                });
+                yPosition += 5;
+              }
+
+              // Details
+              pdf.setFontSize(12);
+              pdf.setFont(undefined, "bold");
+              if (yPosition > pageHeight - margin - 15) {
+                pdf.addPage();
+                yPosition = margin;
+              }
+              pdf.text("Details", margin, yPosition);
+              yPosition += 6;
+
+              pdf.setFontSize(10);
+              pdf.setFont(undefined, "normal");
+              const details = [];
+              if (recipeToExport.servings)
+                details.push(`Servings: ${recipeToExport.servings}`);
+              if (recipeToExport.yield)
+                details.push(`Yield: ${recipeToExport.yield}`);
+              if (recipeToExport.cuisine)
+                details.push(`Cuisine: ${recipeToExport.cuisine}`);
+              if (recipeToExport.course)
+                details.push(`Course: ${recipeToExport.course}`);
+              if (recipeToExport.rating)
+                details.push(`Rating: ${recipeToExport.rating}/5`);
+              details.forEach((detail) => {
+                if (yPosition > pageHeight - margin) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.text(detail, margin, yPosition);
+                yPosition += 4;
+              });
+              yPosition += 3;
+
+              // Times
+              const totalTime =
+                (recipeToExport.prepTime || 0) +
+                (recipeToExport.cookTime || 0) +
+                (recipeToExport.additionalTime || 0);
+              const times = [];
+              if (recipeToExport.prepTime)
+                times.push(
+                  `Prep: ${formatMinutesToHoursMinutes(recipeToExport.prepTime)}`,
+                );
+              if (recipeToExport.cookTime)
+                times.push(
+                  `Cook: ${formatMinutesToHoursMinutes(recipeToExport.cookTime)}`,
+                );
+              if (recipeToExport.additionalTime)
+                times.push(
+                  `Additional: ${formatMinutesToHoursMinutes(recipeToExport.additionalTime)}`,
+                );
+              times.push(`Total: ${formatMinutesToHoursMinutes(totalTime)}`);
+              if (times.length > 0) {
+                pdf.setFont(undefined, "bold");
+                if (yPosition > pageHeight - margin - 15) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.text("Times", margin, yPosition);
+                yPosition += 6;
+                pdf.setFont(undefined, "normal");
+                times.forEach((time) => {
+                  if (yPosition > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  pdf.text(time, margin, yPosition);
+                  yPosition += 4;
+                });
+                yPosition += 3;
+              }
+
+              // Ingredients
+              if (
+                recipeToExport.ingredients &&
+                recipeToExport.ingredients.length > 0
+              ) {
+                pdf.setFont(undefined, "bold");
+                if (yPosition > pageHeight - margin - 15) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.setFontSize(12);
+                pdf.text("Ingredients", margin, yPosition);
+                yPosition += 6;
+
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, "normal");
+                recipeToExport.ingredients.forEach((ingredient) => {
+                  if (yPosition > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  const ingLines = pdf.splitTextToSize(
+                    `• ${ingredient}`,
+                    contentWidth - 5,
+                  );
+                  ingLines.forEach((line) => {
+                    if (yPosition > pageHeight - margin) {
+                      pdf.addPage();
+                      yPosition = margin;
+                    }
+                    pdf.text(line, margin + 5, yPosition);
+                    yPosition += 4;
+                  });
+                });
+                yPosition += 3;
+              }
+
+              // Directions
+              if (
+                recipeToExport.directions &&
+                recipeToExport.directions.length > 0
+              ) {
+                pdf.setFont(undefined, "bold");
+                if (yPosition > pageHeight - margin - 15) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.setFontSize(12);
+                pdf.text("Instructions", margin, yPosition);
+                yPosition += 6;
+
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, "normal");
+                recipeToExport.directions.forEach((direction, idx) => {
+                  if (yPosition > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  const dirLines = pdf.splitTextToSize(
+                    `${idx + 1}. ${direction}`,
+                    contentWidth - 5,
+                  );
+                  dirLines.forEach((line) => {
+                    if (yPosition > pageHeight - margin) {
+                      pdf.addPage();
+                      yPosition = margin;
+                    }
+                    pdf.text(line, margin + 5, yPosition);
+                    yPosition += 4;
+                  });
+                });
+                yPosition += 3;
+              }
+
+              // Notes
+              if (recipeToExport.notes) {
+                pdf.setFont(undefined, "bold");
+                if (yPosition > pageHeight - margin - 15) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.setFontSize(12);
+                pdf.text("Notes", margin, yPosition);
+                yPosition += 6;
+
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, "normal");
+                const noteLines = pdf.splitTextToSize(
+                  recipeToExport.notes,
+                  contentWidth,
+                );
+                noteLines.forEach((line) => {
+                  if (yPosition > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  pdf.text(line, margin, yPosition);
+                  yPosition += 4;
+                });
+              }
+
+              const fileName = `${recipeToExport.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.pdf`;
+              pdf.save(fileName);
+              addToast("Recipe exported as PDF", "success");
+            } catch (error) {
+              console.error("Error exporting PDF:", error);
+              addToast("Failed to export recipe as PDF.", "error");
+            }
+          },
+          [addToast, formatMinutesToHoursMinutes],
+        );
+
+        const bulkExportPDF = useCallback(async () => {
+          if (selectedRecipeIds.size === 0) {
+            addToast("No recipes selected", "info");
+            return;
+          }
+          const selectedRecipes = recipes.filter((r) =>
+            selectedRecipeIds.has(r.id),
+          );
+
+          try {
+            if (!window.jspdf) {
+              addToast("PDF library not loaded", "error");
+              return;
+            }
+            if (typeof JSZip === "undefined") {
+              addToast("ZIP library not loaded", "error");
+              return;
+            }
+            const { jsPDF } = window.jspdf;
+            const zip = new JSZip();
+            const dateStr = new Date().toISOString().split("T")[0];
+
+            for (const recipe of selectedRecipes) {
+              const pdf = new jsPDF({
+                orientation: "portrait",
+                unit: "mm",
+                format: "a4",
+              });
+              const pageHeight = pdf.internal.pageSize.getHeight();
+              const pageWidth = pdf.internal.pageSize.getWidth();
+              const margin = 15;
+              const contentWidth = pageWidth - 2 * margin;
+              let yPosition = margin;
+
+              // Title
+              pdf.setFontSize(24);
+              pdf.setFont(undefined, "bold");
+              const titleLines = pdf.splitTextToSize(recipe.name, contentWidth);
+              titleLines.forEach((line) => {
+                if (yPosition > pageHeight - margin) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.text(line, margin, yPosition);
+                yPosition += 8;
+              });
+              yPosition += 5;
+
+              // Image
+              if (recipe.image) {
+                try {
+                  const imgWidth = contentWidth;
+                  const imgHeight = (contentWidth * 3) / 4;
+                  if (yPosition + imgHeight > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  pdf.addImage(
+                    recipe.image,
+                    "JPEG",
+                    margin,
+                    yPosition,
+                    imgWidth,
+                    imgHeight,
+                  );
+                  yPosition += imgHeight + 8;
+                } catch (err) {
+                  console.log("Could not add image to PDF");
+                  yPosition += 5;
+                }
+              }
+
+              // Description
+              if (recipe.description) {
+                pdf.setFontSize(11);
+                pdf.setFont(undefined, "normal");
+                const descLines = pdf.splitTextToSize(
+                  recipe.description,
+                  contentWidth,
+                );
+                descLines.forEach((line) => {
+                  if (yPosition > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  pdf.text(line, margin, yPosition);
+                  yPosition += 5;
+                });
+                yPosition += 5;
+              }
+
+              // Details
+              pdf.setFontSize(12);
+              pdf.setFont(undefined, "bold");
+              if (yPosition > pageHeight - margin - 15) {
+                pdf.addPage();
+                yPosition = margin;
+              }
+              pdf.text("Details", margin, yPosition);
+              yPosition += 6;
+
+              pdf.setFontSize(10);
+              pdf.setFont(undefined, "normal");
+              const details = [];
+              if (recipe.servings) details.push(`Servings: ${recipe.servings}`);
+              if (recipe.yield) details.push(`Yield: ${recipe.yield}`);
+              if (recipe.cuisine) details.push(`Cuisine: ${recipe.cuisine}`);
+              if (recipe.course) details.push(`Course: ${recipe.course}`);
+              if (recipe.rating) details.push(`Rating: ${recipe.rating}/5`);
+              details.forEach((detail) => {
+                if (yPosition > pageHeight - margin) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.text(detail, margin, yPosition);
+                yPosition += 4;
+              });
+              yPosition += 3;
+
+              // Times
+              const totalTime =
+                (recipe.prepTime || 0) +
+                (recipe.cookTime || 0) +
+                (recipe.additionalTime || 0);
+              const times = [];
+              if (recipe.prepTime)
+                times.push(
+                  `Prep: ${formatMinutesToHoursMinutes(recipe.prepTime)}`,
+                );
+              if (recipe.cookTime)
+                times.push(
+                  `Cook: ${formatMinutesToHoursMinutes(recipe.cookTime)}`,
+                );
+              if (recipe.additionalTime)
+                times.push(
+                  `Additional: ${formatMinutesToHoursMinutes(recipe.additionalTime)}`,
+                );
+              times.push(`Total: ${formatMinutesToHoursMinutes(totalTime)}`);
+              if (times.length > 0) {
+                pdf.setFont(undefined, "bold");
+                if (yPosition > pageHeight - margin - 15) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.text("Times", margin, yPosition);
+                yPosition += 6;
+                pdf.setFont(undefined, "normal");
+                times.forEach((time) => {
+                  if (yPosition > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  pdf.text(time, margin, yPosition);
+                  yPosition += 4;
+                });
+                yPosition += 3;
+              }
+
+              // Ingredients
+              if (recipe.ingredients && recipe.ingredients.length > 0) {
+                pdf.setFont(undefined, "bold");
+                if (yPosition > pageHeight - margin - 15) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.setFontSize(12);
+                pdf.text("Ingredients", margin, yPosition);
+                yPosition += 6;
+
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, "normal");
+                recipe.ingredients.forEach((ingredient) => {
+                  if (yPosition > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  const ingLines = pdf.splitTextToSize(
+                    `• ${ingredient}`,
+                    contentWidth - 5,
+                  );
+                  ingLines.forEach((line) => {
+                    if (yPosition > pageHeight - margin) {
+                      pdf.addPage();
+                      yPosition = margin;
+                    }
+                    pdf.text(line, margin + 5, yPosition);
+                    yPosition += 4;
+                  });
+                });
+                yPosition += 3;
+              }
+
+              // Directions
+              if (recipe.directions && recipe.directions.length > 0) {
+                pdf.setFont(undefined, "bold");
+                if (yPosition > pageHeight - margin - 15) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.setFontSize(12);
+                pdf.text("Instructions", margin, yPosition);
+                yPosition += 6;
+
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, "normal");
+                recipe.directions.forEach((direction, idx) => {
+                  if (yPosition > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  const dirLines = pdf.splitTextToSize(
+                    `${idx + 1}. ${direction}`,
+                    contentWidth - 5,
+                  );
+                  dirLines.forEach((line) => {
+                    if (yPosition > pageHeight - margin) {
+                      pdf.addPage();
+                      yPosition = margin;
+                    }
+                    pdf.text(line, margin + 5, yPosition);
+                    yPosition += 4;
+                  });
+                });
+                yPosition += 3;
+              }
+
+              // Notes
+              if (recipe.notes) {
+                pdf.setFont(undefined, "bold");
+                if (yPosition > pageHeight - margin - 15) {
+                  pdf.addPage();
+                  yPosition = margin;
+                }
+                pdf.setFontSize(12);
+                pdf.text("Notes", margin, yPosition);
+                yPosition += 6;
+
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, "normal");
+                const noteLines = pdf.splitTextToSize(
+                  recipe.notes,
+                  contentWidth,
+                );
+                noteLines.forEach((line) => {
+                  if (yPosition > pageHeight - margin) {
+                    pdf.addPage();
+                    yPosition = margin;
+                  }
+                  pdf.text(line, margin, yPosition);
+                  yPosition += 4;
+                });
+              }
+
+              const fileName = `${recipe.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.pdf`;
+              const pdfBlob = pdf.output("blob");
+              zip.file(fileName, pdfBlob);
+            }
+
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            const url = URL.createObjectURL(zipBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `recipes-${dateStr}.zip`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            addToast(`Exported ${selectedRecipes.length} recipes`, "success");
+          } catch (error) {
+            console.error("PDF export error:", error);
+            addToast("PDF export failed", "error");
+          }
+        }, [selectedRecipeIds, recipes, addToast, formatMinutesToHoursMinutes]);
+
         const bulkAddToCollection = useCallback(
           (collection) => {
             if (selectedRecipeIds.size === 0) {
@@ -7949,7 +8390,25 @@
                 const typeMatch = recipe.type
                   ?.toLowerCase()
                   .includes(normalizedQuery);
-                matchesQuery = nameMatch || typeMatch;
+                const descMatch = recipe.description
+                  ?.toLowerCase()
+                  .includes(normalizedQuery);
+                const ingredientsMatch = (recipe.ingredients || []).some(
+                  (ing) => ing.toLowerCase().includes(normalizedQuery),
+                );
+                const directionsMatch = (recipe.directions || []).some((dir) =>
+                  dir.toLowerCase().includes(normalizedQuery),
+                );
+                const notesMatch = recipe.notes
+                  ?.toLowerCase()
+                  .includes(normalizedQuery);
+                matchesQuery =
+                  nameMatch ||
+                  typeMatch ||
+                  descMatch ||
+                  ingredientsMatch ||
+                  directionsMatch ||
+                  notesMatch;
               }
 
               let matchesType = true;
@@ -8532,6 +8991,7 @@
                     toggleSelectAll={toggleSelectAll}
                     bulkDeleteRecipes={bulkDeleteRecipes}
                     bulkExportMarkdown={bulkExportMarkdown}
+                    bulkExportPDF={bulkExportPDF}
                     bulkAddToCollection={bulkAddToCollection}
                     bulkAddToMealPlan={bulkAddToMealPlan}
                     setIsBulkModeActive={setIsBulkModeActive}
@@ -8588,6 +9048,7 @@
                       setShoppingList={setShoppingList}
                       collections={collections}
                       setCollections={setCollections}
+                      exportRecipeToPDF={exportRecipeToPDF}
                       onRecipeUpdate={(updatedRecipe) => {
                         // Update the recipe in the main recipes list
                         setRecipes((prev) =>
@@ -8614,6 +9075,7 @@
                       toggleFavorite={toggleFavorite}
                       addToast={addToast}
                       updateMealPlan={updateMealPlan}
+                      exportRecipeToPDF={exportRecipeToPDF}
                       mealPlan={mealPlan}
                       recipes={recipes}
                       setRecipes={setRecipes}
@@ -9249,15 +9711,6 @@
               </div>
 
               <div className="flex items-center gap-1.5 sm:gap-2 order-2 sm:order-3 relative">
-                <button
-                  onClick={() => setIsDarkMode((d) => !d)}
-                  className="btn-header"
-                  title={
-                    isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
-                  }
-                >
-                  <i className={`fas ${isDarkMode ? "fa-sun" : "fa-moon"}`}></i>
-                </button>
                 <button
                   onClick={openAddRecipeModal}
                   className="btn-header bg-green-500 text-white hover:bg-green-600 dark:hover:bg-green-600"
@@ -10028,36 +10481,6 @@
                   onClick={() => {
                     document.dispatchEvent(
                       new CustomEvent("applyQuickFilter", {
-                        detail: { subCategory: "Smoothies" },
-                      }),
-                    );
-                    setTimeout(() => {
-                      const el = document.getElementById("recipeSection");
-                      if (el) {
-                        window.scrollTo({
-                          top: el.offsetTop,
-                          behavior: "smooth",
-                        });
-                      }
-                    }, 300);
-                  }}
-                  className="relative px-4 py-2 text-white dark:text-white rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-xl overflow-hidden group"
-                  style={{
-                    background: "#10b981",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#059669";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#10b981";
-                  }}
-                >
-                  <i className="fas fa-blender text-lg"></i>Smoothies
-                </button>
-                <button
-                  onClick={() => {
-                    document.dispatchEvent(
-                      new CustomEvent("applyQuickFilter", {
                         detail: { course: "Appetizers" },
                       }),
                     );
@@ -10083,6 +10506,36 @@
                   }}
                 >
                   <i className="fas fa-champagne-glasses text-lg"></i>Appetizers
+                </button>
+                <button
+                  onClick={() => {
+                    document.dispatchEvent(
+                      new CustomEvent("applyQuickFilter", {
+                        detail: { course: "Salads" },
+                      }),
+                    );
+                    setTimeout(() => {
+                      const el = document.getElementById("recipeSection");
+                      if (el) {
+                        window.scrollTo({
+                          top: el.offsetTop,
+                          behavior: "smooth",
+                        });
+                      }
+                    }, 300);
+                  }}
+                  className="relative px-4 py-2 text-white dark:text-white rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-xl overflow-hidden group"
+                  style={{
+                    background: "#10b981",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#059669";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#10b981";
+                  }}
+                >
+                  <i className="fas fa-leaf text-lg"></i>Salads
                 </button>
                 <button
                   onClick={() => {
@@ -10532,6 +10985,7 @@
         toggleSelectAll,
         bulkDeleteRecipes,
         bulkExportMarkdown,
+        bulkExportPDF,
         bulkAddToCollection,
         bulkAddToMealPlan,
         setIsBulkModeActive,
@@ -11292,6 +11746,18 @@
                       ></i>
                       <span className="hidden sm:inline">Export</span>
                     </button>
+                    <button
+                      onClick={() => bulkExportPDF()}
+                      className="btn-modal bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1.5 flex-1 sm:flex-initial"
+                      disabled={selectedRecipeIds.size === 0}
+                      title="Export selected recipes as PDF"
+                    >
+                      <i
+                        className="fas fa-file-pdf mr-1"
+                        title="Export PDF"
+                      ></i>
+                      <span className="hidden sm:inline">PDF</span>
+                    </button>
                     <div className="relative">
                       <button
                         onClick={() =>
@@ -11361,6 +11827,15 @@
                       key={recipe.id}
                       onClick={() => {
                         if (!isBulkModeActive) {
+                          openRecipeDetails(recipe);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (
+                          (e.key === "Enter" || e.key === " ") &&
+                          !isBulkModeActive
+                        ) {
+                          e.preventDefault();
                           openRecipeDetails(recipe);
                         }
                       }}
@@ -11540,7 +12015,12 @@
                           )}
                           {recipe.tags && recipe.tags.length > 0 && (
                             <span
-                              className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-full font-medium cursor-pointer hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-medium cursor-pointer transition-colors"
+                              style={{
+                                backgroundColor:
+                                  getTagColor(recipe.tags[0]) + "22",
+                                color: getTagColor(recipe.tags[0]),
+                              }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setTagModal({
@@ -11732,7 +12212,8 @@
                     {tagModal.tags.map((tag, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-full text-xs font-medium"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-white"
+                        style={{ backgroundColor: getTagColor(tag) }}
                       >
                         <i className="fas fa-tag"></i> {tag}
                       </span>
@@ -11941,8 +12422,39 @@
         );
       };
 
+      // Tag color utilities
+      const TAG_COLOR_PALETTE = [
+        "#10b981",
+        "#6366f1",
+        "#f59e0b",
+        "#ef4444",
+        "#8b5cf6",
+        "#ec4899",
+        "#14b8a6",
+        "#f97316",
+      ];
+      const getTagColors = () => {
+        try {
+          return JSON.parse(
+            localStorage.getItem("cookwise-tag-colors") || "{}",
+          );
+        } catch {
+          return {};
+        }
+      };
+      const setTagColorMap = (map) => {
+        localStorage.setItem("cookwise-tag-colors", JSON.stringify(map));
+      };
+      const getTagColor = (tagName) => {
+        const colors = getTagColors();
+        return colors[tagName.toLowerCase()] || "#10b981";
+      };
+
       const TagInput = ({ tags, setTags, maxTags = 10, addToast }) => {
         const [inputValue, setInputValue] = useState("");
+        const [colorPickerTag, setColorPickerTag] = useState(null);
+        const [customColor, setCustomColor] = useState("");
+        const [, forceUpdate] = useState(0);
 
         const handleKeyDown = (e) => {
           if (e.key === "Enter" || e.key === ",") {
@@ -11973,11 +12485,55 @@
           setTags(tags.filter((_, index) => index !== indexToRemove));
         };
 
+        const assignColor = (tagName, color) => {
+          const colors = getTagColors();
+          colors[tagName.toLowerCase()] = color;
+          setTagColorMap(colors);
+          setColorPickerTag(null);
+          setCustomColor("");
+          forceUpdate((n) => n + 1);
+        };
+
+        const applyCustomColor = (tagName) => {
+          if (!customColor.trim()) {
+            addToast("Please enter a color", "error");
+            return;
+          }
+          assignColor(tagName, customColor.trim());
+        };
+
         return (
           <div className="tag-input-container">
             {tags.map((tag, index) => (
-              <span key={index} className="tag-item">
+              <span
+                key={index}
+                className="tag-item"
+                style={{
+                  backgroundColor: getTagColor(tag),
+                  position: "relative",
+                }}
+              >
                 {tag}
+                <button
+                  type="button"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "white",
+                    marginLeft: "2px",
+                    cursor: "pointer",
+                    fontSize: "0.7rem",
+                    opacity: 0.8,
+                    padding: "0 2px",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setColorPickerTag(colorPickerTag === tag ? null : tag);
+                  }}
+                  title="Change color"
+                >
+                  <i className="fas fa-palette"></i>
+                </button>
                 <button
                   type="button"
                   className="tag-item-remove"
@@ -11986,6 +12542,102 @@
                 >
                   &times;
                 </button>
+                {colorPickerTag === tag && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      zIndex: 50,
+                      background: "#1f2937",
+                      borderRadius: "8px",
+                      padding: "6px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                      width: "180px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                      marginTop: "4px",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "3px",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {TAG_COLOR_PALETTE.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => assignColor(tag, c)}
+                          style={{
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            backgroundColor: c,
+                            border:
+                              getTagColor(tag) === c
+                                ? "2px solid white"
+                                : "1px solid #374151",
+                            cursor: "pointer",
+                            padding: 0,
+                          }}
+                          title={c}
+                        />
+                      ))}
+                    </div>
+                    <div
+                      style={{
+                        borderTop: "1px solid #374151",
+                        paddingTop: "4px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                      }}
+                    >
+                      <input
+                        type="text"
+                        placeholder="#FF5733"
+                        value={customColor}
+                        onChange={(e) => setCustomColor(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") applyCustomColor(tag);
+                          e.stopPropagation();
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "3px 4px",
+                          fontSize: "0.7rem",
+                          background: "#111827",
+                          border: "1px solid #374151",
+                          borderRadius: "3px",
+                          color: "#e5e7eb",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => applyCustomColor(tag)}
+                        style={{
+                          width: "100%",
+                          padding: "3px 4px",
+                          fontSize: "0.7rem",
+                          background: "#059669",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "3px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                )}
               </span>
             ))}
             <input
@@ -12285,6 +12937,51 @@
                     : 0,
             };
 
+            // Duplicate detection
+            if (!editingRecipe) {
+              const nameLower = recipeData.name.toLowerCase();
+              const duplicate = recipes.find(
+                (r) => r.name.toLowerCase() === nameLower,
+              );
+              const similar =
+                !duplicate &&
+                recipes.find((r) => {
+                  const existing = r.name.toLowerCase();
+                  // Check if one name contains the other or Dice coefficient > 0.6
+                  if (
+                    existing.includes(nameLower) ||
+                    nameLower.includes(existing)
+                  )
+                    return true;
+                  const bigrams = (s) => {
+                    const b = [];
+                    for (let i = 0; i < s.length - 1; i++)
+                      b.push(s.slice(i, i + 2));
+                    return b;
+                  };
+                  const a = bigrams(nameLower),
+                    b = bigrams(existing);
+                  if (a.length === 0 || b.length === 0) return false;
+                  const intersection = a.filter((bg) => b.includes(bg)).length;
+                  return (2.0 * intersection) / (a.length + b.length) > 0.6;
+                });
+              if (duplicate) {
+                if (
+                  !confirm(
+                    `A recipe named "${duplicate.name}" already exists. Add anyway?`,
+                  )
+                )
+                  return;
+              } else if (similar) {
+                if (
+                  !confirm(
+                    `A similar recipe "${similar.name}" already exists. Add anyway?`,
+                  )
+                )
+                  return;
+              }
+            }
+
             if (editingRecipe) {
               updateRecipe(editingRecipe.id, recipeData);
             } else {
@@ -12299,6 +12996,7 @@
             addRecipe,
             updateRecipe,
             addToast,
+            recipes,
           ],
         );
 
@@ -13797,6 +14495,40 @@
         const [newCollectionName, setNewCollectionName] = useState("");
         const [editingId, setEditingId] = useState(null);
         const [editingName, setEditingName] = useState("");
+        const [selectedParentId, setSelectedParentId] = useState("");
+        const [expandedFolders, setExpandedFolders] = useState({});
+
+        // Get top-level collections (no parent)
+        const getChildren = (parentId) =>
+          collections.filter((c) => (c.parentId || "") === (parentId || ""));
+
+        // Build breadcrumb path for a collection
+        const getBreadcrumb = (collectionId) => {
+          const path = [];
+          let current = collections.find((c) => c.id === collectionId);
+          while (current) {
+            path.unshift(current.name);
+            current = current.parentId
+              ? collections.find((c) => c.id === current.parentId)
+              : null;
+          }
+          return path.join(" > ");
+        };
+
+        // Get all descendant IDs (for preventing circular nesting)
+        const getDescendantIds = (id) => {
+          const ids = [];
+          const children = collections.filter((c) => c.parentId === id);
+          children.forEach((child) => {
+            ids.push(child.id);
+            ids.push(...getDescendantIds(child.id));
+          });
+          return ids;
+        };
+
+        const toggleFolder = (id) => {
+          setExpandedFolders((prev) => ({ ...prev, [id]: !prev[id] }));
+        };
 
         const handleCreateCollection = () => {
           if (!newCollectionName.trim()) {
@@ -13807,6 +14539,7 @@
             id: Date.now().toString(),
             name: newCollectionName,
             recipeIds: [],
+            parentId: selectedParentId || null,
             createdAt: new Date().toISOString(),
             mealPlanId: Date.now().toString(),
             nutritionData: {},
@@ -13826,15 +14559,22 @@
             },
           }));
           setNewCollectionName("");
+          setSelectedParentId("");
           addToast(
-            `Collection "${newCollectionName}" created with its own Meal Plan & Nutrition Dashboard!`,
+            `Collection "${newCollectionName}" created${selectedParentId ? " inside " + getBreadcrumb(selectedParentId) : ""}!`,
             "success",
           );
         };
 
         const handleDeleteCollection = (id) => {
-          if (confirm("Are you sure you want to delete this collection?")) {
-            setCollections(collections.filter((c) => c.id !== id));
+          const descendants = getDescendantIds(id);
+          const hasChildren = descendants.length > 0;
+          const msg = hasChildren
+            ? "This collection has sub-collections. Delete all of them?"
+            : "Are you sure you want to delete this collection?";
+          if (confirm(msg)) {
+            const idsToRemove = new Set([id, ...descendants]);
+            setCollections(collections.filter((c) => !idsToRemove.has(c.id)));
             addToast("Collection deleted", "success");
           }
         };
@@ -13875,7 +14615,7 @@
               </div>
 
               <div className="p-4 border-b border-gray-300 dark:border-gray-600">
-                <div className="flex gap-2">
+                <div className="flex gap-2 mb-2">
                   <input
                     type="text"
                     placeholder="New collection name..."
@@ -13893,6 +14633,19 @@
                     <i className="fas fa-plus mr-1"></i> Create
                   </button>
                 </div>
+                <select
+                  value={selectedParentId}
+                  onChange={(e) => setSelectedParentId(e.target.value)}
+                  className="w-full text-sm bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 focus:outline-none focus:border-green-500"
+                  title="Choose a parent folder (optional)"
+                >
+                  <option value="">No parent (top-level)</option>
+                  {collections.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {getBreadcrumb(c.id)}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex-1 overflow-y-auto p-4">
@@ -13902,115 +14655,164 @@
                     <p>No collections yet. Create your first one above!</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {collections.map((collection) => (
-                      <div
-                        key={collection.id}
-                        className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border-2 border-gray-200 dark:border-gray-600 hover:border-[#1f2937] transition cursor-pointer"
-                        onClick={() => {
-                          onSelectCollection(collection);
-                          onClose();
-                        }}
-                      >
-                        {editingId === collection.id ? (
-                          <div
-                            className="flex gap-2"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <input
-                              type="text"
-                              value={editingName}
-                              onChange={(e) => setEditingName(e.target.value)}
-                              onKeyPress={(e) => {
-                                if (e.key === "Enter")
-                                  handleRenameCollection(collection.id);
-                              }}
-                              className="modal-input-sm flex-1"
-                              autoFocus
-                            />
-                            <button
-                              onClick={() =>
-                                handleRenameCollection(collection.id)
-                              }
-                              className="text-green-500 hover:text-green-700"
-                            >
-                              <i className="fas fa-check"></i>
-                            </button>
-                            <button
-                              onClick={() => {
-                                setEditingId(null);
-                                setEditingName("");
-                              }}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <i className="fas fa-times"></i>
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex justify-between items-start mb-2">
-                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                <i className="fas fa-folder text-green-500 mr-2"></i>
-                                {collection.name}
-                              </h3>
+                  <div className="space-y-1">
+                    {(() => {
+                      const renderCollectionTree = (parentId, depth) => {
+                        const children = getChildren(parentId);
+                        if (children.length === 0) return null;
+                        return children.map((collection) => {
+                          const hasChildren =
+                            getChildren(collection.id).length > 0;
+                          const isExpanded = expandedFolders[collection.id];
+                          return (
+                            <div key={collection.id}>
                               <div
-                                className="flex gap-2"
-                                onClick={(e) => e.stopPropagation()}
+                                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border-2 border-gray-200 dark:border-gray-600 hover:border-[#1f2937] transition cursor-pointer mb-1"
+                                style={{ marginLeft: `${depth * 24}px` }}
+                                onClick={() => {
+                                  onSelectCollection(collection);
+                                  onClose();
+                                }}
                               >
-                                <button
-                                  onClick={() => {
-                                    setEditingId(collection.id);
-                                    setEditingName(collection.name);
-                                  }}
-                                  className="text-blue-500 hover:text-blue-700 text-sm"
-                                  title="Rename"
-                                >
-                                  <i className="fas fa-edit"></i>
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleDeleteCollection(collection.id)
-                                  }
-                                  className="text-red-500 hover:text-red-700 text-sm"
-                                  title="Delete"
-                                >
-                                  <i className="fas fa-trash"></i>
-                                </button>
+                                {editingId === collection.id ? (
+                                  <div
+                                    className="flex gap-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <input
+                                      type="text"
+                                      value={editingName}
+                                      onChange={(e) =>
+                                        setEditingName(e.target.value)
+                                      }
+                                      onKeyPress={(e) => {
+                                        if (e.key === "Enter")
+                                          handleRenameCollection(collection.id);
+                                      }}
+                                      className="modal-input-sm flex-1"
+                                      autoFocus
+                                    />
+                                    <button
+                                      onClick={() =>
+                                        handleRenameCollection(collection.id)
+                                      }
+                                      className="text-green-500 hover:text-green-700"
+                                    >
+                                      <i className="fas fa-check"></i>
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingId(null);
+                                        setEditingName("");
+                                      }}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      <i className="fas fa-times"></i>
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex justify-between items-start mb-1">
+                                      <h3 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+                                        {hasChildren && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              toggleFolder(collection.id);
+                                            }}
+                                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 mr-1 w-5 text-center"
+                                            title={
+                                              isExpanded ? "Collapse" : "Expand"
+                                            }
+                                          >
+                                            <i
+                                              className={`fas fa-chevron-${isExpanded ? "down" : "right"} text-xs`}
+                                            ></i>
+                                          </button>
+                                        )}
+                                        {!hasChildren && (
+                                          <span className="w-5 inline-block mr-1"></span>
+                                        )}
+                                        <i
+                                          className={`fas ${hasChildren ? "fa-folder-open" : "fa-folder"} text-green-500 mr-1`}
+                                        ></i>
+                                        {collection.name}
+                                      </h3>
+                                      <div
+                                        className="flex gap-2"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <button
+                                          onClick={() => {
+                                            setEditingId(collection.id);
+                                            setEditingName(collection.name);
+                                          }}
+                                          className="text-blue-500 hover:text-blue-700 text-sm"
+                                          title="Rename"
+                                        >
+                                          <i className="fas fa-edit"></i>
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            handleDeleteCollection(
+                                              collection.id,
+                                            )
+                                          }
+                                          className="text-red-500 hover:text-red-700 text-sm"
+                                          title="Delete"
+                                        >
+                                          <i className="fas fa-trash"></i>
+                                        </button>
+                                      </div>
+                                    </div>
+                                    {depth > 0 && (
+                                      <p className="text-xs text-gray-500 dark:text-gray-500 mb-1 ml-7">
+                                        {getBreadcrumb(collection.id)}
+                                      </p>
+                                    )}
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 ml-7">
+                                      {getRecipeCount(collection)} recipe
+                                      {getRecipeCount(collection) !== 1
+                                        ? "s"
+                                        : ""}
+                                    </p>
+                                    <div
+                                      className="flex gap-2 flex-wrap ml-7"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <button
+                                        onClick={() => {
+                                          onViewMealPlan(collection);
+                                        }}
+                                        className="text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded"
+                                        title="View Meal Plan"
+                                      >
+                                        <i className="fas fa-calendar-alt mr-1"></i>
+                                        Meal Plan
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          onViewNutrition(collection);
+                                        }}
+                                        className="text-xs bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded"
+                                        title="View Nutrition Dashboard"
+                                      >
+                                        <i className="fas fa-chart-bar mr-1"></i>
+                                        Nutrition
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
                               </div>
+                              {hasChildren &&
+                                isExpanded &&
+                                renderCollectionTree(collection.id, depth + 1)}
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                              {getRecipeCount(collection)} recipe
-                              {getRecipeCount(collection) !== 1 ? "s" : ""}
-                            </p>
-                            <div
-                              className="flex gap-2 flex-wrap"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <button
-                                onClick={() => {
-                                  onViewMealPlan(collection);
-                                }}
-                                className="text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded"
-                                title="View Meal Plan"
-                              >
-                                <i className="fas fa-calendar-alt mr-1"></i>Meal
-                                Plan
-                              </button>
-                              <button
-                                onClick={() => {
-                                  onViewNutrition(collection);
-                                }}
-                                className="text-xs bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded"
-                                title="View Nutrition Dashboard"
-                              >
-                                <i className="fas fa-chart-bar mr-1"></i>
-                                Nutrition
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    ))}
+                          );
+                        });
+                      };
+                      return renderCollectionTree("", 0);
+                    })()}
                   </div>
                 )}
               </div>
@@ -14198,6 +15000,7 @@
         setCollections,
         onRecipeUpdate,
         onOpenSide,
+        exportRecipeToPDF,
       }) => {
         const baseServings = recipe?.servings > 0 ? recipe.servings : 1;
         const [currentServings, setCurrentServings] = useState(baseServings);
@@ -14702,7 +15505,8 @@
                     {recipe.tags?.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-white"
+                        style={{ backgroundColor: getTagColor(tag) }}
                       >
                         <i className="fas fa-tag opacity-70"></i> {tag}
                       </span>
@@ -15196,6 +16000,16 @@
                         >
                           <i className="fas fa-print w-4 text-cyan-500"></i>
                           <span>Print Recipe</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            exportRecipeToPDF(recipe);
+                            setShowActionsMenu(false);
+                          }}
+                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center gap-3"
+                        >
+                          <i className="fas fa-file-pdf w-4 text-red-500"></i>
+                          <span>Export as PDF</span>
                         </button>
                         <button
                           onClick={() => {

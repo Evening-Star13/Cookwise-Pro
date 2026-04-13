@@ -697,6 +697,35 @@
       .shopping-list-border {
         border: 1px solid #22c55e;
       }
+
+      /* Tag Color Picker - Mobile Fix */
+      .tag-color-picker {
+        max-width: calc(100vw - 20px);
+        max-height: 50vh;
+        overflow-y: auto;
+      }
+
+      @media (max-width: 768px) {
+        .tag-color-picker {
+          position: fixed !important;
+          left: 50% !important;
+          top: 50% !important;
+          transform: translate(-50%, -50%) !important;
+          width: 220px;
+          max-height: 60vh;
+          overflow-y: auto;
+        }
+
+        .tag-color-picker-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 49;
+        }
+      }
     </style>
   </head>
   <body
@@ -2936,10 +2965,10 @@
           }
         };
 
-        const gridColsClass = {
-          compact: "grid-cols-3 sm:grid-cols-4 md:grid-cols-6",
-          normal: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4",
-          spacious: "grid-cols-2 md:grid-cols-3",
+        const masonryColsClass = {
+          compact: "columns-3 sm:columns-4 md:columns-6 lg:columns-7",
+          normal: "columns-2 sm:columns-3 md:columns-4 lg:columns-5",
+          spacious: "columns-2 md:columns-3 lg:columns-4",
         };
 
         useEffect(() => {
@@ -3056,14 +3085,14 @@
                   </div>
                 ) : (
                   <div
-                    className={`grid gap-3 ${gridColsClass[selectedPhotoDensity]}`}
+                    className={`${masonryColsClass[selectedPhotoDensity]} gap-3 space-y-3`}
                   >
                     {filteredPhotos.map((photo, idx) => {
                       const photoUrl = photo.url || photo;
                       return (
                         <div
                           key={photo.id}
-                          className="group relative rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-100 dark:bg-gray-700 aspect-square"
+                          className="group relative rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-100 dark:bg-gray-700 break-inside-avoid"
                           onClick={(e) => handlePhotoClick(e, photo, idx)}
                           onTouchEnd={(e) => handlePhotoClick(e, photo, idx)}
                         >
@@ -3072,10 +3101,10 @@
                             <img
                               src={photoUrl}
                               alt={photo.caption}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-300"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <div className="w-full h-40 flex items-center justify-center text-gray-400">
                               <i className="fas fa-image text-2xl opacity-50"></i>
                             </div>
                           )}
@@ -7096,6 +7125,7 @@
           useState(false);
         const [showPhotoAlbumModal, setShowPhotoAlbumModal] = useState(false);
         const [showConversionModal, setShowConversionModal] = useState(false);
+        const [showAllRecipesList, setShowAllRecipesList] = useState(false);
         // FAB removed per user request
 
         // Bulk Operations State
@@ -8984,6 +9014,7 @@
               setShowKeyboardShortcuts={setShowKeyboardShortcuts}
               setShowTutorial={setShowTutorial}
               setShowConversionModal={setShowConversionModal}
+              setShowAllRecipesList={setShowAllRecipesList}
               onLogout={onLogout}
               isDarkMode={isDarkMode}
               setIsDarkMode={setIsDarkMode}
@@ -9439,6 +9470,52 @@
             {showConversionModal && (
               <ConversionModal onClose={() => setShowConversionModal(false)} />
             )}
+            {showAllRecipesList && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl modal-scale-enter max-w-2xl w-full my-8">
+                  <div className="modal-header bg-white dark:bg-gray-800 flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                      All Recipes ({recipes?.length || 0})
+                    </h2>
+                    <button
+                      onClick={() => setShowAllRecipesList(false)}
+                      className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl"
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div className="p-6 max-h-96 overflow-y-auto">
+                    {recipes && recipes.length > 0 ? (
+                      <div className="space-y-2">
+                        {recipes.map((recipe) => (
+                          <button
+                            key={recipe.id}
+                            onClick={() => {
+                              setShowRecipeDetails(recipe);
+                              setShowAllRecipesList(false);
+                            }}
+                            className="w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
+                          >
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {recipe.name}
+                            </div>
+                            {recipe.course && (
+                              <div className="text-sm text-gray-600 dark:text-gray-400">
+                                {recipe.course}
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center text-gray-500 dark:text-gray-400">
+                        No recipes found
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* BATCH TAGS MODAL */}
             {showBulkTagModal && (
@@ -9610,6 +9687,7 @@
         setShowKeyboardShortcuts,
         setShowTutorial,
         setShowConversionModal,
+        setShowAllRecipesList,
         onLogout,
         isDarkMode,
         setIsDarkMode,
@@ -9893,6 +9971,11 @@
             label: "All Recipes",
             icon: "fas fa-list-alt",
             action: handleToggleAllRecipes,
+          },
+          {
+            label: "View All Recipes",
+            icon: "fas fa-book",
+            action: () => setShowAllRecipesList(true),
           },
           {
             label: "Tutorial",
@@ -12739,11 +12822,33 @@
         return colors[tagName.toLowerCase()] || "#10b981";
       };
 
-      const TagInput = ({ tags, setTags, maxTags = 10, addToast }) => {
+      const TagInput = ({
+        tags,
+        setTags,
+        maxTags = 10,
+        addToast,
+        recipes = [],
+      }) => {
         const [inputValue, setInputValue] = useState("");
         const [colorPickerTag, setColorPickerTag] = useState(null);
         const [customColor, setCustomColor] = useState("");
         const [, forceUpdate] = useState(0);
+        const [showExistingTags, setShowExistingTags] = useState(false);
+
+        // Get all unique tags from existing recipes
+        const existingTags = useMemo(() => {
+          const allTags = new Set();
+          recipes.forEach((recipe) => {
+            if (Array.isArray(recipe.tags)) {
+              recipe.tags.forEach((tag) => {
+                if (tag && !tags.includes(tag)) {
+                  allTags.add(tag);
+                }
+              });
+            }
+          });
+          return Array.from(allTags).sort();
+        }, [recipes, tags]);
 
         const handleKeyDown = (e) => {
           if (e.key === "Enter" || e.key === ",") {
@@ -12792,153 +12897,247 @@
         };
 
         return (
-          <div className="tag-input-container">
-            {tags.map((tag, index) => (
-              <span
-                key={index}
-                className="tag-item"
-                style={{
-                  backgroundColor: getTagColor(tag),
-                  position: "relative",
-                }}
-              >
-                {tag}
-                <button
-                  type="button"
+          <>
+            <div className="tag-input-container">
+              {tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="tag-item"
                   style={{
-                    background: "none",
-                    border: "none",
-                    color: "white",
-                    marginLeft: "2px",
-                    cursor: "pointer",
-                    fontSize: "0.7rem",
-                    opacity: 0.8,
-                    padding: "0 2px",
+                    backgroundColor: getTagColor(tag),
+                    position: "relative",
                   }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setColorPickerTag(colorPickerTag === tag ? null : tag);
-                  }}
-                  title="Change color"
                 >
-                  <i className="fas fa-palette"></i>
-                </button>
-                <button
-                  type="button"
-                  className="tag-item-remove"
-                  onClick={() => removeTag(index)}
-                  aria-label={`Remove tag ${tag}`}
-                >
-                  &times;
-                </button>
-                {colorPickerTag === tag && (
-                  <div
+                  {tag}
+                  <button
+                    type="button"
                     style={{
-                      position: "absolute",
-                      top: "100%",
-                      right: 0,
-                      zIndex: 50,
-                      background: "#1f2937",
-                      borderRadius: "8px",
-                      padding: "6px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "6px",
-                      width: "180px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                      marginTop: "4px",
+                      background: "none",
+                      border: "none",
+                      color: "white",
+                      marginLeft: "2px",
+                      cursor: "pointer",
+                      fontSize: "0.7rem",
+                      opacity: 0.8,
+                      padding: "0 2px",
                     }}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setColorPickerTag(colorPickerTag === tag ? null : tag);
+                    }}
+                    title="Change color"
                   >
+                    <i className="fas fa-palette"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="tag-item-remove"
+                    onClick={() => removeTag(index)}
+                    aria-label={`Remove tag ${tag}`}
+                  >
+                    &times;
+                  </button>
+                  {colorPickerTag === tag && (
                     <div
+                      className="tag-color-picker"
                       style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "3px",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {TAG_COLOR_PALETTE.map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => assignColor(tag, c)}
-                          style={{
-                            width: "20px",
-                            height: "20px",
-                            borderRadius: "50%",
-                            backgroundColor: c,
-                            border:
-                              getTagColor(tag) === c
-                                ? "2px solid white"
-                                : "1px solid #374151",
-                            cursor: "pointer",
-                            padding: 0,
-                          }}
-                          title={c}
-                        />
-                      ))}
-                    </div>
-                    <div
-                      style={{
-                        borderTop: "1px solid #374151",
-                        paddingTop: "4px",
+                        position: "absolute",
+                        top: "100%",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        zIndex: 50,
+                        background: "#1f2937",
+                        borderRadius: "8px",
+                        padding: "6px",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "4px",
+                        gap: "6px",
+                        width: "180px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                        marginTop: "4px",
                       }}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <input
-                        type="text"
-                        placeholder="#FF5733"
-                        value={customColor}
-                        onChange={(e) => setCustomColor(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter") applyCustomColor(tag);
-                          e.stopPropagation();
-                        }}
+                      <div
                         style={{
-                          width: "100%",
-                          padding: "3px 4px",
-                          fontSize: "0.7rem",
-                          background: "#111827",
-                          border: "1px solid #374151",
-                          borderRadius: "3px",
-                          color: "#e5e7eb",
-                          boxSizing: "border-box",
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => applyCustomColor(tag)}
-                        style={{
-                          width: "100%",
-                          padding: "3px 4px",
-                          fontSize: "0.7rem",
-                          background: "#059669",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "3px",
-                          cursor: "pointer",
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "3px",
+                          justifyContent: "center",
                         }}
                       >
-                        Apply
-                      </button>
+                        {TAG_COLOR_PALETTE.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => assignColor(tag, c)}
+                            style={{
+                              width: "20px",
+                              height: "20px",
+                              borderRadius: "50%",
+                              backgroundColor: c,
+                              border:
+                                getTagColor(tag) === c
+                                  ? "2px solid white"
+                                  : "1px solid #374151",
+                              cursor: "pointer",
+                              padding: 0,
+                            }}
+                            title={c}
+                          />
+                        ))}
+                      </div>
+                      <div
+                        style={{
+                          borderTop: "1px solid #374151",
+                          paddingTop: "4px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "4px",
+                        }}
+                      >
+                        <input
+                          type="text"
+                          placeholder="#FF5733"
+                          value={customColor}
+                          onChange={(e) => setCustomColor(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") applyCustomColor(tag);
+                            e.stopPropagation();
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "3px 4px",
+                            fontSize: "0.7rem",
+                            background: "#111827",
+                            border: "1px solid #374151",
+                            borderRadius: "3px",
+                            color: "#e5e7eb",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => applyCustomColor(tag)}
+                          style={{
+                            width: "100%",
+                            padding: "3px 4px",
+                            fontSize: "0.7rem",
+                            background: "#059669",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "3px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Apply
+                        </button>
+                      </div>
                     </div>
+                  )}
+                </span>
+              ))}
+              <button
+                type="button"
+                onClick={() => setShowExistingTags(!showExistingTags)}
+                className="ml-2 mr-2 px-2 py-1 bg-green-500 hover:bg-green-600 text-black rounded text-xs transition"
+                title="Browse existing tags"
+                aria-label="Show existing tags"
+              >
+                <i className="fas fa-list"></i>
+              </button>
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Add a tag"
+                className="flex-grow border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-transparent"
+                aria-label="Tag input"
+              />
+              {colorPickerTag && (
+                <div
+                  className="tag-color-picker-overlay"
+                  onClick={() => setColorPickerTag(null)}
+                />
+              )}
+            </div>
+
+            {/* Existing Tags Popup */}
+            {showExistingTags && existingTags.length > 0 && (
+              <div
+                className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+                onClick={() => setShowExistingTags(false)}
+              >
+                <div
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-4 w-full max-w-sm max-h-96 overflow-y-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">
+                    Existing Tags ({existingTags.length})
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {existingTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => {
+                          if (!tags.includes(tag)) {
+                            if (tags.length < maxTags) {
+                              setTags([...tags, tag]);
+                              addToast(`Added tag: ${tag}`, "success");
+                            } else {
+                              addToast(
+                                `Maximum ${maxTags} tags allowed.`,
+                                "error",
+                              );
+                            }
+                          } else {
+                            addToast(`Tag "${tag}" already added.`, "info");
+                          }
+                        }}
+                        className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm transition cursor-pointer"
+                        title={`Add tag: ${tag}`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
                   </div>
-                )}
-              </span>
-            ))}
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Add a tag"
-              className="flex-grow border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-transparent"
-              aria-label="Tag input"
-            />
-          </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowExistingTags(false)}
+                    className="mt-4 w-full px-3 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Empty State Message */}
+            {showExistingTags && existingTags.length === 0 && (
+              <div
+                className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+                onClick={() => setShowExistingTags(false)}
+              >
+                <div
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-4 w-full max-w-sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
+                    No existing tags found. Start creating new tags!
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowExistingTags(false)}
+                    className="w-full px-3 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         );
       };
 
@@ -13491,9 +13690,11 @@
                           <option value="Lunch">Lunch</option>
                           <option value="Marinades">Marinades</option>
                           <option value="Pizza">Pizza</option>
+                          <option value="Preserves">Preserves</option>
                           <option value="Salads">Salads</option>
                           <option value="Seasonings">Seasonings</option>
                           <option value="Sides">Sides</option>
+                          <option value="Snacks">Snacks</option>
                           <option value="Soups/Stews">Soups/Stews</option>
                         </select>
                         <ErrorMessage name="course" />
@@ -13544,6 +13745,7 @@
                           tags={tags}
                           setTags={setTags}
                           addToast={addToast}
+                          recipes={recipes}
                         />
                         <ErrorMessage name="tags" />
                       </div>

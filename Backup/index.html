@@ -8541,6 +8541,9 @@
                 const descMatch = recipe.description
                   ?.toLowerCase()
                   .includes(normalizedQuery);
+                const cuisineMatch = recipe.cuisine
+                  ?.toLowerCase()
+                  .includes(normalizedQuery);
                 const ingredientsMatch = (recipe.ingredients || []).some(
                   (ing) => ing.toLowerCase().includes(normalizedQuery),
                 );
@@ -8554,6 +8557,7 @@
                   nameMatch ||
                   typeMatch ||
                   descMatch ||
+                  cuisineMatch ||
                   ingredientsMatch ||
                   directionsMatch ||
                   notesMatch;
@@ -8594,7 +8598,16 @@
                   matchesCuisine =
                     !recipe.cuisine || recipe.cuisine.trim() === "";
                 } else {
-                  matchesCuisine = recipe.cuisine === filters.cuisine;
+                  const recipeCuisineLower = (recipe.cuisine || "")
+                    .toLowerCase()
+                    .trim();
+                  const filterCuisineLower = filters.cuisine
+                    .toLowerCase()
+                    .trim();
+                  matchesCuisine =
+                    recipeCuisineLower === filterCuisineLower ||
+                    recipeCuisineLower.startsWith(filterCuisineLower + "/") ||
+                    recipeCuisineLower.includes("/" + filterCuisineLower);
                 }
               }
 
@@ -8629,7 +8642,7 @@
               // Filter by rating if specified
               const matchesRating =
                 filters.rating !== undefined && filters.rating !== ""
-                  ? recipe.rating !== undefined
+                  ? recipe.rating !== undefined && recipe.rating !== null
                     ? recipe.rating.toString() === filters.rating
                     : false
                   : true;
@@ -9108,6 +9121,7 @@
                     mealPlan={mealPlan}
                     openRecipeDetails={(recipe) => setShowRecipeDetails(recipe)}
                     toggleFavorite={toggleFavorite}
+                    removeMealFromPlan={removeMealFromPlan}
                   />
                   <RecipeList
                     recipes={recipes.map((r) => ({
@@ -9157,6 +9171,7 @@
                     }
                     removeRecipeFromCollection={removeRecipeFromCollection}
                     mealPlan={mealPlan}
+                    updateMealPlan={updateMealPlan}
                   />
                 </>
               )}
@@ -10525,10 +10540,17 @@
         mealPlan,
         openRecipeDetails,
         toggleFavorite,
+        removeMealFromPlan,
       }) => {
         const [expandRecent, setExpandRecent] = useState(false);
         const [expandFrequent, setExpandFrequent] = useState(false);
         const [expandPlanned, setExpandPlanned] = useState(false);
+        const [hoveredPlannedRecipe, setHoveredPlannedRecipe] = useState(null);
+        const [expandedMealDays, setExpandedMealDays] = useState({});
+
+        const toggleMealDay = (day) => {
+          setExpandedMealDays((prev) => ({ ...prev, [day]: !prev[day] }));
+        };
 
         // Calculate stats
         const totalRecipes = recipes.filter((r) => r && r.name).length;
@@ -10694,6 +10716,26 @@
           }
           return recipes.filter((r) => uniqueRecipeIds.has(r.id));
         }, [recipes, mealPlan]);
+
+        // Build a mapping from recipeId to meal plan info (dates and meal times)
+        const recipeMealPlanInfo = useMemo(() => {
+          const info = {};
+          for (const day in mealPlan) {
+            if (mealPlan[day]) {
+              for (const mealType in mealPlan[day]) {
+                if (Array.isArray(mealPlan[day][mealType])) {
+                  mealPlan[day][mealType].forEach((recipeId) => {
+                    if (!info[recipeId]) {
+                      info[recipeId] = [];
+                    }
+                    info[recipeId].push({ date: day, mealTime: mealType });
+                  });
+                }
+              }
+            }
+          }
+          return info;
+        }, [mealPlan]);
 
         // Get frequently cooked recipes (sorted by rating and number of uses in meal plans)
         const frequentRecipes = useMemo(() => {
@@ -11226,93 +11268,307 @@
                   Planned Meals
                 </button>
                 {expandPlanned && (
-                  <div className="relative">
-                    {/* Carousel Container */}
-                    <div
-                      id="planned-carousel"
-                      className="carousel-container flex overflow-x-auto snap-x gap-4 pb-4 scrollbar-hide"
-                    >
-                      {plannedMealRecipes.slice(0, 20).map((recipe) => (
-                        <div
-                          key={recipe.id}
-                          onClick={() => openRecipeDetails(recipe)}
-                          className="carousel-card w-56 sm:w-64 group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg cursor-pointer transform hover:scale-105 snap-start"
-                        >
-                          {/* Image */}
-                          <div className="aspect-video bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
-                            {recipe.image ? (
-                              <img
-                                src={recipe.image}
-                                alt={recipe.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
-                                <i className="fas fa-image text-3xl opacity-50"></i>
-                              </div>
-                            )}
+                  <>
+                    <div className="relative">
+                      {/* Carousel Container */}
+                      <div
+                        id="planned-carousel"
+                        className="carousel-container flex overflow-x-auto snap-x gap-4 pb-4 scrollbar-hide"
+                      >
+                        {plannedMealRecipes.slice(0, 20).map((recipe) => (
+                          <div
+                            key={recipe.id}
+                            onClick={() => openRecipeDetails(recipe)}
+                            onMouseEnter={() =>
+                              setHoveredPlannedRecipe(recipe.id)
+                            }
+                            onMouseLeave={() => setHoveredPlannedRecipe(null)}
+                            className="carousel-card w-56 sm:w-64 bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg cursor-pointer transform hover:scale-105 snap-start"
+                          >
+                            {/* Image */}
+                            <div className="aspect-video bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
+                              {/* Meal Plan Badge */}
+                              {recipeMealPlanInfo[recipe.id] &&
+                                recipeMealPlanInfo[recipe.id].length > 0 && (
+                                  <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 z-10">
+                                    <i className="fas fa-calendar"></i>
+                                    <span>
+                                      {recipeMealPlanInfo[recipe.id].length}
+                                    </span>
+                                  </div>
+                                )}
+                              {recipe.image ? (
+                                <img
+                                  src={recipe.image}
+                                  alt={recipe.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                                  <i className="fas fa-image text-3xl opacity-50"></i>
+                                </div>
+                              )}
 
-                            {/* Overlay with favorite button */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleFavorite(recipe.id);
-                                }}
-                                className={`ml-auto text-2xl transition-colors ${
-                                  recipe.isFavorite
-                                    ? "text-yellow-400"
-                                    : "text-white hover:text-yellow-300"
-                                }`}
-                              >
-                                <i
-                                  className={`fa-star ${
-                                    recipe.isFavorite ? "fas" : "far"
+                              {/* Overlay with favorite button */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleFavorite(recipe.id);
+                                  }}
+                                  className={`ml-auto text-2xl transition-colors ${
+                                    recipe.isFavorite
+                                      ? "text-yellow-400"
+                                      : "text-white hover:text-yellow-300"
                                   }`}
-                                ></i>
-                              </button>
+                                >
+                                  <i
+                                    className={`fa-star ${
+                                      recipe.isFavorite ? "fas" : "far"
+                                    }`}
+                                  ></i>
+                                </button>
+                              </div>
                             </div>
-                          </div>
 
-                          {/* Content */}
-                          <div className="p-3">
-                            <h4 className="font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2">
-                              {recipe.name}
-                            </h4>
-                            <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                              {recipe.prepTime && (
-                                <span className="flex items-center gap-1">
-                                  <i className="fas fa-clock"></i>
-                                  {recipe.prepTime}m
-                                </span>
-                              )}
-                              {recipe.cookTime && (
-                                <span className="flex items-center gap-1">
-                                  <i className="fas fa-fire"></i>
-                                  {recipe.cookTime}m
-                                </span>
-                              )}
+                            {/* Content */}
+                            <div className="p-3">
+                              <h4 className="font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2">
+                                {recipe.name}
+                              </h4>
+                              <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                {recipe.prepTime && (
+                                  <span className="flex items-center gap-1">
+                                    <i className="fas fa-clock"></i>
+                                    {recipe.prepTime}m
+                                  </span>
+                                )}
+                                {recipe.cookTime && (
+                                  <span className="flex items-center gap-1">
+                                    <i className="fas fa-fire"></i>
+                                    {recipe.cookTime}m
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                      {/* Navigation Arrows */}
+                      <button
+                        id="planned-prev"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 sm:-translate-x-6 bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-gray-200 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all z-10"
+                        aria-label="Previous"
+                      >
+                        <i className="fas fa-chevron-left text-xl"></i>
+                      </button>
+                      <button
+                        id="planned-next"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 sm:translate-x-6 bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-gray-200 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all z-10"
+                        aria-label="Next"
+                      >
+                        <i className="fas fa-chevron-right text-xl"></i>
+                      </button>
                     </div>
-                    {/* Navigation Arrows */}
-                    <button
-                      id="planned-prev"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 sm:-translate-x-6 bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-gray-200 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all z-10"
-                      aria-label="Previous"
-                    >
-                      <i className="fas fa-chevron-left text-xl"></i>
-                    </button>
-                    <button
-                      id="planned-next"
-                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 sm:translate-x-6 bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-gray-200 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all z-10"
-                      aria-label="Next"
-                    >
-                      <i className="fas fa-chevron-right text-xl"></i>
-                    </button>
-                  </div>
+
+                    {/* Hover Tooltip for Planned Meals */}
+                    {hoveredPlannedRecipe &&
+                      recipeMealPlanInfo[hoveredPlannedRecipe] &&
+                      recipeMealPlanInfo[hoveredPlannedRecipe].length > 0 && (
+                        <div className="mt-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-100 text-xs rounded-lg p-3 shadow-xl max-w-sm mx-auto">
+                          <div className="font-semibold mb-1">
+                            Planned:{" "}
+                            {(() => {
+                              const recipe = plannedMealRecipes.find(
+                                (r) => r.id === hoveredPlannedRecipe,
+                              );
+                              return recipe ? recipe.name : "";
+                            })()}
+                          </div>
+                          {recipeMealPlanInfo[hoveredPlannedRecipe].map(
+                            (info, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-1 py-0.5"
+                              >
+                                <i className="fas fa-calendar text-green-400 mr-1"></i>
+                                <span>{info.date}</span>
+                                <span className="text-green-400 ml-1">
+                                  ({info.mealTime})
+                                </span>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      )}
+
+                    {/* Full Meal Plan Overview */}
+                    <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <i className="fas fa-calendar-week text-blue-500"></i>
+                        Full Meal Plan
+                      </h3>
+                      <div className="space-y-4">
+                        {(() => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const parseDate = (dayStr) => {
+                            const todayYear = today.getFullYear();
+                            const todayMonth = today.getMonth();
+                            const todayDate = today.getDate();
+                            const parts = dayStr.replace(/,/g, "").split(" ");
+                            if (parts.length < 3) return null;
+                            const monthStr = parts[parts.length - 2];
+                            const dayNum = parseInt(parts[parts.length - 1]);
+                            if (isNaN(dayNum)) return null;
+                            const months = [
+                              "Jan",
+                              "Feb",
+                              "Mar",
+                              "Apr",
+                              "May",
+                              "Jun",
+                              "Jul",
+                              "Aug",
+                              "Sep",
+                              "Oct",
+                              "Nov",
+                              "Dec",
+                            ];
+                            const monthIdx = months.indexOf(monthStr);
+                            if (monthIdx === -1) return null;
+                            const year =
+                              monthIdx < todayMonth ? todayYear + 1 : todayYear;
+                            return new Date(year, monthIdx, dayNum);
+                          };
+                          const hasRecipes = (dayMeals) => {
+                            if (!dayMeals) return false;
+                            for (const mt in dayMeals) {
+                              if (
+                                Array.isArray(dayMeals[mt]) &&
+                                dayMeals[mt].length > 0
+                              )
+                                return true;
+                            }
+                            return false;
+                          };
+                          return Object.keys(mealPlan)
+                            .filter((day) => {
+                              const dayMeals = mealPlan[day];
+                              if (!hasRecipes(dayMeals)) return false;
+                              const d = parseDate(day);
+                              if (!d) return true;
+                              d.setHours(0, 0, 0, 0);
+                              return d >= today;
+                            })
+                            .sort()
+                            .map((day) => {
+                              const dayMeals = mealPlan[day];
+                              if (!dayMeals) return null;
+                              const mealTimes = Object.keys(dayMeals).sort();
+                              if (mealTimes.length === 0) return null;
+
+                              return (
+                                <div
+                                  key={day}
+                                  className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+                                >
+                                  <div
+                                    className="bg-gray-50 dark:bg-gray-700 px-4 py-2 font-semibold text-gray-900 dark:text-white text-sm flex items-center justify-between cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                    onClick={() => toggleMealDay(day)}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <i className="fas fa-calendar-day text-green-500"></i>
+                                      <span>{day}</span>
+                                    </div>
+                                    <i
+                                      className={`fas fa-chevron-down transition-transform duration-200 ${expandedMealDays[day] ? "rotate-180" : ""}`}
+                                    ></i>
+                                  </div>
+                                  <div
+                                    className={`divide-y divide-gray-200 dark:divide-gray-700 overflow-hidden transition-all duration-200 ${expandedMealDays[day] ? "max-h-[2000px]" : "max-h-0"}`}
+                                  >
+                                    {mealTimes.map((mealTime) => {
+                                      const recipeIds = dayMeals[mealTime];
+                                      if (
+                                        !Array.isArray(recipeIds) ||
+                                        recipeIds.length === 0
+                                      )
+                                        return null;
+
+                                      return (
+                                        <div
+                                          key={mealTime}
+                                          className="px-4 py-3"
+                                        >
+                                          <div className="flex items-center gap-2 mb-2">
+                                            <i
+                                              className={`fas ${mealTime === "breakfast" ? "fa-sun text-yellow-500" : mealTime === "lunch" ? "fa-cloud-sun text-orange-500" : "fa-moon text-blue-500"} text-sm`}
+                                            ></i>
+                                            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 capitalize">
+                                              {mealTime}
+                                            </span>
+                                          </div>
+                                          <div className="space-y-1">
+                                            {recipeIds.map((recipeId) => {
+                                              const recipe = recipes.find(
+                                                (r) => r.id === recipeId,
+                                              );
+                                              if (!recipe) return null;
+                                              return (
+                                                <div
+                                                  key={recipeId}
+                                                  className="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
+                                                >
+                                                  <div
+                                                    onClick={() =>
+                                                      openRecipeDetails(recipe)
+                                                    }
+                                                    className="flex items-center gap-2 flex-1 cursor-pointer"
+                                                  >
+                                                    {recipe.image ? (
+                                                      <img
+                                                        src={recipe.image}
+                                                        alt={recipe.name}
+                                                        className="w-8 h-8 rounded object-cover flex-shrink-0"
+                                                      />
+                                                    ) : (
+                                                      <div className="w-8 h-8 rounded bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
+                                                        <i className="fas fa-utensils text-xs text-gray-400"></i>
+                                                      </div>
+                                                    )}
+                                                    <span className="text-sm text-gray-900 dark:text-white font-medium truncate">
+                                                      {recipe.name}
+                                                    </span>
+                                                  </div>
+                                                  <button
+                                                    onClick={() =>
+                                                      removeMealFromPlan(
+                                                        day,
+                                                        mealTime,
+                                                        recipeId,
+                                                      )
+                                                    }
+                                                    className="text-red-400 hover:text-red-600 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                                    title="Remove from meal plan"
+                                                  >
+                                                    <i className="fas fa-trash-alt text-xs"></i>
+                                                  </button>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            });
+                        })()}
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -11346,6 +11602,7 @@
         setRecipeToAddToCollectionMealPlan,
         removeRecipeFromCollection,
         mealPlan,
+        updateMealPlan,
       }) => {
         const [filteredRecipes, setFilteredRecipes] = useState([]);
         // Random daily feature recipes shown on app open
@@ -11357,6 +11614,12 @@
           tags: [],
         });
         const [typeModal, setTypeModal] = useState({ open: false, type: null });
+        const [planModal, setPlanModal] = useState({
+          open: false,
+          recipeId: null,
+          date: "",
+          mealTime: "breakfast",
+        });
         const [activeCollection, setActiveCollection] = useState(null);
         const [filters, setFilters] = useState({
           query: "",
@@ -12468,12 +12731,16 @@
                             onClick={(e) => {
                               e.stopPropagation();
                               const today = new Date();
-                              today.setHours(0, 0, 0, 0);
                               const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-                              updateMealPlan(dateKey, "dinner", recipe.id);
+                              setPlanModal({
+                                open: true,
+                                recipeId: recipe.id,
+                                date: dateKey,
+                                mealTime: "breakfast",
+                              });
                             }}
                             className="flex-1 min-w-[45px] py-2 px-2.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transform hover:scale-105 active:scale-95"
-                            title="Add to today's dinner"
+                            title="Add to meal plan"
                           >
                             <i className="fas fa-calendar-plus"></i>
                             <span className="hidden md:inline">Plan</span>
@@ -12728,6 +12995,106 @@
                           </div>
                         ))
                     )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Plan Meal Modal */}
+            {planModal.open && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 modal-fade"
+                onClick={() =>
+                  setPlanModal({
+                    open: false,
+                    recipeId: null,
+                    date: "",
+                    mealTime: "breakfast",
+                  })
+                }
+              >
+                <div
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full relative modal-fade"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl ripple"
+                    onClick={() =>
+                      setPlanModal({
+                        open: false,
+                        recipeId: null,
+                        date: "",
+                        mealTime: "breakfast",
+                      })
+                    }
+                  >
+                    &times;
+                  </button>
+                  <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                    <i className="fas fa-calendar-plus text-indigo-500 mr-2"></i>
+                    Plan Meal
+                  </h2>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={planModal.date}
+                        onChange={(e) =>
+                          setPlanModal((prev) => ({
+                            ...prev,
+                            date: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 [color-scheme:dark]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Meal Time
+                      </label>
+                      <select
+                        value={planModal.mealTime}
+                        onChange={(e) =>
+                          setPlanModal((prev) => ({
+                            ...prev,
+                            mealTime: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="breakfast">Breakfast</option>
+                        <option value="lunch">Lunch</option>
+                        <option value="dinner">Dinner</option>
+                        <option value="snack">Snack</option>
+                      </select>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (
+                          planModal.date &&
+                          planModal.mealTime &&
+                          planModal.recipeId
+                        ) {
+                          updateMealPlan(
+                            planModal.date,
+                            planModal.mealTime,
+                            planModal.recipeId,
+                          );
+                          setPlanModal({
+                            open: false,
+                            recipeId: null,
+                            date: "",
+                            mealTime: "breakfast",
+                          });
+                        }
+                      }}
+                      className="w-full py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg transition-colors"
+                    >
+                      Add to Meal Plan
+                    </button>
                   </div>
                 </div>
               </div>
